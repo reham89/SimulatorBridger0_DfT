@@ -6,3 +6,13 @@ stats/
 stats/*
 reham*
 *.csv
+# Default ignored files
+/shelf/
+/.idea
+/target
+# Datasource local storage ignored files
+/dataSources/
+/dataSources.local.xml
+# Editor-based HTTP Client requests
+/httpRequests/
+/IoTSim-Osmosis-RES.iml
