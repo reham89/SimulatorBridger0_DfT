@@ -3,11 +3,9 @@ package uk.ncl.giacomobergami.traffic_orchestrator;
 import uk.ncl.giacomobergami.utils.data.YAML;
 
 import java.io.File;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.Optional;
 
-public class Main {
+public class TrafficOrchestratorRunner {
     private static Class<?> clazz;
     private static Orchestrator obj;
 
@@ -18,11 +16,12 @@ public class Main {
         return obj;
     }
 
-    public static void convert(String configuration) {
+    public static void orchestrate(String configuration) {
         Optional<OrchestratorConfigurator> conf = YAML.parse(OrchestratorConfigurator.class, new File(configuration));
         conf.ifPresent(x -> {
             Orchestrator conv = generateFacade(x);
             conv.run();
+            conv.serializeAll();
         });
     }
 
@@ -31,6 +30,6 @@ public class Main {
         if (args.length > 0) {
             configuration = args[0];
         }
-        convert(configuration);
+        orchestrate(configuration);
     }
 }

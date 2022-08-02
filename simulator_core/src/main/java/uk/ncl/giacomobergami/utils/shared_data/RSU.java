@@ -1,5 +1,6 @@
 package uk.ncl.giacomobergami.utils.shared_data;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
@@ -16,7 +17,7 @@ import java.util.Objects;
         "communication_radius",
         "max_vehicle_communication"
 })
-@JsonIgnoreProperties({"x, y"})
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class RSU implements CartesianPoint {
     @JsonProperty("tl_id")
     public String tl_id;
@@ -33,6 +34,7 @@ public class RSU implements CartesianPoint {
     @JsonProperty("max_vehicle_communication")
     public double max_vehicle_communication;
 
+    @JsonIgnore
     public RSUProgram program_rsu;
 
     public RSUProgram getProgram_rsu() {

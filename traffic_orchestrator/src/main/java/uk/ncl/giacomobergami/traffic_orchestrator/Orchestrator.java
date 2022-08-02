@@ -10,7 +10,6 @@ import uk.ncl.giacomobergami.traffic_orchestrator.solver.LocalTimeOptimizationPr
 import uk.ncl.giacomobergami.traffic_orchestrator.solver.TemporalNetworkingRanking;
 import uk.ncl.giacomobergami.utils.algorithms.ClusterDifference;
 import uk.ncl.giacomobergami.utils.algorithms.StringComparator;
-import uk.ncl.giacomobergami.utils.data.YAML;
 import uk.ncl.giacomobergami.utils.gir.SquaredCartesianDistanceFunction;
 import uk.ncl.giacomobergami.utils.shared_data.*;
 import uk.ncl.giacomobergami.utils.structures.ConcretePair;
@@ -19,6 +18,7 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public class Orchestrator {
@@ -28,17 +28,29 @@ public class Orchestrator {
     protected TimedVehicleMediator vehm;
     Comparator<double[]> comparator;
     Gson gson;
+    File statsFolder;
+    HashMap<Double, Long> problemSolvingTime;
+    CandidateSolutionParameters candidate;
+    HashMap<String, Vehicle> reconstructVehicles;
+    List<RSU> tls;
+    HashMap<String, RSU> rsuProgramHashMap;
 
     public Orchestrator(OrchestratorConfigurator conf) {
         this.conf = conf;
         rsum = new RSUMediator();
         vehm = new TimedVehicleMediator();
         gson = new GsonBuilder().setPrettyPrinting().create();
+        statsFolder = new File(conf.output_stats_folder);
+        candidate = null;
         if (conf.use_pareto_front) {
             comparator = Pareto::dominance;
         } else {
             comparator = Comparator.comparingDouble(o -> o[0] * conf.p1 + o[1] * conf.p2 + o[2] * (1 - conf.p1  - conf.p2));
         }
+        problemSolvingTime = new HashMap<>();
+        reconstructVehicles = new HashMap<>();
+        tls = Collections.emptyList();
+        rsuProgramHashMap = new HashMap<>();
     }
 
     protected boolean write_json(File folder, String filename, Object writable)  {
@@ -94,17 +106,27 @@ public class Orchestrator {
     }
 
     public void run() {
-        File statsFolder = new File(conf.output_stats_folder);
-        List<RSU> tls = readRSU();
+        candidate = null;
+        tls = readRSU();
+        if (tls.isEmpty()) {
+            System.err.println("WARNING: tls are empty!");
+            return;
+        }
         HashSet<String> vehId = new HashSet<>();
+        problemSolvingTime.clear();
         SquaredCartesianDistanceFunction f = new SquaredCartesianDistanceFunction();
-        HashMap<Double, Long> problemSolvingTime = new HashMap<>();
         List<Double> temporalOrdering = new ArrayList<>();
-        HashMap<String, Vehicle> reconstructVehicles = new HashMap<>();
-        HashMap<String, RSU> rsuProgramHashMap = new HashMap<>();
+
+        reconstructVehicles.clear();
+        rsuProgramHashMap.clear();
         tls.forEach(x -> rsuProgramHashMap.put(x.tl_id, x));
         HashMap<Double, ArrayList<LocalTimeOptimizationProblem.Solution>> simulationSolutions = new HashMap<>();
-        for (var simTimeToVehicles : readVehicles().entrySet()) {
+        var vehSet = readVehicles().entrySet();
+        if (vehSet == null || vehSet.isEmpty()) {
+            System.err.println("WARNING: vechicles are empty!");
+            return;
+        }
+        for (var simTimeToVehicles : vehSet) {
             simTimeToVehicles.getValue().forEach(x -> vehId.add(x.id));
             var currTime = simTimeToVehicles.getKey();
             List<TimedVehicle> vehs2 = simTimeToVehicles.getValue();
@@ -141,7 +163,6 @@ public class Orchestrator {
                 temporalOrdering.add(currTime);
             }
         }
-        write_json(statsFolder, "solver_time.json", problemSolvingTime);
 
         List<String> tls_s = tls.stream().map(x -> x.tl_id).collect(Collectors.toList());
         List<String> veh_s = new ArrayList<>(vehId);
@@ -153,7 +174,7 @@ public class Orchestrator {
         } else {
             Double bestResultScore = Double.MAX_VALUE;
 
-            CandidateSolutionParameters candidate = new CandidateSolutionParameters();
+            candidate = new CandidateSolutionParameters();
             var multiplicity = simulationSolutions.values().stream().mapToInt(ArrayList::size).reduce((a, b) -> a * b)
                     .orElse(0);
             System.out.println("Multiplicity: " + multiplicity);
@@ -164,7 +185,6 @@ public class Orchestrator {
                 TemporalNetworkingRanking.nonclairvoyantBestNetworking(simulationSolutions, temporalOrdering, veh_s, bestResultScore, candidate, conf.removal, conf.addition, comparator);
             }
             candidate.networkingRankingTime = (System.currentTimeMillis()- timedBegin);
-            write_json(statsFolder, "candidate.json", candidate);
 
             // SETTING UP THE VEHICULAR PROGRAMS
             for (var veh : vehId) {
@@ -190,7 +210,6 @@ public class Orchestrator {
                     reconstructVehicles.get(vehs.getKey().id).program.setLocalInformation(entry.getKey(), vehs.getKey());
                 }
             }
-            write_json(statsFolder, conf.vehiclejsonFile, reconstructVehicles);
 
             // SETTING UP THE RSU PROGRAMS
             // This concept is relevant, so if we need to remove some nodes from the simulation,
@@ -204,65 +223,72 @@ public class Orchestrator {
                 rsuProgram.finaliseProgram(delta_clusters.get(r.tl_id), delta_network_neighbours.get(r.tl_id));
                 rsuProgramHashMap.get(r.tl_id).program_rsu = rsuProgram;
             }
-            write_json(statsFolder, conf.RSUJsonFile, rsuProgramHashMap);
+        }
+    }
 
-            try {
-                FileOutputStream tlsF = new FileOutputStream(Paths.get(statsFolder.getAbsolutePath(), conf.experiment_name+"_time_benchmark.csv").toFile());
-                BufferedWriter flsF2 = new BufferedWriter(new OutputStreamWriter(tlsF));
-                flsF2.write("sim_time,bench_time");
+    void serializeAll() {
+
+        System.out.println("Serializing data...");
+        write_json(statsFolder, "solver_time.json", problemSolvingTime);
+        write_json(statsFolder, "candidate.json", candidate);
+        write_json(statsFolder, conf.vehiclejsonFile, reconstructVehicles);
+        write_json(statsFolder, conf.RSUJsonFile, rsuProgramHashMap);
+        try {
+            FileOutputStream tlsF = new FileOutputStream(Paths.get(statsFolder.getAbsolutePath(), conf.experiment_name+"_time_benchmark.csv").toFile());
+            BufferedWriter flsF2 = new BufferedWriter(new OutputStreamWriter(tlsF));
+            flsF2.write("sim_time,bench_time");
+            flsF2.newLine();
+            for (var x : problemSolvingTime.entrySet()) {
+                flsF2.write(x.getKey()+","+x.getValue());
                 flsF2.newLine();
-                for (var x : problemSolvingTime.entrySet()) {
-                    flsF2.write(x.getKey()+","+x.getValue());
+            }
+            flsF2.close();
+            tlsF.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        try {
+            FileOutputStream tlsF = new FileOutputStream(Paths.get(statsFolder.getAbsolutePath(), conf.experiment_name+"_tls.csv").toFile());
+            BufferedWriter flsF2 = new BufferedWriter(new OutputStreamWriter(tlsF));
+            flsF2.write("Id,X,Y");
+            var XMax = tls.stream().map(x -> x.x).max(Comparator.comparingDouble(y -> y)).orElseGet(() -> 0.0);
+            var YMin = tls.stream().map(x -> x.y).min(Comparator.comparingDouble(y -> y)).orElseGet(() -> 0.0);
+            tls.sort(Comparator.comparingDouble(sem -> {
+                double x = sem.x - XMax;
+                double y = sem.y - YMin;
+                return (x*x)+(y*y);
+            }));
+            System.out.println(            tls.subList(0, Math.min(tls.size(), 8)).stream().map(x -> x.tl_id
+            ).collect(Collectors.joining("\",\"","LS <- list(\"", "\")")));
+            flsF2.newLine();
+            for (var x : tls) {
+                flsF2.write(x.tl_id +","+x.x +","+x.y);
+                flsF2.newLine();
+            }
+            flsF2.close();
+            tlsF.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            FileOutputStream tlsF = new FileOutputStream(Paths.get(statsFolder.getAbsolutePath(), conf.experiment_name+"_tracesMatch_toplot.csv").toFile());
+            BufferedWriter flsF2 = new BufferedWriter(new OutputStreamWriter(tlsF));
+            flsF2.write("SimTime,Sem,NVehs");
+            flsF2.newLine();
+            List<TimedVehicle> e = Collections.emptyList();
+            if ((candidate != null) && (candidate.inCurrentTime != null))
+            for (var cp : candidate.inCurrentTime.entrySet()) {
+                Double time = cp.getKey();
+                for (var sem : tls) {
+                    flsF2.write(time+","+sem.tl_id +","+cp.getValue().getOrDefault(sem, e).size());
                     flsF2.newLine();
                 }
-                flsF2.close();
-                tlsF.close();
-            } catch (IOException e) {
-                e.printStackTrace();
             }
-
-            try {
-                FileOutputStream tlsF = new FileOutputStream(Paths.get(statsFolder.getAbsolutePath(), conf.experiment_name+"_tls.csv").toFile());
-                BufferedWriter flsF2 = new BufferedWriter(new OutputStreamWriter(tlsF));
-                flsF2.write("Id,X,Y");
-                var XMax = tls.stream().map(x -> x.x).max(Comparator.comparingDouble(y -> y)).get();
-                var YMin = tls.stream().map(x -> x.y).min(Comparator.comparingDouble(y -> y)).get();
-                tls.sort(Comparator.comparingDouble(sem -> {
-                    double x = sem.x - XMax;
-                    double y = sem.y - YMin;
-                    return (x*x)+(y*y);
-                }));
-                System.out.println(            tls.subList(0, 8).stream().map(x -> x.tl_id
-                ).collect(Collectors.joining("\",\"","LS <- list(\"", "\")")));
-                flsF2.newLine();
-                for (var x : tls) {
-                    flsF2.write(x.tl_id +","+x.x +","+x.y);
-                    flsF2.newLine();
-                }
-                flsF2.close();
-                tlsF.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            try {
-                FileOutputStream tlsF = new FileOutputStream(Paths.get(statsFolder.getAbsolutePath(), conf.experiment_name+"_tracesMatch_toplot.csv").toFile());
-                BufferedWriter flsF2 = new BufferedWriter(new OutputStreamWriter(tlsF));
-                flsF2.write("SimTime,Sem,NVehs");
-                flsF2.newLine();
-                List<TimedVehicle> e = Collections.emptyList();
-                for (var cp : candidate.inCurrentTime.entrySet()) {
-                    Double time = cp.getKey();
-                    for (var sem : tls) {
-                        flsF2.write(time+","+sem.tl_id +","+cp.getValue().getOrDefault(sem, e).size());
-                        flsF2.newLine();
-                    }
-                }
-                flsF2.close();
-                tlsF.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            flsF2.close();
+            tlsF.close();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 

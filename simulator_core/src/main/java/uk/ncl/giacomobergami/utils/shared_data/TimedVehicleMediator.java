@@ -34,7 +34,7 @@ public class TimedVehicleMediator {
         CSVReader(File filename) throws IOException {
             reader = csvMapper.readerFor(TimedVehicle.class)
                     .with(csvSchema)
-                    .<TimedVehicle>readValues(filename);
+                    .<TimedVehicle>readValues(filename.getAbsoluteFile());
         }
 
         @Override
@@ -71,7 +71,7 @@ public class TimedVehicleMediator {
         CSVWriter(File filename) throws IOException {
             writer = csvMapper.writerFor(TimedVehicle.class)
                     .with(csvSchema)
-                    .writeValues(filename);
+                    .writeValues(filename.getAbsoluteFile());
         }
 
         public boolean write(TimedVehicle object) {

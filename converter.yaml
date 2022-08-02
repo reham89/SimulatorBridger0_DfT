@@ -1,4 +1,4 @@
-clazzPath: "uk.ncl.giacomobergami.traffic_converter.concrete.sumo.SUMOConverter"
+clazzPath: "uk.ncl.giacomobergami.SumoOsmosisBridger.traffic_converter.SUMOConverter"
 YAMLConverterConfiguration: "sumo.yaml"
 RSUCsvFile: "rsu.csv"
 VehicleCsvFile: "vehicle.csv"

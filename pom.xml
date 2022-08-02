@@ -25,6 +25,7 @@
         <module>traffic_orchestrator</module>
         <module>osmotic</module>
         <module>simulator_core</module>
+        <module>SumoOsmosisBridger</module>
     </modules>
 
     <properties>

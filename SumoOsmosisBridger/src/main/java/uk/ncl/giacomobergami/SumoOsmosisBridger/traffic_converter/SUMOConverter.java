@@ -1,4 +1,4 @@
-package uk.ncl.giacomobergami.traffic_converter.concrete.sumo;
+package uk.ncl.giacomobergami.SumoOsmosisBridger.traffic_converter;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;

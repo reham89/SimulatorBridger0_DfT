@@ -42,7 +42,7 @@ public class RSUProgram {
         }
     }
 
-    public class ProgramDetails {
+    public static class ProgramDetails {
         public List<String> startIoTDevice = null;
         public boolean isStartingProgram = false;
         public List<String> startRSUNeighbours = null;

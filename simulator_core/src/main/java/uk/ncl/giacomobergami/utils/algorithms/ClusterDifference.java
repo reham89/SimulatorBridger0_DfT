@@ -8,6 +8,22 @@ import java.util.stream.Collectors;
 
 public class ClusterDifference<T> implements Predicate<T> {
 
+    public type getChange() {
+        return change;
+    }
+
+    public Map<T, typeOfChange> getChanges() {
+        return changes;
+    }
+
+    public void setChange(type change) {
+        this.change = change;
+    }
+
+    public void setChanges(Map<T, typeOfChange> changes) {
+        this.changes = changes;
+    }
+
     @Override
     public boolean test(T t) {
         switch (change) {
@@ -32,8 +48,8 @@ public class ClusterDifference<T> implements Predicate<T> {
         ADDITION_OF
     }
 
-    public final ClusterDifference.type change;
-    public final Map<T, typeOfChange> changes;
+    public ClusterDifference.type change;
+    public Map<T, typeOfChange> changes;
 
     public double computeEditDistance(double scoreRemoval, double scoreAddition) {
         double totalChange = 0;

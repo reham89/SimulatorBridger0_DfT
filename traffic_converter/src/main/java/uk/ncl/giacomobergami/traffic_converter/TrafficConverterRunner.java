@@ -8,7 +8,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Optional;
 
-public class Main {
+public class TrafficConverterRunner {
 
     public static class MainConverterConfiguration {
         public String clazzPath;

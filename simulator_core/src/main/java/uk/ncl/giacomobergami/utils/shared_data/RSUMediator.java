@@ -41,9 +41,10 @@ public class RSUMediator {
     public class CSVReader implements AutoCloseable, Iterator<RSU> {
         MappingIterator<RSU> reader;
         CSVReader(File filename) throws IOException {
+            System.out.println(filename.getAbsolutePath());
             reader = csvMapper.readerFor(RSU.class)
                     .with(csvSchema)
-                    .<RSU>readValues(filename);
+                    .<RSU>readValues(filename.getAbsoluteFile());
         }
 
         @Override
@@ -71,7 +72,7 @@ public class RSUMediator {
         CSVWriter(File filename) throws IOException {
             writer = csvMapper.writerFor(RSU.class)
                     .with(csvSchema)
-                    .writeValues(filename);
+                    .writeValues(filename.getAbsoluteFile());
         }
 
         public boolean write(RSU object) {
