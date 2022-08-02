@@ -2,3 +2,7 @@
 .idea/*
 target/
 target/*
+stats/
+stats/*
+reham*
+*.csv

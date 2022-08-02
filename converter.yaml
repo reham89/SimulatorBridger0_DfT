@@ -1,0 +1,7 @@
+clazzPath: "uk.ncl.giacomobergami.traffic_converter.concrete.sumo.SUMOConverter"
+YAMLConverterConfiguration: "sumo.yaml"
+RSUCsvFile: "rsu.csv"
+VehicleCsvFile: "vehicle.csv"
+begin: 0
+end: 100
+step: 1.0

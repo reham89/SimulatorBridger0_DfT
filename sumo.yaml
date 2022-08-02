@@ -1,0 +1,4 @@
+trace_file: "reham_sumo_trace_yes_TAVF.xml"
+logger_file: "reham_sumo_yes_log.txt"
+sumo_program: "sumo"
+sumo_configuration_file_path: "/home/giacomo/Scaricati/TAVF-Hamburg/run_simulation.sumocfg"
