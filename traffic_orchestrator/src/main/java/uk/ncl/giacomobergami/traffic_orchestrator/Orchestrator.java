@@ -5,9 +5,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import io.jenetics.ext.moea.Pareto;
 import org.apache.commons.lang3.tuple.Pair;
-import uk.ncl.giacomobergami.traffic_orchestrator.rsu_network.BogusNetworkGenerator;
-import uk.ncl.giacomobergami.traffic_orchestrator.rsu_network.NetworkGenerator;
-import uk.ncl.giacomobergami.traffic_orchestrator.rsu_network.NetworkGeneratorFactory;
+import uk.ncl.giacomobergami.traffic_orchestrator.rsu_network.*;
 import uk.ncl.giacomobergami.traffic_orchestrator.solver.CandidateSolutionParameters;
 import uk.ncl.giacomobergami.traffic_orchestrator.solver.LocalTimeOptimizationProblem;
 import uk.ncl.giacomobergami.traffic_orchestrator.solver.TemporalNetworkingRanking;
@@ -28,6 +26,7 @@ import java.util.stream.Collectors;
 public class Orchestrator {
 
     private final OrchestratorConfigurator conf;
+    private final RSUUpdater rsuUpdater;
     protected RSUMediator rsum;
     protected TimedVehicleMediator vehm;
     Comparator<double[]> comparator;
@@ -59,6 +58,7 @@ public class Orchestrator {
         tls = Collections.emptyList();
         rsuProgramHashMap = new HashMap<>();
         netGen = NetworkGeneratorFactory.generateFacade(conf.generateRSUAdjacencyList);
+        rsuUpdater = RSUUpdaterFactory.generateFacade(conf.updateRSUFields, conf);
         network = null;
         f = SquaredCartesianDistanceFunction.getInstance();
     }
@@ -82,14 +82,7 @@ public class Orchestrator {
     protected List<RSU> readRSU() {
         var reader = rsum.beginCSVRead(new File(conf.RSUCsvFile));
         var ls =  Lists.newArrayList(reader);
-        ls.forEach(x -> {
-            if (conf.reset_rsu_communication_radius > 0) {
-                x.communication_radius = conf.reset_rsu_communication_radius;
-            }
-            if (conf.reset_max_vehicle_communication > 0) {
-                x.max_vehicle_communication = conf.reset_max_vehicle_communication;
-            }
-        });
+        ls.forEach(rsuUpdater);
         try {
             reader.close();
         } catch (Exception e) {

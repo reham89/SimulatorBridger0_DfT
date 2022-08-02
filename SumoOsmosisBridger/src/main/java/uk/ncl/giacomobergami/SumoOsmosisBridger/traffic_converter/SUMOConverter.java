@@ -85,26 +85,8 @@ public class SUMOConverter extends TrafficConverter {
 
     @Override
     public boolean dumpOrchestratorConfiguration() {
-//        HashMap<Double, Long> problemSolvingTime = new HashMap<>();
-//        HashMap<Double, ArrayList<LocalTimeOptimizationProblem.Solution>> simulationSolutions = new HashMap<>();
         List<Double> temporalOrdering = new ArrayList<>();
-//        HashSet<Vehicle> intersectingVehicles = new HashSet<>();
-//        ArrayList<CSVOsmosisAppFromTags.TransactionRecord> xyz = new ArrayList<>();
         File file = new File(conf.sumo_configuration_file_path);
-//        File folderOut = new File(conf.OsmosisConfFiles);
-//        File folderOut2 = new File(conf.OsmosisOutput);
-//        if (! folderOut2.exists()) {
-//            folderOut2.mkdirs();
-//        } else if (folderOut2.isFile()) {
-//            System.err.println("ERROR: the current file exists, and it is a file: a folder was expected. " + folderOut2);
-//            System.exit(1);
-//        }
-//        if (! folderOut.exists()){
-//            folderOut.mkdirs();
-//        } else if (folderOut.isFile())  {
-//            System.err.println("ERROR: the current file exists, and it is a file: a folder was expected. " + folderOut);
-//            System.exit(1);
-//        }
         Document configurationFile = null;
         try {
             configurationFile = db.parse(file);
@@ -112,7 +94,6 @@ public class SUMOConverter extends TrafficConverter {
             e.printStackTrace();
             return false;
         }
-//        double distanceSquared = conf.maximum_tl_distance_in_meters * conf.maximum_tl_distance_in_meters;
 
         File network_python = null;
         try {
@@ -145,7 +126,6 @@ public class SUMOConverter extends TrafficConverter {
             return false;
         }
         ArrayList<RSU> tls = new ArrayList<>();
-//        HashMap<String, Integer> tlsMap = new HashMap<>();
         NodeList traffic_lights = null;
         try {
             traffic_lights = XPathUtil.evaluateNodeList(networkFile, "/net/junction[@type='traffic_light']");
@@ -164,21 +144,6 @@ public class SUMOConverter extends TrafficConverter {
         }
         writeRSUCsvEnd();
 
-
-
-//        DoubleMatrix sqDistanceMatrix = DoubleMatrix.zeros(traffic_lights.getLength(),traffic_lights.getLength());
-//        for (int i = 0, N = traffic_lights.getLength(); i<N; i++) {
-//            var semX = tls.get(i);
-//            for (int j = 0; j<i; j++) {
-//                var semY = tls.get(j);
-//                final double deltaX = semX.tl_x - semY.tl_x;
-//                final double deltaY = semX.tl_y - semY.tl_y;
-//                sqDistanceMatrix.put(i, j, ((deltaX * deltaX) + (deltaY * deltaY)));
-//                sqDistanceMatrix.put(j, i, ((deltaX * deltaX) + (deltaY * deltaY)));
-//            }
-//        }
-
-//        CartesianDistanceFunction f = new CartesianDistanceFunction();
         File trajectory_python = new File(conf.trace_file);
         if (!trajectory_python.exists()) {
             System.err.println("ERROR: sumo has not built the trace file: " + trajectory_python.getAbsolutePath());
@@ -194,7 +159,6 @@ public class SUMOConverter extends TrafficConverter {
         }
 
         NodeList timestamp_eval;
-//        ArrayList<CSVOsmosisRecord> csvFile = new ArrayList<>();
         try {
             timestamp_eval = XPathUtil.evaluateNodeList(trace_document, "/fcd-export/timestep");
         } catch (XPathExpressionException e) {
@@ -227,7 +191,6 @@ public class SUMOConverter extends TrafficConverter {
             }
         }
         writeVehicleCsvEnd();
-
         return true;
     }
 }

@@ -27,6 +27,15 @@ public class OrchestratorConfigurator {
         public double reset_rsu_communication_radius;
         public int reset_max_vehicle_communication;
         public String generateRSUAdjacencyList;
+        public String updateRSUFields;
+
+        public String getUpdateRSUFields() {
+                return updateRSUFields;
+        }
+
+        public void setUpdateRSUFields(String updateRSUFields) {
+                this.updateRSUFields = updateRSUFields;
+        }
 
         public String getGenerateRSUAdjacencyList() {
                 return generateRSUAdjacencyList;

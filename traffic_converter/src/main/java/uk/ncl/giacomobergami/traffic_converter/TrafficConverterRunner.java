@@ -2,6 +2,7 @@ package uk.ncl.giacomobergami.traffic_converter;
 
 import uk.ncl.giacomobergami.traffic_converter.abstracted.TrafficConverter;
 import uk.ncl.giacomobergami.utils.data.YAML;
+import uk.ncl.giacomobergami.utils.design_patterns.ReflectiveFactoryMethod;
 
 import java.io.File;
 import java.lang.reflect.Constructor;
@@ -78,31 +79,37 @@ public class TrafficConverterRunner {
     private static Constructor<? extends TrafficConverter> object;
 
     public static TrafficConverter generateFacade(MainConverterConfiguration conf) {
-        if (clazz == null) {
-            try {
-                clazz = Class.forName(conf.clazzPath);
-            } catch (ClassNotFoundException e) {
-                System.err.println("Class not found: " + conf.clazzPath);
-                System.exit(1);
-            }
-        }
-        if (object == null) {
-            try {
-                object = (Constructor<? extends TrafficConverter>) clazz.getConstructor(String.class, String.class, String.class);
-            } catch (NoSuchMethodException e) {
-                e.printStackTrace();
-                System.err.println("No valid constructor for: " + conf.clazzPath);
-                System.exit(1);
-            }
-        }
-        try {
-            return (TrafficConverter)object.newInstance(conf.YAMLConverterConfiguration, conf.RSUCsvFile, conf.VehicleCsvFile);
-        } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
-            e.printStackTrace();
-            System.err.println("No valid instantiation for: " + conf.clazzPath);
-            System.exit(1);
-            return null;
-        }
+        return ReflectiveFactoryMethod
+                .getInstance(TrafficConverter.class)
+                .generateFacade(conf.clazzPath, () -> {
+                    System.exit(1);
+                    return null;
+                }, conf.YAMLConverterConfiguration, conf.RSUCsvFile, conf.VehicleCsvFile);
+//        if (clazz == null) {
+//            try {
+//                clazz = Class.forName(conf.clazzPath);
+//            } catch (ClassNotFoundException e) {
+//                System.err.println("Class not found: " + conf.clazzPath);
+//                System.exit(1);
+//            }
+//        }
+//        if (object == null) {
+//            try {
+//                object = (Constructor<? extends TrafficConverter>) clazz.getConstructor(String.class, String.class, String.class);
+//            } catch (NoSuchMethodException e) {
+//                e.printStackTrace();
+//                System.err.println("No valid constructor for: " + conf.clazzPath);
+//                System.exit(1);
+//            }
+//        }
+//        try {
+//            return (TrafficConverter)object.newInstance(conf.YAMLConverterConfiguration, conf.RSUCsvFile, conf.VehicleCsvFile);
+//        } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
+//            e.printStackTrace();
+//            System.err.println("No valid instantiation for: " + conf.clazzPath);
+//            System.exit(1);
+//            return null;
+//        }
     }
 
     public static void convert(String configuration) {
