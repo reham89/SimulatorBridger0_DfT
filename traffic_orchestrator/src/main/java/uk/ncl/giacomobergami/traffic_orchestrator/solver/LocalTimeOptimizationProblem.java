@@ -9,6 +9,7 @@ import uk.ncl.giacomobergami.utils.gir.SquaredCartesianDistanceFunction;
 import uk.ncl.giacomobergami.utils.shared_data.RSU;
 import uk.ncl.giacomobergami.utils.shared_data.TimedVehicle;
 import uk.ncl.giacomobergami.utils.structures.ConcretePair;
+import uk.ncl.giacomobergami.utils.structures.StraightforwardAdjacencyList;
 import uk.ncl.giacomobergami.utils.structures.Union2;
 
 import java.util.*;
@@ -19,6 +20,8 @@ import java.util.stream.Collectors;
 public class LocalTimeOptimizationProblem {
     public List<TimedVehicle> vehicles;
     public List<RSU>     rsus;
+    private final StraightforwardAdjacencyList<RSU> rsuNetwork;
+    private final boolean noOriginalNetwork;
     SquaredCartesianDistanceFunction f;
     List<Map<TimedVehicle, RSU>> firstMileCommunication;
     List<Map<TimedVehicle, RSU>> targetCommunication;
@@ -28,12 +31,15 @@ public class LocalTimeOptimizationProblem {
     long run_time;
 
     public LocalTimeOptimizationProblem(List<TimedVehicle> vehicles,
-                                        List<RSU> rsus
+                                        List<RSU> rsus,
+                                        StraightforwardAdjacencyList<RSU> rsuNetwork
                                         ) {
         this.vehicles = vehicles;
         this.rsus = rsus;
+        noOriginalNetwork = rsuNetwork == null;
+        this.rsuNetwork = rsuNetwork = (noOriginalNetwork ? new StraightforwardAdjacencyList<>() : rsuNetwork);
 //        this.conf = conf;
-        f = new SquaredCartesianDistanceFunction();
+        f = SquaredCartesianDistanceFunction.getInstance();
         firstMileCommunication = Collections.emptyList();
         targetCommunication = Collections.emptyList();
         flow = new MinCostMaxFlow();
@@ -45,7 +51,7 @@ public class LocalTimeOptimizationProblem {
         Map<TimedVehicle, RSU> firstMileCommunication;
         Map<TimedVehicle, RSU> alphaAssociation;
         private final Map<TimedVehicle, List<Union2<TimedVehicle, RSU>>> vehicularPaths;
-        public final Map<RSU, List<RSU>> RSUNetworkNeighbours;
+        public final StraightforwardAdjacencyList<RSU> RSUNetworkNeighbours;
         public HashMap<RSU, List<TimedVehicle>> rsuToCommunicatingVehiclesCluster;
 
         public Solution(IntermediateSolution v, ConcretePair<Map<TimedVehicle, RSU>, Map<TimedVehicle, RSU>> cp) {
@@ -60,7 +66,7 @@ public class LocalTimeOptimizationProblem {
                         Map<TimedVehicle, RSU> firstMileCommunication,
                         Map<TimedVehicle, RSU> alphaAssociation,
                         Map<TimedVehicle, List<Union2<TimedVehicle, RSU>>> vehicularPaths,
-                        Map<RSU, List<RSU>> RSUNetworkNeighbours) {
+                        StraightforwardAdjacencyList<RSU> RSUNetworkNeighbours) {
             this.obj = obj;
             this.firstMileCommunication = firstMileCommunication;
             this.alphaAssociation = alphaAssociation;
@@ -95,7 +101,7 @@ public class LocalTimeOptimizationProblem {
         public Map<TimedVehicle, List<Union2<TimedVehicle, RSU>>> getVehicularPaths() {
             return vehicularPaths;
         }
-        public Map<RSU, List<RSU>> getRSUNetworkNeighbours() {
+        public StraightforwardAdjacencyList<RSU> getRSUNetworkNeighbours() {
             return RSUNetworkNeighbours;
         }
         public HashMap<RSU, List<TimedVehicle>> getRsuToCommunicatingVehiclesCluster() {
@@ -189,11 +195,11 @@ public class LocalTimeOptimizationProblem {
     private class IntermediateSolution {
         private final double[] objectives;
         private final Map<TimedVehicle, List<Union2<TimedVehicle, RSU>>> communicationPaths;
-        private final Map<RSU, List<RSU>> RSUNetworkNeighbours;
+        private final StraightforwardAdjacencyList<RSU> RSUNetworkNeighbours;
 
         public IntermediateSolution(double[] objectives,
                                     Map<TimedVehicle, List<Union2<TimedVehicle, RSU>>> communicationPaths,
-                                    Map<RSU, List<RSU>> RSUNetworkNeighbours) {
+                                    StraightforwardAdjacencyList<RSU> RSUNetworkNeighbours) {
             this.objectives = objectives;
             this.communicationPaths = communicationPaths;
             this.RSUNetworkNeighbours = RSUNetworkNeighbours;
@@ -225,7 +231,6 @@ public class LocalTimeOptimizationProblem {
         Map<String, TimedVehicle> vehNameToVeh = new HashMap<>();
         Map<String, RSU> rsuNameToRSU = new HashMap<>();
         Map<TimedVehicle, List<Union2<TimedVehicle, RSU>>> paths = new HashMap<>();
-        Map<RSU, List<RSU>> RSUNetworkNeighbours = new HashMap<>();
 
         // Making all of the rsus as nodes of the graph, as we can distribute the load
         // within the network
@@ -259,15 +264,22 @@ public class LocalTimeOptimizationProblem {
                     var d = f.getDistance(rsu1, rsu2);
 
                     // we can establish a link if and only if they are respectively within their communication radius
-                    if (d <= Math.min(sq1, sq2)) {
-                        if (!RSUNetworkNeighbours.containsKey(rsu1)) {
-                            RSUNetworkNeighbours.put(rsu1, new ArrayList<>());
+                    if (((rsuNetwork == null) || rsuNetwork.hasEdge(rsu1, rsu2)) &&
+                            ((rsuNetwork != null) || (d <= Math.min(sq1, sq2)))) {
+
+                        if (noOriginalNetwork) {
+                            rsuNetwork.put(rsu1, rsu2);
+                            rsuNetwork.put(rsu2, rsu1);
                         }
-                        if (!RSUNetworkNeighbours.containsKey(rsu2)) {
-                            RSUNetworkNeighbours.put(rsu2, new ArrayList<>());
-                        }
-                        RSUNetworkNeighbours.get(rsu1).add(rsu2);
-                        RSUNetworkNeighbours.get(rsu2).add(rsu1);
+
+//                        if (!RSUNetworkNeighbours.containsKey(rsu1)) {
+//                            RSUNetworkNeighbours.put(rsu1, new ArrayList<>());
+//                        }
+//                        if (!RSUNetworkNeighbours.containsKey(rsu2)) {
+//                            RSUNetworkNeighbours.put(rsu2, new ArrayList<>());
+//                        }
+//                        RSUNetworkNeighbours.get(rsu1).add(rsu2);
+//                        RSUNetworkNeighbours.get(rsu2).add(rsu1);
                         // The communication capacity is capped at the minimum communicative threshold being shared
                         capacity[r1][r2] = capacity[r2][r1] = (int) Math.min(rsu1.max_vehicle_communication, rsu2.max_vehicle_communication);
                         // The communication cost is directly proportional to the nodes' distance
@@ -366,15 +378,15 @@ public class LocalTimeOptimizationProblem {
             }
         }
 
-        var it = RSUNetworkNeighbours.entrySet().iterator();
-        while (it.hasNext()) {
-            var x = it.next();
-            x.setValue(Lists.newArrayList(Sets.newHashSet(x.getValue())));
-        }
+//        var it = RSUNetworkNeighbours.entrySet().iterator();
+//        while (it.hasNext()) {
+//            var x = it.next();
+//            x.setValue(Lists.newArrayList(Sets.newHashSet(x.getValue())));
+//        }
         obj_network = result.total_cost;
         return new IntermediateSolution(new double[]{obj_IoT, obj_mel, obj_network},
                                         paths,
-                                        RSUNetworkNeighbours);
+                                        rsuNetwork);
     }
 
     private List<Integer> updatePathWithFeasibleOne(Map<TimedVehicle, Integer> vehs,

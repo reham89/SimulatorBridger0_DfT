@@ -5,6 +5,9 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import io.jenetics.ext.moea.Pareto;
 import org.apache.commons.lang3.tuple.Pair;
+import uk.ncl.giacomobergami.traffic_orchestrator.rsu_network.BogusNetworkGenerator;
+import uk.ncl.giacomobergami.traffic_orchestrator.rsu_network.NetworkGenerator;
+import uk.ncl.giacomobergami.traffic_orchestrator.rsu_network.NetworkGeneratorFactory;
 import uk.ncl.giacomobergami.traffic_orchestrator.solver.CandidateSolutionParameters;
 import uk.ncl.giacomobergami.traffic_orchestrator.solver.LocalTimeOptimizationProblem;
 import uk.ncl.giacomobergami.traffic_orchestrator.solver.TemporalNetworkingRanking;
@@ -13,6 +16,7 @@ import uk.ncl.giacomobergami.utils.algorithms.StringComparator;
 import uk.ncl.giacomobergami.utils.gir.SquaredCartesianDistanceFunction;
 import uk.ncl.giacomobergami.utils.shared_data.*;
 import uk.ncl.giacomobergami.utils.structures.ConcretePair;
+import uk.ncl.giacomobergami.utils.structures.StraightforwardAdjacencyList;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -34,6 +38,9 @@ public class Orchestrator {
     HashMap<String, Vehicle> reconstructVehicles;
     List<RSU> tls;
     HashMap<String, RSU> rsuProgramHashMap;
+    NetworkGenerator netGen;
+    StraightforwardAdjacencyList<RSU> network;
+    SquaredCartesianDistanceFunction f;
 
     public Orchestrator(OrchestratorConfigurator conf) {
         this.conf = conf;
@@ -51,6 +58,9 @@ public class Orchestrator {
         reconstructVehicles = new HashMap<>();
         tls = Collections.emptyList();
         rsuProgramHashMap = new HashMap<>();
+        netGen = NetworkGeneratorFactory.generateFacade(conf.generateRSUAdjacencyList);
+        network = null;
+        f = SquaredCartesianDistanceFunction.getInstance();
     }
 
     protected boolean write_json(File folder, String filename, Object writable)  {
@@ -112,9 +122,9 @@ public class Orchestrator {
             System.err.println("WARNING: tls are empty!");
             return;
         }
+        network = netGen.apply(tls);
         HashSet<String> vehId = new HashSet<>();
         problemSolvingTime.clear();
-        SquaredCartesianDistanceFunction f = new SquaredCartesianDistanceFunction();
         List<Double> temporalOrdering = new ArrayList<>();
 
         reconstructVehicles.clear();
@@ -136,7 +146,7 @@ public class Orchestrator {
                }
                reconstructVehicles.get(tv.id).dynamicInformation.put(currTime, tv);
            }
-            LocalTimeOptimizationProblem solver = new LocalTimeOptimizationProblem(vehs2, tls);
+            LocalTimeOptimizationProblem solver = new LocalTimeOptimizationProblem(vehs2, tls, network);
             if (solver.init()) {
                 if (conf.do_thresholding) {
                     if (conf.use_nearest_MEL_to_IoT) {
@@ -290,6 +300,25 @@ public class Orchestrator {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        if (network == null) {
+            network = new StraightforwardAdjacencyList<>();
+            for (var rsu1 : this.tls) {
+                var sq1 = rsu1.communication_radius * rsu1.communication_radius;
+                for (var rsu2 : this.tls) {
+                    if (!Objects.equals(rsu1, rsu2)) {
+                        var sq2 = rsu2.communication_radius * rsu2.communication_radius;
+                        var d = f.getDistance(rsu1, rsu2);
+                        // we can establish a link if and only if they are respectively within their communication radius
+                        if ((d <= Math.min(sq1, sq2))) {
+                            network.put(rsu1, rsu2);
+                            network.put(rsu2, rsu1);
+                        }
+                    }
+                }
+            }
+        }
+        network.dump(Paths.get(statsFolder.getAbsolutePath(), conf.experiment_name+"_rsu_network.csv").toFile(), RSU::getTl_id);
     }
 
 }

@@ -24,6 +24,14 @@ import com.eatthepath.jvptree.DistanceFunction;
 
 public class SquaredCartesianDistanceFunction implements DistanceFunction<CartesianPoint> {
 
+    private SquaredCartesianDistanceFunction() {}
+    private static SquaredCartesianDistanceFunction self = null;
+    public static SquaredCartesianDistanceFunction getInstance() {
+        if (self == null)
+            self = new SquaredCartesianDistanceFunction();
+        return self;
+    }
+
     public double getDistance(final CartesianPoint firstPoint, final CartesianPoint secondPoint) {
         final double deltaX = firstPoint.getX() - secondPoint.getX();
         final double deltaY = firstPoint.getY() - secondPoint.getY();
