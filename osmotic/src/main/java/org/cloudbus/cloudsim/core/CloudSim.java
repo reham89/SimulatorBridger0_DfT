@@ -892,7 +892,7 @@ public class CloudSim {
 	 */
 	public static double run() {
 		if (!running) {
-			runStart();
+			runStart(); // Starting all of the entities that should be started!
 		}
 		while (true) {
 			if (runClockTick() || abruptTerminate) {

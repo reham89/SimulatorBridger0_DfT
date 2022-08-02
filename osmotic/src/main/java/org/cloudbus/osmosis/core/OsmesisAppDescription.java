@@ -31,6 +31,7 @@ public class OsmesisAppDescription {
 	
 	private double DataRate;
 	private double StopDataGenerationTime;
+	private double StartDataGenerationTime;
 
 	private int appID;
 	private long IoTDeviceOutputSize; // in Mb 
@@ -62,12 +63,22 @@ public class OsmesisAppDescription {
 
 	private double IoTDeviceBatteryConsumption;	
 
-	public OsmesisAppDescription(String appName, int appID, double DataRate, double StopDataGenerationTime, 
-			String ioTDeviceName, long ioTDeviceOutput, String MELName, long osmesisEdgeletSize, 
-			long MELOutput, String vmName, long osmesisCloudletSize) {
+	public OsmesisAppDescription(String appName,
+								 int appID,
+								 double DataRate,
+								 double StopDataGenerationTime,
+								 String ioTDeviceName,
+								 long ioTDeviceOutput,
+								 String MELName,
+								 long osmesisEdgeletSize,
+								 long MELOutput,
+								 String vmName,
+								 long osmesisCloudletSize,
+								 double StartDataGenerationTime) {
 		this.appName = appName;
 		this.DataRate = DataRate;
 		this.StopDataGenerationTime = StopDataGenerationTime;
+		this.StartDataGenerationTime = StartDataGenerationTime;
 		this.IoTDeviceName = ioTDeviceName;
 		this.appID = appID;
 		this.IoTDeviceOutputSize = ioTDeviceOutput;  
@@ -78,8 +89,16 @@ public class OsmesisAppDescription {
 		this.OsmesisCloudletSize = osmesisCloudletSize; 
 		this.edgeLetList = new ArrayList<>();
 		this.isIoTDeviceDied = false;
-	}	
-	
+	}
+
+	public double getStartDataGenerationTime() {
+		return StartDataGenerationTime;
+	}
+
+	public void setStartDataGenerationTime(double startDataGenerationTime) {
+		StartDataGenerationTime = startDataGenerationTime;
+	}
+
 	public double getStopDataGenerationTime() {
 		return StopDataGenerationTime;
 	}

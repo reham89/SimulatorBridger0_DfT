@@ -317,22 +317,24 @@ public class OsmesisBroker extends DatacenterBroker {
 				app.setCloudDatacenterName(this.getDatacenterNameById(cloudDatacenterId));				
 				if(app.getAppStartTime() == -1){
 					app.setAppStartTime(CloudSim.clock());
-				}				
-//				sendNow(iotDeviceID, OsmosisTags.SENSING, app);
-				double dealy = app.getDataRate();
+				}
+				double dealy = app.getDataRate()+app.getStartDataGenerationTime();
 				send(this.getId(), dealy, OsmosisTags.GENERATE_OSMESIS, app);
 			}
 		}
 	}	
 
 	private void generateIoTData(SimEvent ev){
+		if (ev.getData() instanceof OsmesisAppDescription) {
+			if (((OsmesisAppDescription)(ev.getData())).getAppName().equals("App_3"))
+				System.out.println("ECCOCIN");
+		}
 		OsmesisAppDescription app = (OsmesisAppDescription) ev.getData();
-		if(CloudSim.clock() < app.getStopDataGenerationTime() && !app.getIsIoTDeviceDied()){
+		if((CloudSim.clock() >= app.getStartDataGenerationTime()) &&
+				(CloudSim.clock() < app.getStopDataGenerationTime()) &&
+				!app.getIsIoTDeviceDied()){
 			sendNow(app.getIoTDeviceId(), OsmosisTags.SENSING, app);
-			double dealy = app.getDataRate();
-			send(this.getId(), dealy, OsmosisTags.GENERATE_OSMESIS, app);
-		} else {
-			
+			send(this.getId(), app.getDataRate(), OsmosisTags.GENERATE_OSMESIS, app);
 		}
 	}
 			

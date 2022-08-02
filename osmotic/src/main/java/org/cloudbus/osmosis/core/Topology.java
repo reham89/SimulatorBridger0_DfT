@@ -44,12 +44,11 @@ public class Topology {
 
 	
 	public Topology() {
-		nodesTable = new Hashtable<Integer,NetworkNIC>();
+		nodesTable = new Hashtable<>();
 		nodeLinks = HashMultimap.create();
 		links = HashBasedTable.create();
 		this.nTnlinks = HashBasedTable.create();
 	}
-
 	
 	public Link getLink(int from, int to) {
 		return links.get(from, to);
@@ -62,14 +61,17 @@ public class Topology {
 		nodesTable.put(node.getAddress(), node);
 	}
 
-	public void addLink(int from, int to, long bw){
+	public void removeNode(NetworkNIC node) {
+		nodesTable.remove(node.getAddress());
+	}
+
+	public void addLink(int from, int to, long bw) {
 		NetworkNIC fromNode = nodesTable.get(from); 
 		NetworkNIC toNode = nodesTable.get(to); 
 			
 		if(!nodesTable.containsKey(from)||!nodesTable.containsKey(to)){
 			throw new IllegalArgumentException("Unknown node on link:"+nodesTable.get(from).getAddress()+"->"+nodesTable.get(to).getAddress());
 		}
-		
 
 		Link l = new Link(fromNode, toNode, bw);
 		
@@ -109,7 +111,6 @@ public class Topology {
 	}
 	
 	public Collection<NetworkNIC> getAllNodes() {
-
 		return nodesTable.values();
 	}
 	
@@ -120,7 +121,6 @@ public class Topology {
 	public List<Link> getNodeTONodelinks(NetworkNIC srcNode, NetworkNIC destNode) {
 		return nTnlinks.get(srcNode, destNode);
 	}
-	
     public void setTopology(List<CloudDatacenter> datacentres, SDNController wanController) {    	
         this.datacentres = datacentres;
         this.wanController = wanController;
@@ -129,7 +129,6 @@ public class Topology {
     public List<CloudDatacenter> getDatacentres() {
         return datacentres;
     }
-
     public SDNController getWanController() { 
     	return wanController;  
     }

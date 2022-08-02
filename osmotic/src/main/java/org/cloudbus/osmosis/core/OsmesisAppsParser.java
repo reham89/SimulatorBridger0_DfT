@@ -48,7 +48,8 @@ public class OsmesisAppsParser {
 				
 				String OsmesisAppName;							
 				int appID;
-				double DataRate; // in seconds 
+				double DataRate; // in seconds
+				double StartDataGenerationTime; // in seconds
 				double StopDataGenerationTime; // in seconds 
 				String IoTDeviceName;
 				long IoTDeviceOutput; // in Mb 
@@ -70,6 +71,7 @@ public class OsmesisAppsParser {
 					
 					appID = Integer.parseInt(lineitems.poll());
 					DataRate = Double.parseDouble(lineitems.poll());
+					StartDataGenerationTime = Double.parseDouble(lineitems.poll());
 					StopDataGenerationTime = Double.parseDouble(lineitems.poll());
 					IoTDeviceName = lineitems.poll();					
 					IoTDeviceOutput = 	Long.parseLong(lineitems.poll());
@@ -80,7 +82,7 @@ public class OsmesisAppsParser {
 					OsmesisCloudlet = Long.parseLong(lineitems.poll());								
 					
 					OsmesisAppDescription appComposition = new OsmesisAppDescription(OsmesisAppName, appID, DataRate, StopDataGenerationTime,
-							IoTDeviceName,IoTDeviceOutput, MELName, OsmesisEdgeletSize, MELOutput, VmName, OsmesisCloudlet);
+							IoTDeviceName,IoTDeviceOutput, MELName, OsmesisEdgeletSize, MELOutput, VmName, OsmesisCloudlet, StartDataGenerationTime);
 										
 					appList.add(appComposition);
 				}

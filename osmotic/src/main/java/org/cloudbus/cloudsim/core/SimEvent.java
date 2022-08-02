@@ -71,28 +71,13 @@ public class SimEvent implements Cloneable, Comparable<SimEvent> {
 
 	// ------------------- PACKAGE LEVEL METHODS --------------------------
 	SimEvent(int evtype, double time, int src, int dest, int tag, Object edata) {
-		
-		
 		etype = evtype;
 		this.time = time;
 		entSrc = src;
 		entDst = dest;
 		this.tag = tag;
 		data = edata;
-		
-/*		if (data !=null )
-		{
-			System.out.println("This is the ---" + event_count + "---Event----Event tag = " + tag + "---Delay" + time + "---source = " + entSrc + " destination = "
-					+ entDst + " Data = " + data.toString());
-		}
-		
-		else
-			System.out.println("This is the ---" + event_count + "---Event----Event tag = " + tag + "---Delay" + time + "--- source = " + entSrc + " destination = "
-					+ entDst + " Data = " + null);*/
-		
-		event_count ++;	
-		
-		
+		event_count ++;
 	}
 
 	SimEvent(int evtype, double time, int src) {
@@ -119,14 +104,10 @@ public class SimEvent implements Cloneable, Comparable<SimEvent> {
 
 	@Override
 	public String toString() {
-		
 		System.out.println("Event tag = " + tag + " source = " + CloudSim.getEntity(entSrc).getName() + " destination = "
 				+ CloudSim.getEntity(entDst).getName());
-		
 		return "Event tag = " + tag + " source = " + CloudSim.getEntity(entSrc).getName() + " destination = "
 				+ CloudSim.getEntity(entDst).getName();
-		
-		
 	}
 
 	/**
