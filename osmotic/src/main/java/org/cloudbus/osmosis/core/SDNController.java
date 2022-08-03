@@ -139,7 +139,7 @@ public class SDNController extends NetworkOperatingSystem {
 			List<Link> links = sdnRoutingPoloicy.getLinks(flow.getOrigin(), flow.getDestination());
 			flow.setLinkList(links);
 
-			System.out.println("==>"+CloudSim.getEntityName(this.getWanOorchestrator().getId()));
+//			System.out.println("==>"+CloudSim.getEntityName(this.getWanOorchestrator().getId()));
 			sendNow(this.getWanController().getId(), OsmoticTags.BUILD_ROUTE, flow);
 			return;
 		}
@@ -149,7 +149,7 @@ public class SDNController extends NetworkOperatingSystem {
 		List<Link> links = sdnRoutingPoloicy.getLinks(flow.getOrigin(), flow.getDestination());
 		flow.setLinkList(links);
 
-		System.out.println("==>"+CloudSim.getEntityName(this.getWanOorchestrator().getId()));
+//		System.out.println("==>"+CloudSim.getEntityName(this.getWanOorchestrator().getId()));
 		sendNow(this.getWanOorchestrator().getId(), OsmoticTags.START_TRANSMISSION, flow);
 	}
 

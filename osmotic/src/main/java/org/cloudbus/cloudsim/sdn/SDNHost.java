@@ -81,7 +81,6 @@ public class SDNHost extends SimEntity implements NetworkNIC {
 		if(route == null) {
 			System.err.println("SDNHost: ERROR: Cannot find route:" + src + "->"+dest + ", flow ="+flowId);
 		}
-			
 		return route;
 	}
 	

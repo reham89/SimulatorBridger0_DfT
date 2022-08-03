@@ -188,7 +188,7 @@ public class CloudSim {
 	public static double startSimulation() throws NullPointerException {
 		Log.printConcatLine("Starting CloudSim version ", CLOUDSIM_VERSION_STRING);
 		try {
-			double clock = run();
+			double clock = legacy_run();
 
 			// reset all static variables
 			cisId = -1;
@@ -890,7 +890,7 @@ public class CloudSim {
 	 * 
 	 * @return the double last clock value
 	 */
-	public static double run() {
+	public static double legacy_run() {
 		if (!running) {
 			runStart(); // Starting all of the entities that should be started!
 		}
@@ -928,6 +928,48 @@ public class CloudSim {
 		runStop();
 
 		return clock;
+	}
+
+	public static double novel_run() {
+		if (!running) {
+			runStart(); // Starting all of the entities that should be started!
+		}
+		while (true) {
+			if (runClockTick() || abruptTerminate) {
+				break;
+			}
+
+			// this block allows termination of simulation at a specific time
+			if (terminateAt > 0.0 && clock >= terminateAt) {
+				terminateSimulation();
+				clock = terminateAt;
+				break;
+			}
+
+			if (pauseAt != -1
+					&& ((future.size() > 0 && clock <= pauseAt && pauseAt <= future.iterator().next()
+					.eventTime()) || future.size() == 0 && pauseAt <= clock)) {
+				pauseSimulation();
+				clock = pauseAt;
+			}
+
+			while (paused) {
+				try {
+					Thread.sleep(100);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+
+		//		finishSimulation();
+//		runStop();
+		return clock();
+	}
+
+	public static void novel_stop() {
+		finishSimulation();
+		runStop();
 	}
 
 	/**

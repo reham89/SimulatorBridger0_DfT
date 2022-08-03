@@ -2,9 +2,11 @@ package uk.ncl.giacomobergami.components;
 
 import uk.ncl.giacomobergami.components.simulator.OsmoticConfiguration;
 import uk.ncl.giacomobergami.components.simulator.OsmoticWrapper;
+import uk.ncl.giacomobergami.utils.data.JSON;
 import uk.ncl.giacomobergami.utils.data.YAML;
 
 import java.io.File;
+import java.util.List;
 import java.util.Optional;
 
 public class OsmoticRunner {
@@ -18,18 +20,18 @@ public class OsmoticRunner {
     }
 
     public static void orchestrate(String configuration) {
-        Optional<OsmoticConfiguration> conf = YAML.parse(OsmoticConfiguration.class, new File(configuration));
-        conf.ifPresent(y -> {
-            OsmoticWrapper conv = generateFacade();
-            conv.init(y);
-            conv.start();
-            conv.stop();
-            conv.log();
-        });
+        List<OsmoticConfiguration> ls = JSON.stringToArray(new File(configuration), OsmoticConfiguration[].class);
+        if (ls.isEmpty()) return;
+        OsmoticWrapper conv = generateFacade();
+        for (var y : ls) {
+            conv.runConfiguration(y);
+        }
+        conv.stop();
+        conv.log();
     }
 
     public static void main(String[] args) {
-        String configuration = "osmotic.yaml";
+        String configuration = "osmotic.json";
         if (args.length >= 1) {
             configuration = args[0];
         }

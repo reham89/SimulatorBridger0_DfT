@@ -57,7 +57,7 @@ public abstract class IoTDevice extends SimEntity {
 
 	private List<Flow> flowList = new ArrayList<>(); 
 	
-	public IoTDevice( String name, EdgeNetworkInfo networkModel, double bandwidth) {
+	public IoTDevice(String name, EdgeNetworkInfo networkModel, double bandwidth) {
 		super(name);
 		this.battery = new Battery();	
 		this.networkModel = networkModel;

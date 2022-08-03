@@ -69,7 +69,7 @@ public class OsmoticWrapper {
 
     public void stop() {
         if (started) {
-            CloudSim.stopSimulation();
+            CloudSim.novel_stop();
             OsmoticAppsParser.appList.clear();
             OsmoticBroker.workflowTag.clear();
             osmesisBroker = null;
@@ -100,12 +100,16 @@ public class OsmoticWrapper {
         return conf;
     }
 
-
-    public boolean init(OsmoticConfiguration newConfiguration) {
+    public boolean runConfiguration(OsmoticConfiguration newConfiguration) {
         stop();
         init = false;
         this.conf = newConfiguration;
-        return init();
+        if (!init()) {
+            stop();
+            return false;
+        }
+        start();
+        return true;
     }
 
     private boolean init() {
@@ -207,7 +211,7 @@ public class OsmoticWrapper {
         return init;
     }
 
-    public void start() {
+    private void start() {
         init(); // Ensuring that the simulation is started
         runTime = CloudSim.startSimulation();
         finished = true;
