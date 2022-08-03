@@ -39,19 +39,19 @@ import uk.ncl.giacomobergami.components.mel_routing.MELRoutingPolicy;
 
 public class OsmesisBroker extends DatacenterBroker {
 
-	private EdgeSDNController edgeController;
-	private List<Cloudlet> edgeletList = new ArrayList<>();
-	private List<OsmesisAppDescription> appList; 	
-	private Map<String, Integer> iotDeviceNameToId = new HashMap<>();
-	private Map<Integer, List<? extends Vm>> mapVmsToDatacenter  = new HashMap<>();
+	public EdgeSDNController edgeController;
+	public List<Cloudlet> edgeletList = new ArrayList<>();
+	public List<OsmesisAppDescription> appList;
+	public Map<String, Integer> iotDeviceNameToId = new HashMap<>();
+	public Map<Integer, List<? extends Vm>> mapVmsToDatacenter  = new HashMap<>();
 	public static int brokerID;
-	private Map<String, Integer> iotVmIdByName = new HashMap<>();
+	public Map<String, Integer> iotVmIdByName = new HashMap<>();
 	public static List<WorkflowInfo> workflowTag = new ArrayList<>();
-	private List<OsmesisDatacenter> datacenters = new ArrayList<>();
+	public List<OsmesisDatacenter> datacenters = new ArrayList<>();
 
 	//private Map<String, Integer> roundRobinMelMap = new HashMap<>();
 
-	private CentralAgent osmoticCentralAgent;
+	public CentralAgent osmoticCentralAgent;
 	
 	public OsmesisBroker(String name) {
 		super(name);
@@ -139,35 +139,30 @@ public class OsmesisBroker extends DatacenterBroker {
 //		roundRobinMelMap.put(abstractMel,pos);
 //		return result;
 //	}
-
-	private boolean isAbstractMEL(String name){ // Check if it is a STRING.*
-		boolean result = name.matches("^\\S*.[*]$");
-		return result;
-	}
-
-	List<String> findMELinstances(String name){ // Getting all of the elements being the same STRING and a number after the dot
-		List<String> result = new ArrayList<String>();
-
-		String reg = name.replaceAll("(.\\*)$", "");
-		reg = "^"+reg+".[0-9]+$";
-
-		for(String melName: iotVmIdByName.keySet()){
-			if (melName.matches(reg)){
-				result.add(melName);
-			}
-		}
-		return result;
-	}
+//
+//	List<String> findMELinstances(String name){ // Getting all of the elements being the same STRING and a number after the dot
+//		List<String> result = new ArrayList<String>();
+//
+//		String reg = name.replaceAll("(.\\*)$", "");
+//		reg = "^"+reg+".[0-9]+$";
+//
+//		for(String melName: iotVmIdByName.keySet()){
+//			if (melName.matches(reg)){
+//				result.add(melName);
+//			}
+//		}
+//		return result;
+//	}
 
 	private void melResolution(SimEvent ev) {
 		Flow flow = (Flow) ev.getData();
 		String melName = flow.getAppNameDest();
 		int mel_id = -1;
 
-		if (isAbstractMEL(melName)){
+		if (melRouting.test(melName)){
 			// Using a RoundRobin policy for determining the next MEL
-			List<String> instances = findMELinstances(melName);
-			String melInstanceName = melRouting.apply(melName,instances);
+//			List<String> instances = findMELinstances(melName);
+			String melInstanceName = melRouting.apply(melName, this);
 			flow.setAppNameDest(melInstanceName);
 			mel_id = getVmIdByName(melInstanceName); //name of VM
 
@@ -311,10 +306,9 @@ public class OsmesisBroker extends DatacenterBroker {
 
 				//This is necessary for osmotic flow abstract routing.
 				int melId=-1;
-				if (!isAbstractMEL(app.getMELName())){
+				if (!melRouting.test(app.getMELName())){
 					melId = getVmIdByName(app.getMELName());
 				}
-
 				int vmIdInCloud = this.getVmIdByName(app.getVmName());
 				app.setIoTDeviceId(iotDeviceID);
 				app.setMelId(melId);				
