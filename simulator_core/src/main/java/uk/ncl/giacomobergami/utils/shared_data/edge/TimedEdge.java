@@ -1,10 +1,10 @@
-package uk.ncl.giacomobergami.utils.shared_data;
+package uk.ncl.giacomobergami.utils.shared_data.edge;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import uk.ncl.giacomobergami.utils.gir.CartesianPoint;
+import uk.ncl.giacomobergami.utils.shared_data.abstracted.TimedObject;
 
 import java.util.Objects;
 
@@ -14,19 +14,23 @@ import java.util.Objects;
         "tl_id",
         "x",
         "y",
+        "simtime",
         "communication_radius",
         "max_vehicle_communication"
 })
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class RSU implements CartesianPoint {
-    @JsonProperty("tl_id")
-    public String tl_id;
+public class TimedEdge implements TimedObject<TimedEdge> {
+    @JsonProperty("id")
+    public String id;
 
     @JsonProperty("x")
     public double x;
 
     @JsonProperty("y")
     public double y;
+
+    @JsonProperty("simtime")
+    public double simtime;
 
     @JsonProperty("communication_radius")
     public double communication_radius;
@@ -35,35 +39,55 @@ public class RSU implements CartesianPoint {
     public double max_vehicle_communication;
 
     @JsonIgnore
-    public RSUProgram program_rsu;
+    public EdgeProgram program_rsu;
 
-    public RSUProgram getProgram_rsu() {
+    public EdgeProgram getProgram_rsu() {
         return program_rsu;
     }
 
-    public void setProgram_rsu(RSUProgram program_rsu) {
+    public void setProgram_rsu(EdgeProgram program_rsu) {
         this.program_rsu = program_rsu;
     }
 
-    public RSU() {
+    public TimedEdge() {
 
     }
 
-    public RSU(String id, double x, double y, double communication_radius,
-               double max_vehicle_communication) {
-        this.tl_id = id;
+    public TimedEdge(String id, double x, double y, double communication_radius,
+                     double max_vehicle_communication, double simtime) {
+        this.id = id;
         this.x = x;
         this.y = y;
         this.communication_radius = communication_radius;
         this.max_vehicle_communication = max_vehicle_communication;
+        this.simtime = simtime;
     }
 
-    public String getTl_id() {
-        return tl_id;
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public void setSimtime(double simtime) {
+        this.simtime = simtime;
+    }
+
+    @Override
+    public String getId() {
+        return id;
+    }
+
+    @Override
+    public double getSimtime() {
+        return simtime;
+    }
+
+    @Override
+    public TimedEdge copy() {
+        return new TimedEdge(id, x, y, communication_radius, max_vehicle_communication, simtime);
     }
 
     public void setTl_id(String tl_id) {
-        this.tl_id = tl_id;
+        this.id = tl_id;
     }
 
     public void setX(double tl_x) {
@@ -92,7 +116,7 @@ public class RSU implements CartesianPoint {
     @Override
     public String toString() {
         return "RSU{" +
-                "tl_id='" + tl_id + '\'' +
+                "tl_id='" + id + '\'' +
                 ", x=" + x +
                 ", y=" + y +
                 ", communication_radius=" + communication_radius +
@@ -122,13 +146,13 @@ public class RSU implements CartesianPoint {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        RSU rsu = (RSU) o;
-        return Double.compare(rsu.x, x) == 0 && Double.compare(rsu.y, y) == 0 && Double.compare(rsu.communication_radius, communication_radius) == 0 && Double.compare(rsu.max_vehicle_communication, max_vehicle_communication) == 0 && Objects.equals(tl_id, rsu.tl_id);
+        TimedEdge timedEdge = (TimedEdge) o;
+        return Double.compare(timedEdge.x, x) == 0 && Double.compare(timedEdge.y, y) == 0 && Double.compare(timedEdge.communication_radius, communication_radius) == 0 && Double.compare(timedEdge.max_vehicle_communication, max_vehicle_communication) == 0 && Objects.equals(id, timedEdge.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(tl_id, x, y, communication_radius, max_vehicle_communication);
+        return Objects.hash(id, x, y, communication_radius, max_vehicle_communication);
     }
 
     @Override

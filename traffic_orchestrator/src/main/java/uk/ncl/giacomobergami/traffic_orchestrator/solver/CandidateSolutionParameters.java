@@ -1,8 +1,8 @@
 package uk.ncl.giacomobergami.traffic_orchestrator.solver;
 
 import uk.ncl.giacomobergami.utils.algorithms.ClusterDifference;
-import uk.ncl.giacomobergami.utils.shared_data.RSU;
-import uk.ncl.giacomobergami.utils.shared_data.TimedVehicle;
+import uk.ncl.giacomobergami.utils.shared_data.edge.TimedEdge;
+import uk.ncl.giacomobergami.utils.shared_data.iot.TimedIoT;
 import uk.ncl.giacomobergami.utils.structures.ConcretePair;
 
 import java.util.HashMap;
@@ -13,7 +13,7 @@ import java.util.TreeMap;
 public class CandidateSolutionParameters {
     public Map<Double, LocalTimeOptimizationProblem.Solution> bestResult = null;
     public TreeMap<Double, Map<String, List<String>>> inStringTime = null;
-    public HashMap<Double, Map<RSU, List<TimedVehicle>>> inCurrentTime = null;
+    public HashMap<Double, Map<TimedEdge, List<TimedIoT>>> inCurrentTime = null;
     public HashMap<String, ConcretePair<ConcretePair<Double, List<String>>, List<ClusterDifference<String>>>> delta_associations = null;
     public long networkingRankingTime;
     public Double bestResultScore;
@@ -34,11 +34,11 @@ public class CandidateSolutionParameters {
         this.inStringTime = inStringTime;
     }
 
-    public HashMap<Double, Map<RSU, List<TimedVehicle>>> getInCurrentTime() {
+    public HashMap<Double, Map<TimedEdge, List<TimedIoT>>> getInCurrentTime() {
         return inCurrentTime;
     }
 
-    public void setInCurrentTime(HashMap<Double, Map<RSU, List<TimedVehicle>>> inCurrentTime) {
+    public void setInCurrentTime(HashMap<Double, Map<TimedEdge, List<TimedIoT>>> inCurrentTime) {
         this.inCurrentTime = inCurrentTime;
     }
 

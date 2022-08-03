@@ -1,26 +1,26 @@
 package uk.ncl.giacomobergami.utils.asthmatic;
 
 import uk.ncl.giacomobergami.utils.algorithms.ClusterDifference;
-import uk.ncl.giacomobergami.utils.shared_data.VehicularProgram;
+import uk.ncl.giacomobergami.utils.shared_data.iot.IoTProgram;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class WorkloadFromVehicularProgram {
-    private VehicularProgram program;
+    private IoTProgram program;
     private List<WorkloadCSV> result;        Double startTime = null;
     Double endTime;
     String mel;
     Double lastTick;
     String firstId;
 
-    public WorkloadFromVehicularProgram(VehicularProgram program) {
+    public WorkloadFromVehicularProgram(IoTProgram program) {
         this.program = program;
         result = new ArrayList<>();
         init();
     }
 
-    public void setNewVehicularProgram(VehicularProgram program) {
+    public void setNewVehicularProgram(IoTProgram program) {
         this.program = program;
         if (result == null)
             result = new ArrayList<>();
@@ -96,10 +96,10 @@ public class WorkloadFromVehicularProgram {
                 generateWorkloadAtStop(micro_interval, ai, mel_to_vm);
             } else {
                 if (hasNoMel) {
-                    buildUpNewWorkload(val.shortest_path.get(val.shortest_path.size()-1).getVal2().tl_id, lastTick);
+                    buildUpNewWorkload(val.shortest_path.get(val.shortest_path.size()-1).getVal2().id, lastTick);
                 } else {
                     generateWorkloadAtStop(micro_interval, ai, mel_to_vm);
-                    buildUpNewWorkload(val.shortest_path.get(val.shortest_path.size()-1).getVal2().tl_id, lastTick);
+                    buildUpNewWorkload(val.shortest_path.get(val.shortest_path.size()-1).getVal2().id, lastTick);
                 }
             }
         }

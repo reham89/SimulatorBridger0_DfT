@@ -1,13 +1,13 @@
-package uk.ncl.giacomobergami.utils.shared_data;
+package uk.ncl.giacomobergami.utils.shared_data.iot;
 
 //import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity;
 //import org.cloudbus.cloudsim.edge.core.edge.Mobility;
 
-import uk.ncl.giacomobergami.utils.gir.CartesianPoint;
+import uk.ncl.giacomobergami.utils.shared_data.abstracted.TimedObject;
 
 import java.util.Objects;
 
-public class TimedVehicle implements CartesianPoint {
+public class TimedIoT implements TimedObject<TimedIoT> {
     public String id;
     public double x;
     public double y;
@@ -19,14 +19,37 @@ public class TimedVehicle implements CartesianPoint {
     public double slope;
     public double simtime;
 
+    public TimedIoT() {
+    }
+
+    public TimedIoT(String id, double x, double y, double angle, String type, double speed, double pos, String lane, double slope, double simtime) {
+        this.id = id;
+        this.x = x;
+        this.y = y;
+        this.angle = angle;
+        this.type = type;
+        this.speed = speed;
+        this.pos = pos;
+        this.lane = lane;
+        this.slope = slope;
+        this.simtime = simtime;
+    }
+
+    @Override
     public double getSimtime() {
         return simtime;
+    }
+
+    @Override
+    public TimedIoT copy() {
+        return new TimedIoT(id, x, y, angle, type, speed, pos, lane, slope, simtime);
     }
 
     public void setSimtime(double simtime) {
         this.simtime = simtime;
     }
 
+    @Override
     public String getId() {
         return id;
     }
@@ -105,7 +128,7 @@ public class TimedVehicle implements CartesianPoint {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        TimedVehicle vehicle = (TimedVehicle) o;
+        TimedIoT vehicle = (TimedIoT) o;
         return Double.compare(vehicle.x, x) == 0 && Double.compare(vehicle.y, y) == 0 && Double.compare(vehicle.angle, angle) == 0 && Double.compare(vehicle.speed, speed) == 0 && Double.compare(vehicle.pos, pos) == 0 && Double.compare(vehicle.slope, slope) == 0 && Objects.equals(id, vehicle.id) && Objects.equals(type, vehicle.type) && Objects.equals(lane, vehicle.lane);
     }
 

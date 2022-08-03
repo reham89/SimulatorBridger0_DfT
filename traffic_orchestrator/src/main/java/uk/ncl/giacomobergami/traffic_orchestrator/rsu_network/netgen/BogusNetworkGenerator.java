@@ -1,6 +1,6 @@
 package uk.ncl.giacomobergami.traffic_orchestrator.rsu_network.netgen;
 
-import uk.ncl.giacomobergami.utils.shared_data.RSU;
+import uk.ncl.giacomobergami.utils.shared_data.edge.TimedEdge;
 import uk.ncl.giacomobergami.utils.structures.StraightforwardAdjacencyList;
 
 import java.util.Collection;
@@ -14,7 +14,7 @@ public class BogusNetworkGenerator implements NetworkGenerator {
     }
 
     @Override
-    public StraightforwardAdjacencyList<RSU> apply(Collection<RSU> rsus) {
+    public StraightforwardAdjacencyList<TimedEdge> apply(Collection<TimedEdge> rsuses) {
         return null;
     }
 }

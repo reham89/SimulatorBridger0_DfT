@@ -1,4 +1,4 @@
-package uk.ncl.giacomobergami.utils.shared_data;
+package uk.ncl.giacomobergami.utils.data;
 
 import com.fasterxml.jackson.databind.MappingIterator;
 import com.fasterxml.jackson.databind.SequenceWriter;

@@ -1,14 +1,10 @@
 package uk.ncl.giacomobergami.traffic_orchestrator;
 
-import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import io.jenetics.ext.moea.Pareto;
 import org.apache.commons.lang3.tuple.Pair;
 import uk.ncl.giacomobergami.traffic_orchestrator.rsu_network.netgen.NetworkGenerator;
-import uk.ncl.giacomobergami.traffic_orchestrator.rsu_network.netgen.NetworkGeneratorFactory;
-import uk.ncl.giacomobergami.traffic_orchestrator.rsu_network.rsu.RSUUpdater;
-import uk.ncl.giacomobergami.traffic_orchestrator.rsu_network.rsu.RSUUpdaterFactory;
 import uk.ncl.giacomobergami.traffic_orchestrator.solver.CandidateSolutionParameters;
 import uk.ncl.giacomobergami.traffic_orchestrator.solver.LocalTimeOptimizationProblem;
 import uk.ncl.giacomobergami.traffic_orchestrator.solver.TemporalNetworkingRanking;
@@ -18,10 +14,17 @@ import uk.ncl.giacomobergami.utils.algorithms.Tarjan;
 import uk.ncl.giacomobergami.utils.asthmatic.WorkloadCSV;
 import uk.ncl.giacomobergami.utils.asthmatic.WorkloadCSVMediator;
 import uk.ncl.giacomobergami.utils.asthmatic.WorkloadFromVehicularProgram;
+import uk.ncl.giacomobergami.utils.data.CSVMediator;
 import uk.ncl.giacomobergami.utils.gir.SquaredCartesianDistanceFunction;
 import uk.ncl.giacomobergami.utils.pipeline_confs.OrchestratorConfiguration;
 import uk.ncl.giacomobergami.utils.pipeline_confs.TrafficConfiguration;
-import uk.ncl.giacomobergami.utils.shared_data.*;
+import uk.ncl.giacomobergami.utils.shared_data.edge.TimedEdge;
+import uk.ncl.giacomobergami.utils.shared_data.edge.TimedEdgeMediator;
+import uk.ncl.giacomobergami.utils.shared_data.edge.EdgeProgram;
+import uk.ncl.giacomobergami.utils.shared_data.iot.TimedIoT;
+import uk.ncl.giacomobergami.utils.shared_data.iot.TimedIoTMediator;
+import uk.ncl.giacomobergami.utils.shared_data.iot.IoT;
+import uk.ncl.giacomobergami.utils.shared_data.iot.IoTProgram;
 import uk.ncl.giacomobergami.utils.structures.ConcretePair;
 import uk.ncl.giacomobergami.utils.structures.StraightforwardAdjacencyList;
 
@@ -36,26 +39,26 @@ public class Orchestrator {
 
     private final OrchestratorConfiguration conf;
     private final TrafficConfiguration conf2;
-    protected RSUMediator rsum;
-    protected TimedVehicleMediator vehm;
+    protected TimedEdgeMediator rsum;
+    protected TimedIoTMediator vehm;
     Comparator<double[]> comparator;
     Gson gson;
     File statsFolder;
     HashMap<Double, Long> problemSolvingTime;
     CandidateSolutionParameters candidate;
-    HashMap<String, Vehicle> reconstructVehicles;
-    List<RSU> tls;
-    HashMap<String, RSU> rsuProgramHashMap;
+    HashMap<String, IoT> reconstructVehicles;
+    List<TimedEdge> tls;
+    HashMap<String, TimedEdge> rsuProgramHashMap;
     NetworkGenerator netGen;
-    StraightforwardAdjacencyList<RSU> network;
+    StraightforwardAdjacencyList<TimedEdge> network;
     SquaredCartesianDistanceFunction f;
     List<String> tls_s;
 
     public Orchestrator(OrchestratorConfiguration conf, TrafficConfiguration conf2) {
         this.conf = conf;
         this.conf2 = conf2;
-        rsum = new RSUMediator();
-        vehm = new TimedVehicleMediator();
+        rsum = new TimedEdgeMediator();
+        vehm = new TimedIoTMediator();
         gson = new GsonBuilder().setPrettyPrinting().create();
         statsFolder = new File(conf.output_stats_folder);
         candidate = null;
@@ -90,7 +93,7 @@ public class Orchestrator {
         return false;
     }
 
-    protected List<RSU> readRSU() {
+    protected List<TimedEdge> readRSU() {
         throw new UnsupportedOperationException("TO REIMPLEMENT");
 //        var reader = rsum.beginCSVRead(new File(conf.RSUCsvFile));
 //        var ls =  Lists.newArrayList(reader);
@@ -103,9 +106,9 @@ public class Orchestrator {
 //        return ls;
     }
 
-    protected TreeMap<Double, List<TimedVehicle>> readVehicles() {
+    protected TreeMap<Double, List<TimedIoT>> readVehicles() {
         var reader = vehm.beginCSVRead(new File(conf.vehicleCSVFile));
-        TreeMap<Double, List<TimedVehicle>> map = new TreeMap<>();
+        TreeMap<Double, List<TimedIoT>> map = new TreeMap<>();
         while (reader.hasNext()) {
             var curr = reader.next();
             if (!map.containsKey(curr.simtime))
@@ -134,7 +137,7 @@ public class Orchestrator {
 
         reconstructVehicles.clear();
         rsuProgramHashMap.clear();
-        tls.forEach(x -> rsuProgramHashMap.put(x.tl_id, x));
+        tls.forEach(x -> rsuProgramHashMap.put(x.id, x));
         HashMap<Double, ArrayList<LocalTimeOptimizationProblem.Solution>> simulationSolutions = new HashMap<>();
         var vehSet = readVehicles().entrySet();
         if (vehSet == null || vehSet.isEmpty()) {
@@ -144,10 +147,10 @@ public class Orchestrator {
         for (var simTimeToVehicles : vehSet) {
             simTimeToVehicles.getValue().forEach(x -> vehId.add(x.id));
             var currTime = simTimeToVehicles.getKey();
-            List<TimedVehicle> vehs2 = simTimeToVehicles.getValue();
+            List<TimedIoT> vehs2 = simTimeToVehicles.getValue();
            for (var tv : vehs2) {
                if (!reconstructVehicles.containsKey(tv.id)) {
-                   reconstructVehicles.put(tv.id, new Vehicle());
+                   reconstructVehicles.put(tv.id, new IoT());
                }
                reconstructVehicles.get(tv.id).dynamicInformation.put(currTime, tv);
            }
@@ -179,7 +182,7 @@ public class Orchestrator {
             }
         }
 
-        tls_s = tls.stream().map(x -> x.tl_id).distinct().collect(Collectors.toList());
+        tls_s = tls.stream().map(x -> x.id).distinct().collect(Collectors.toList());
         List<String> veh_s = new ArrayList<>(vehId);
 
         System.out.println("Computing all of the possible Pareto Routing scenarios...");
@@ -203,7 +206,7 @@ public class Orchestrator {
 
             // SETTING UP THE VEHICULAR PROGRAMS
             for (var veh : vehId) {
-                var vehProgram = new VehicularProgram(candidate.delta_associations.get(veh));
+                var vehProgram = new IoTProgram(candidate.delta_associations.get(veh));
                 for (var entry : candidate.bestResult.entrySet()) {
                     vehProgram.putDeltaRSUAssociation(entry.getKey(), entry.getValue().slowRetrievePath(veh));
                 }
@@ -217,8 +220,8 @@ public class Orchestrator {
                         .RSUNetworkNeighbours
                         .entrySet()
                         .stream()
-                        .map(x -> new ConcretePair<>(x.getKey().tl_id,
-                                x.getValue().stream().map(y -> y.tl_id).collect(Collectors.toList())))
+                        .map(x -> new ConcretePair<>(x.getKey().id,
+                                x.getValue().stream().map(y -> y.id).collect(Collectors.toList())))
                         .collect(Collectors.toMap(Pair::getKey, Pair::getValue));
                 networkTopology.put(entry.getKey(), npMap);
                 for (var vehs : entry.getValue().getAlphaAssociation()) {
@@ -234,9 +237,9 @@ public class Orchestrator {
             var delta_network_neighbours = ClusterDifference.diff(networkTopology, tls_s, StringComparator.getInstance());
 
             for (var r : tls) {
-                var rsuProgram = new RSUProgram(candidate.bestResult.keySet());
-                rsuProgram.finaliseProgram(delta_clusters.get(r.tl_id), delta_network_neighbours.get(r.tl_id));
-                rsuProgramHashMap.get(r.tl_id).program_rsu = rsuProgram;
+                var rsuProgram = new EdgeProgram(candidate.bestResult.keySet());
+                rsuProgram.finaliseProgram(delta_clusters.get(r.id), delta_network_neighbours.get(r.id));
+                rsuProgramHashMap.get(r.id).program_rsu = rsuProgram;
             }
         }
     }
@@ -283,11 +286,11 @@ public class Orchestrator {
                 double y = sem.y - YMin;
                 return (x*x)+(y*y);
             }));
-            System.out.println(            tls.subList(0, Math.min(tls.size(), 8)).stream().map(x -> x.tl_id
+            System.out.println(            tls.subList(0, Math.min(tls.size(), 8)).stream().map(x -> x.id
             ).collect(Collectors.joining("\",\"","LS <- list(\"", "\")")));
             flsF2.newLine();
             for (var x : tls) {
-                flsF2.write(x.tl_id +","+x.x +","+x.y);
+                flsF2.write(x.id +","+x.x +","+x.y);
                 flsF2.newLine();
             }
             flsF2.close();
@@ -302,12 +305,12 @@ public class Orchestrator {
             BufferedWriter flsF2 = new BufferedWriter(new OutputStreamWriter(tlsF));
             flsF2.write("SimTime,Sem,NVehs");
             flsF2.newLine();
-            List<TimedVehicle> e = Collections.emptyList();
+            List<TimedIoT> e = Collections.emptyList();
             if ((candidate != null) && (candidate.inCurrentTime != null))
             for (var cp : candidate.inCurrentTime.entrySet()) {
                 Double time = cp.getKey();
                 for (var sem : tls) {
-                    flsF2.write(time+","+sem.tl_id +","+cp.getValue().getOrDefault(sem, e).size());
+                    flsF2.write(time+","+sem.id +","+cp.getValue().getOrDefault(sem, e).size());
                     flsF2.newLine();
                 }
             }
@@ -337,9 +340,9 @@ public class Orchestrator {
             }
         }
         System.out.println("  - [Dumping]");
-        network.dump(Paths.get(statsFolder.getAbsolutePath(), conf.experiment_name+"_rsu_network.csv").toFile(), RSU::getTl_id);
+        network.dump(Paths.get(statsFolder.getAbsolutePath(), conf.experiment_name+"_rsu_network.csv").toFile(), TimedEdge::getId);
         System.out.println("  - [SCC]");
-        var scc = new Tarjan<RSU>().run(network, tls).stream().map(x -> x.stream().map(RSU::getTl_id).collect(Collectors.toList())).collect(Collectors.toList());
+        var scc = new Tarjan<TimedEdge>().run(network, tls).stream().map(x -> x.stream().map(TimedEdge::getId).collect(Collectors.toList())).collect(Collectors.toList());
         write_json(statsFolder, "RSU_scc.json", scc);
         var belongingMap = Tarjan.asBelongingMap(scc);
         var vehicularConverterToWorkflow = new WorkloadFromVehicularProgram(null);

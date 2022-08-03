@@ -1,11 +1,12 @@
-package uk.ncl.giacomobergami.utils.shared_data;
+package uk.ncl.giacomobergami.utils.shared_data.edge;
 
 import uk.ncl.giacomobergami.utils.algorithms.ClusterDifference;
+import uk.ncl.giacomobergami.utils.shared_data.abstracted.SimulationProgram;
 import uk.ncl.giacomobergami.utils.structures.ConcretePair;
 
 import java.util.*;
 
-public class RSUProgram {
+public class EdgeProgram implements SimulationProgram  {
     private final TreeMap<Double, ProgramDetails> neighboursAtEachSimulationTime;
     private Double startCommunicatingAtSimulationTime;
 
@@ -81,7 +82,7 @@ public class RSUProgram {
         }
     }
 
-    public RSUProgram(Set<Double> doubles) {
+    public EdgeProgram(Set<Double> doubles) {
         startCommunicatingAtSimulationTime = Double.MAX_VALUE;
         neighboursAtEachSimulationTime = new TreeMap<>();
         for (Double delta : doubles) {

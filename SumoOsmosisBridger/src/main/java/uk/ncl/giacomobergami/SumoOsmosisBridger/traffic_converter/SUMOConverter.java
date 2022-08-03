@@ -13,8 +13,8 @@ import uk.ncl.giacomobergami.utils.data.GZip;
 import uk.ncl.giacomobergami.utils.data.XPathUtil;
 import uk.ncl.giacomobergami.utils.data.YAML;
 import uk.ncl.giacomobergami.utils.pipeline_confs.TrafficConfiguration;
-import uk.ncl.giacomobergami.utils.shared_data.RSU;
-import uk.ncl.giacomobergami.utils.shared_data.TimedVehicle;
+import uk.ncl.giacomobergami.utils.shared_data.edge.TimedEdge;
+import uk.ncl.giacomobergami.utils.shared_data.iot.TimedIoT;
 import uk.ncl.giacomobergami.utils.structures.StraightforwardAdjacencyList;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -23,8 +23,8 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathExpressionException;
 import java.io.*;
 import java.nio.file.Paths;
-import java.sql.Time;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class SUMOConverter extends TrafficConverter {
     private final NetworkGenerator netGen;
@@ -35,8 +35,8 @@ public class SUMOConverter extends TrafficConverter {
     List<Double> temporalOrdering;
     Document networkFile;
     StraightforwardAdjacencyList<String> connectionPath;
-    HashMap<Double, List<TimedVehicle>> timedIoTDevices;
-    HashSet<RSU> roadSideUnits;
+    HashMap<Double, List<TimedIoT>> timedIoTDevices;
+    HashSet<TimedEdge> roadSideUnits;
 
     public SUMOConverter(TrafficConfiguration conf)  {
         super(conf);
@@ -129,7 +129,7 @@ public class SUMOConverter extends TrafficConverter {
             var curr = timestamp_eval.item(i);
             double currTime = Double.parseDouble(curr.getAttributes().getNamedItem("time").getTextContent());
             temporalOrdering.add(currTime);
-            var ls = new ArrayList<TimedVehicle>();
+            var ls = new ArrayList<TimedIoT>();
             timedIoTDevices.put(currTime, ls);
             var tag = timestamp_eval.item(i).getChildNodes();
             for (int j = 0, M = tag.getLength(); j < M; j++) {
@@ -137,7 +137,7 @@ public class SUMOConverter extends TrafficConverter {
                 if (veh.getNodeType() == Node.ELEMENT_NODE) {
                     assert (Objects.equals(veh.getNodeName(), "vehicle"));
                     var attrs = veh.getAttributes();
-                    TimedVehicle rec = new TimedVehicle();
+                    TimedIoT rec = new TimedIoT();
                     rec.angle = Double.parseDouble(attrs.getNamedItem("angle").getTextContent());
                     rec.x = Double.parseDouble(attrs.getNamedItem("x").getTextContent());
                     rec.y = Double.parseDouble(attrs.getNamedItem("y").getTextContent());
@@ -162,17 +162,17 @@ public class SUMOConverter extends TrafficConverter {
         }
         for (int i = 0, N = traffic_lights.getLength(); i<N; i++) {
             var curr = traffic_lights.item(i).getAttributes();
-            var rsu = new RSU(curr.getNamedItem("id").getTextContent(),
+            var rsu = new TimedEdge(curr.getNamedItem("id").getTextContent(),
                     Double.parseDouble(curr.getNamedItem("x").getTextContent()),
                     Double.parseDouble(curr.getNamedItem("y").getTextContent()),
                     concreteConf.default_rsu_communication_radius,
-                    concreteConf.default_max_vehicle_communication);
+                    concreteConf.default_max_vehicle_communication, 0);
             rsuUpdater.accept(rsu);
             roadSideUnits.add(rsu);
         }
         connectionPath.clear();
         var tmp = netGen.apply(roadSideUnits);
-        tmp.forEach((k, v) -> connectionPath.put(k.tl_id, v.tl_id));
+        tmp.forEach((k, v) -> connectionPath.put(k.id, v.id));
         return true;
     }
 
@@ -182,7 +182,7 @@ public class SUMOConverter extends TrafficConverter {
     }
 
     @Override
-    protected Collection<TimedVehicle> getTimedIoT(Double tick) {
+    protected Collection<TimedIoT> getTimedIoT(Double tick) {
         return timedIoTDevices.get(tick);
     }
 
@@ -192,8 +192,12 @@ public class SUMOConverter extends TrafficConverter {
     }
 
     @Override
-    protected HashSet<RSU> getTimedEdgeNodes(Double tick) {
-        return roadSideUnits;
+    protected HashSet<TimedEdge> getTimedEdgeNodes(Double tick) {
+        return roadSideUnits.stream().map(x -> {
+            var ls = x.copy();
+            ls.setSimtime(tick);
+            return ls;
+        }).collect(Collectors.toCollection(HashSet<TimedEdge>::new));
     }
 
     @Override

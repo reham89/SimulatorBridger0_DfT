@@ -4,11 +4,10 @@ package uk.ncl.giacomobergami.traffic_orchestrator.solver;
 import uk.ncl.giacomobergami.utils.algorithms.CartesianProduct;
 import uk.ncl.giacomobergami.utils.algorithms.ClusterDifference;
 import uk.ncl.giacomobergami.utils.algorithms.StringComparator;
-import uk.ncl.giacomobergami.utils.shared_data.RSU;
-import uk.ncl.giacomobergami.utils.shared_data.TimedVehicle;
+import uk.ncl.giacomobergami.utils.shared_data.edge.TimedEdge;
+import uk.ncl.giacomobergami.utils.shared_data.iot.TimedIoT;
 import uk.ncl.giacomobergami.utils.structures.ConcretePair;
 
-import java.sql.Time;
 import java.util.*;
 
 public class TemporalNetworkingRanking {
@@ -57,7 +56,7 @@ public class TemporalNetworkingRanking {
                                              double addition,
                                              int i,
                                              Map<Double, LocalTimeOptimizationProblem.Solution> candidateSolution) {
-        HashMap<Double, Map<RSU, List<TimedVehicle>>> local_inCurrentTime = new HashMap<>();
+        HashMap<Double, Map<TimedEdge, List<TimedIoT>>> local_inCurrentTime = new HashMap<>();
         TreeMap<Double, Map<String, List<String>>> local_inStringTime = new TreeMap<>();
         TreeMap<Double, Map<String, List<String>>> vehClustAssoc = new TreeMap<>();
 
@@ -70,13 +69,13 @@ public class TemporalNetworkingRanking {
 
             for (var y : timeToSolution.getValue().rsuToCommunicatingVehiclesCluster.entrySet()) {
                 List<String> ls = new ArrayList<>();
-                map.put(y.getKey().tl_id, ls);
+                map.put(y.getKey().id, ls);
                 for (var z : y.getValue()) {
                     ls.add(z.id);
                     if (!map2.containsKey(z.id)) {
                         map2.put(z.id, new ArrayList<>());
                     }
-                    map2.get(z.id).add(y.getKey().tl_id);
+                    map2.get(z.id).add(y.getKey().id);
                 }
             }
         }
@@ -160,7 +159,7 @@ public class TemporalNetworkingRanking {
                 if (!map2.containsKey(z.id)) {
                     map2.put(z.id, new ArrayList<>());
                 }
-                map2.get(z.id).add(y.getKey().tl_id);
+                map2.get(z.id).add(y.getKey().id);
             }
         }
     }

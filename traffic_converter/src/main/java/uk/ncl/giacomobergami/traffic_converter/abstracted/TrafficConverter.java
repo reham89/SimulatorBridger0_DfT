@@ -2,12 +2,15 @@ package uk.ncl.giacomobergami.traffic_converter.abstracted;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import org.apache.commons.lang3.tuple.Pair;
 import uk.ncl.giacomobergami.utils.algorithms.ClusterDifference;
 import uk.ncl.giacomobergami.utils.algorithms.StringComparator;
 import uk.ncl.giacomobergami.utils.algorithms.Tarjan;
+import uk.ncl.giacomobergami.utils.data.CSVMediator;
 import uk.ncl.giacomobergami.utils.pipeline_confs.TrafficConfiguration;
-import uk.ncl.giacomobergami.utils.shared_data.*;
+import uk.ncl.giacomobergami.utils.shared_data.edge.TimedEdge;
+import uk.ncl.giacomobergami.utils.shared_data.edge.TimedEdgeMediator;
+import uk.ncl.giacomobergami.utils.shared_data.iot.TimedIoT;
+import uk.ncl.giacomobergami.utils.shared_data.iot.TimedIoTMediator;
 import uk.ncl.giacomobergami.utils.structures.StraightforwardAdjacencyList;
 
 import java.io.*;
@@ -22,27 +25,27 @@ public abstract class TrafficConverter {
     private final String vehicleCSVFile;
     private final TrafficConfiguration conf;
     private final Gson gson;
-    protected RSUMediator rsum;
-    protected TimedVehicleMediator vehm;
-    protected CSVMediator<RSU>.CSVWriter rsuwrite;
-    protected CSVMediator<TimedVehicle>.CSVWriter vehwrite;
+    protected TimedEdgeMediator rsum;
+    protected TimedIoTMediator vehm;
+    protected CSVMediator<TimedEdge>.CSVWriter rsuwrite;
+    protected CSVMediator<TimedIoT>.CSVWriter vehwrite;
 
     public TrafficConverter(TrafficConfiguration conf) {
         this.conf = conf;
         this.RSUCsvFile = conf.RSUCsvFile;
         vehicleCSVFile = conf.VehicleCsvFile;
-        rsum = new RSUMediator();
+        rsum = new TimedEdgeMediator();
         rsuwrite = null;
-        vehm = new TimedVehicleMediator();
+        vehm = new TimedIoTMediator();
         vehwrite = null;
         gson = new GsonBuilder().setPrettyPrinting().create();
     }
 
     protected abstract boolean initReadSimulatorOutput();
     protected abstract List<Double> getSimulationTimeUnits();
-    protected abstract Collection<TimedVehicle> getTimedIoT(Double tick);
+    protected abstract Collection<TimedIoT> getTimedIoT(Double tick);
     protected abstract StraightforwardAdjacencyList<String> getTimedEdgeNetwork(Double tick);
-    protected abstract HashSet<RSU> getTimedEdgeNodes(Double tick);
+    protected abstract HashSet<TimedEdge> getTimedEdgeNodes(Double tick);
     protected abstract void endReadSimulatorOutput();
 
     public boolean run() {
@@ -52,17 +55,20 @@ public abstract class TrafficConverter {
         Collections.sort(timeUnits);
         TreeMap<Double, List<List<String>>> sccPerTimeComponent = new TreeMap<>();
         TreeMap<Double, Map<String, List<String>>> timedNodeAdjacency = new TreeMap<>();
-        Set<String> allTlsS = new HashSet<>();
+        HashSet<String> allTlsS = new HashSet<>();
         for (Double tick : timeUnits) {
             // Writing IoT Devices
-            getTimedIoT(tick).forEach(this::writeVehicleCsv);
+            getTimedIoT(tick).forEach(this::writeTimedIoT);
 
             // Getting all of the IoT Devices
-            HashSet<RSU> allEdgeNodes = getTimedEdgeNodes(tick);
-            allEdgeNodes.forEach(x-> allTlsS.add(x.tl_id));
+            HashSet<TimedEdge> allEdgeNodes = getTimedEdgeNodes(tick);
+            allEdgeNodes.forEach(x -> {
+                allTlsS.add(x.getId());
+                writeTimedEdge(x);
+            });
             StraightforwardAdjacencyList<String> network = getTimedEdgeNetwork(tick);
 
-            var scc = new Tarjan<String>().run(network, allEdgeNodes.stream().map(RSU::getTl_id).toList());
+            var scc = new Tarjan<String>().run(network, allEdgeNodes.stream().map(TimedEdge::getId).toList());
             sccPerTimeComponent.put(tick, scc);
             timedNodeAdjacency.put(tick, network.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, x->new ArrayList<>(x.getValue()))));
         }
@@ -81,14 +87,15 @@ public abstract class TrafficConverter {
             return false;
         }
 
-        writeVehicleCsvEnd();
+        closeWritingTimedIoT();
+        closeWritingTimedEdge();
         endReadSimulatorOutput();
-        return false;
+        return true;
     }
 
 
 
-    protected boolean writeRSUCsv(RSU object) {
+    protected boolean writeTimedEdge(TimedEdge object) {
         if (rsuwrite == null) {
             rsuwrite = rsum.beginCSVWrite(new File(RSUCsvFile));
             if (rsuwrite == null) return false;
@@ -96,7 +103,7 @@ public abstract class TrafficConverter {
         return rsuwrite.write(object);
     }
 
-    protected boolean writeRSUCsvEnd() {
+    protected boolean closeWritingTimedEdge() {
         if (rsuwrite != null) {
             try {
                 rsuwrite.close();
@@ -109,7 +116,7 @@ public abstract class TrafficConverter {
         return true;
     }
 
-    protected boolean writeVehicleCsv(TimedVehicle object) {
+    protected boolean writeTimedIoT(TimedIoT object) {
         if (vehwrite == null) {
             vehwrite = vehm.beginCSVWrite(new File(vehicleCSVFile));
             if (vehwrite == null) return false;
@@ -117,7 +124,7 @@ public abstract class TrafficConverter {
         return vehwrite.write(object);
     }
 
-    protected boolean writeVehicleCsvEnd() {
+    protected boolean closeWritingTimedIoT() {
         if (vehwrite != null) {
             try {
                 vehwrite.close();

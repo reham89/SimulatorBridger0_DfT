@@ -1,27 +1,27 @@
-package uk.ncl.giacomobergami.utils.shared_data;
+package uk.ncl.giacomobergami.utils.shared_data.iot;
 
 import uk.ncl.giacomobergami.utils.algorithms.ClusterDifference;
-import uk.ncl.giacomobergami.utils.asthmatic.WorkloadCSV;
+import uk.ncl.giacomobergami.utils.shared_data.abstracted.SimulationProgram;
+import uk.ncl.giacomobergami.utils.shared_data.edge.TimedEdge;
 import uk.ncl.giacomobergami.utils.structures.ConcretePair;
 import uk.ncl.giacomobergami.utils.structures.Union2;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
-public class VehicularProgram {
+public class IoTProgram implements SimulationProgram {
 
-    public void setLocalInformation(Double key, TimedVehicle key1) {
+    public void setLocalInformation(Double key, TimedIoT key1) {
         pathingAtEachSimulationTime.get(key).localInformation = key1;
     }
 
     public class ProgramDetails {
-        public final List<Union2<TimedVehicle, RSU>> shortest_path;
+        public final List<Union2<TimedIoT, TimedEdge>> shortest_path;
         public boolean isStartingProgram;
         public List<String> setInitialClusterConnection;
         public ClusterDifference<String> setConnectionVariation;
-        public TimedVehicle localInformation;
+        public TimedIoT localInformation;
 
-        public List<Union2<TimedVehicle, RSU>> getShortest_path() {
+        public List<Union2<TimedIoT, TimedEdge>> getShortest_path() {
             return shortest_path;
         }
 
@@ -49,15 +49,15 @@ public class VehicularProgram {
             this.setConnectionVariation = setConnectionVariation;
         }
 
-        public TimedVehicle getLocalInformation() {
+        public TimedIoT getLocalInformation() {
             return localInformation;
         }
 
-        public void setLocalInformation(TimedVehicle localInformation) {
+        public void setLocalInformation(TimedIoT localInformation) {
             this.localInformation = localInformation;
         }
 
-        public ProgramDetails(List<Union2<TimedVehicle, RSU>> shortest_path) {
+        public ProgramDetails(List<Union2<TimedIoT, TimedEdge>> shortest_path) {
             this.shortest_path = shortest_path;
             isStartingProgram = false;
             setInitialClusterConnection = null;
@@ -90,12 +90,12 @@ public class VehicularProgram {
         this.startCommunicatingAtSimulationTime = startCommunicatingAtSimulationTime;
     }
 
-    public VehicularProgram(ConcretePair<ConcretePair<Double, List<String>>, List<ClusterDifference<String>>> clusterConnection) {
+    public IoTProgram(ConcretePair<ConcretePair<Double, List<String>>, List<ClusterDifference<String>>> clusterConnection) {
         this.clusterConnection = clusterConnection;
         this.pathingAtEachSimulationTime = new TreeMap<>();
     }
 
-    public void putDeltaRSUAssociation(Double key, List<Union2<TimedVehicle, RSU>> retrievePath) {
+    public void putDeltaRSUAssociation(Double key, List<Union2<TimedIoT, TimedEdge>> retrievePath) {
         pathingAtEachSimulationTime.put(key, new ProgramDetails(retrievePath));
         if (key < startCommunicatingAtSimulationTime) {
             startCommunicatingAtSimulationTime = key;

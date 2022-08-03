@@ -4,7 +4,7 @@ import com.eatthepath.jvptree.VPTree;
 import uk.ncl.giacomobergami.traffic_orchestrator.rsu_network.netgen.NetworkGenerator;
 import uk.ncl.giacomobergami.utils.data.YAML;
 import uk.ncl.giacomobergami.utils.gir.SquaredCartesianDistanceFunction;
-import uk.ncl.giacomobergami.utils.shared_data.RSU;
+import uk.ncl.giacomobergami.utils.shared_data.edge.TimedEdge;
 import uk.ncl.giacomobergami.utils.structures.StraightforwardAdjacencyList;
 
 import java.io.File;
@@ -22,11 +22,11 @@ public class TopKConnections implements NetworkGenerator {
     }
 
     @Override
-    public StraightforwardAdjacencyList<RSU> apply(Collection<RSU> rsus) {
-        var tree = new VPTree<>(dist, rsus);
-        StraightforwardAdjacencyList<RSU> result = new StraightforwardAdjacencyList<>();
-        for (var x : rsus) {
-            List<RSU> adj;
+    public StraightforwardAdjacencyList<TimedEdge> apply(Collection<TimedEdge> rsuses) {
+        var tree = new VPTree<>(dist, rsuses);
+        StraightforwardAdjacencyList<TimedEdge> result = new StraightforwardAdjacencyList<>();
+        for (var x : rsuses) {
+            List<TimedEdge> adj;
             if (conf.squaredDistance > 0.0) {
                 adj = tree.getAllWithinDistance(x, conf.squaredDistance);
             } else if (conf.top_k > 0) {
