@@ -13,7 +13,7 @@ public class MainExample {
             orchestrator = args[1];
         }
         TrafficConverterRunner.convert(converter);
-        TrafficOrchestratorRunner.orchestrate(orchestrator);
+        TrafficOrchestratorRunner.orchestrate(orchestrator, converter);
     }
 
 }

@@ -53,7 +53,7 @@ public class OsmosisOrchestrator extends SimEntity {
 	
 	public OsmosisOrchestrator() {
 		super("Osmesis_Orchestrator");
-		this.channelTable = new Hashtable<String, Channel>();	
+		this.channelTable = new Hashtable<>();
 		// TODO Auto-generated constructor stub
 	}
 			

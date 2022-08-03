@@ -24,3 +24,4 @@ addition: 1.0
 reset_rsu_communication_radius: 200.0
 reset_max_vehicle_communication: 5
 generateRSUAdjacencyList: "uk.ncl.giacomobergami.SumoOsmosisBridger.traffic_orchestrator.TopKConnections"
+#uniform_data_rate: 0.01

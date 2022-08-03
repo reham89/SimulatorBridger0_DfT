@@ -219,7 +219,6 @@ public class OsmosisBuilder {
     }
 
     protected SDNController createCloudSDNController(ControllerEntity controllerEntity){
-
         SDNTrafficSchedulingPolicy sdnMapReducePolicy = null;
         SDNRoutingPolicy sdnRoutingPolicy = null;       
         String sdnName = controllerEntity.getName();

@@ -1,2 +1,2 @@
-top_k: 5
-squaredDistance: -1.0
+top_k: -1.0
+squaredDistance: 40000.0

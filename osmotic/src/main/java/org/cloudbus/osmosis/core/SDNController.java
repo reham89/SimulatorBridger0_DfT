@@ -101,6 +101,7 @@ public class SDNController extends NetworkOperatingSystem {
 		
 		int srcVm = flow.getOrigin();
 		int dstVm = flow.getDestination();
+		System.out.println(CloudSim.getEntityName(flow.getOrigin())+"-->"+CloudSim.getEntityName(flow.getDestination()));
 
 		NetworkNIC srchost = findSDNHost(srcVm);
 		NetworkNIC dsthost = findSDNHost(dstVm);
@@ -121,7 +122,8 @@ public class SDNController extends NetworkOperatingSystem {
 			removeCompletedFlows(flow);
 			return;
 		} 
-		
+
+
 		List<NetworkNIC> route = new ArrayList<>();	
 		route = sdnRoutingPoloicy.getRoute(flow.getOrigin(), flow.getDestination());
 		
@@ -136,7 +138,8 @@ public class SDNController extends NetworkOperatingSystem {
 			
 			List<Link> links = sdnRoutingPoloicy.getLinks(flow.getOrigin(), flow.getDestination());
 			flow.setLinkList(links);
-			
+
+			System.out.println("==>"+CloudSim.getEntityName(this.getWanOorchestrator().getId()));
 			sendNow(this.getWanController().getId(), OsmosisTags.BUILD_ROUTE, flow);
 			return;
 		}
@@ -145,7 +148,8 @@ public class SDNController extends NetworkOperatingSystem {
 		flow.setNodeOnRouteList(endToEndRoute);		
 		List<Link> links = sdnRoutingPoloicy.getLinks(flow.getOrigin(), flow.getDestination());
 		flow.setLinkList(links);
-		
+
+		System.out.println("==>"+CloudSim.getEntityName(this.getWanOorchestrator().getId()));
 		sendNow(this.getWanOorchestrator().getId(), OsmosisTags.START_TRANSMISSION, flow);																
 	}
 

@@ -116,7 +116,6 @@ public class OsmesisBroker extends DatacenterBroker {
 	}
 
 	private String melRoundRobinRoutingPolicy(String abstractMel, List<String> instances){
-
 		if (!roundRobinMelMap.containsKey(abstractMel)){
 			roundRobinMelMap.put(abstractMel,0);
 		}
@@ -132,12 +131,12 @@ public class OsmesisBroker extends DatacenterBroker {
 		return result;
 	}
 
-	private boolean isAbstractMEL(String name){
+	private boolean isAbstractMEL(String name){ // Check if it is a STRING.*
 		boolean result = name.matches("^\\S*.[*]$");
 		return result;
 	}
 
-	List<String> findMELinstances(String name){
+	List<String> findMELinstances(String name){ // Getting all of the elements being the same STRING and a number after the dot
 		List<String> result = new ArrayList<String>();
 
 		String reg = name.replaceAll("(.\\*)$", "");
@@ -157,6 +156,7 @@ public class OsmesisBroker extends DatacenterBroker {
 		int mel_id = -1;
 
 		if (isAbstractMEL(melName)){
+			// Using a RoundRobin policy for determining the next MEL
 			List<String> instances = findMELinstances(melName);
 			String melInstanceName = melRoundRobinRoutingPolicy(melName,instances);
 			flow.setAppNameDest(melInstanceName);
@@ -325,10 +325,6 @@ public class OsmesisBroker extends DatacenterBroker {
 	}	
 
 	private void generateIoTData(SimEvent ev){
-		if (ev.getData() instanceof OsmesisAppDescription) {
-			if (((OsmesisAppDescription)(ev.getData())).getAppName().equals("App_3"))
-				System.out.println("ECCOCIN");
-		}
 		OsmesisAppDescription app = (OsmesisAppDescription) ev.getData();
 		if((CloudSim.clock() >= app.getStartDataGenerationTime()) &&
 				(CloudSim.clock() < app.getStopDataGenerationTime()) &&

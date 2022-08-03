@@ -43,8 +43,6 @@ public class SDNRoutingLoadBalancing extends SDNRoutingPolicy {
 	Map<NetworkNIC, Integer> nodeToInt = new HashMap<>();
 	Map<Integer, NetworkNIC> intToNode = new HashMap<>();
 	Table<NetworkNIC, NetworkNIC, Link> selectedLink = HashBasedTable.create();
-
-
 	protected Table<Integer, Integer, List<NetworkNIC>> path =  HashBasedTable.create(); // src, and dest
 	protected Table<Integer, Integer, List<Link>> links =  HashBasedTable.create(); // srcvm and destvm
 
@@ -193,7 +191,7 @@ public class SDNRoutingLoadBalancing extends SDNRoutingPolicy {
 
 	@Override
 	public List<NetworkNIC> buildRoute(NetworkNIC srcHost, NetworkNIC destHost, Flow pkt) {
-//		System.out.println("Packet: " + pkt.getFlowId() + " - Find Shortest Path and Max BW between " + pkt.getAppNameSrc() +" and " + pkt.getAppNameDest() );
+		System.out.println("Packet: " + pkt.getFlowId() + " - Find Shortest Path and Max BW between " + pkt.getAppNameSrc() +" and " + pkt.getAppNameDest() );
 		updateSDNNetworkGraph();
 
 		int graphSize  = nodeGraphDistance.length; // u

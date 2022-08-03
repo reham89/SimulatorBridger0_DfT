@@ -5,11 +5,17 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 import uk.ncl.giacomobergami.traffic_converter.abstracted.TrafficConverter;
+import uk.ncl.giacomobergami.traffic_orchestrator.rsu_network.netgen.NetworkGenerator;
+import uk.ncl.giacomobergami.traffic_orchestrator.rsu_network.netgen.NetworkGeneratorFactory;
+import uk.ncl.giacomobergami.traffic_orchestrator.rsu_network.rsu.RSUUpdater;
+import uk.ncl.giacomobergami.traffic_orchestrator.rsu_network.rsu.RSUUpdaterFactory;
 import uk.ncl.giacomobergami.utils.data.GZip;
 import uk.ncl.giacomobergami.utils.data.XPathUtil;
 import uk.ncl.giacomobergami.utils.data.YAML;
+import uk.ncl.giacomobergami.utils.pipeline_confs.TrafficConfiguration;
 import uk.ncl.giacomobergami.utils.shared_data.RSU;
 import uk.ncl.giacomobergami.utils.shared_data.TimedVehicle;
+import uk.ncl.giacomobergami.utils.structures.StraightforwardAdjacencyList;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -17,19 +23,23 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathExpressionException;
 import java.io.*;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.sql.Time;
+import java.util.*;
 
 public class SUMOConverter extends TrafficConverter {
-    private SUMOConfiguration conf;
+    private final NetworkGenerator netGen;
+    private final RSUUpdater rsuUpdater;
+    private SUMOConfiguration concreteConf;
     private final DocumentBuilderFactory dbf;
     private DocumentBuilder db;
+    List<Double> temporalOrdering;
+    Document networkFile;
+    StraightforwardAdjacencyList<String> connectionPath;
+    HashMap<Double, List<TimedVehicle>> timedIoTDevices;
+    HashSet<RSU> roadSideUnits;
 
-    public SUMOConverter(String YAMLConverterConfiguration,
-                         String RSUCsvFile,
-                         String VehicleCSVFile)  {
-        super(RSUCsvFile, VehicleCSVFile);
+    public SUMOConverter(TrafficConfiguration conf)  {
+        super(conf);
         dbf = DocumentBuilderFactory.newInstance();
         try {
             db = dbf.newDocumentBuilder();
@@ -37,56 +47,25 @@ public class SUMOConverter extends TrafficConverter {
             e.printStackTrace();
             db = null;
         }
-        conf = YAML.parse(SUMOConfiguration.class, new File(YAMLConverterConfiguration)).orElseThrow();
+        concreteConf = YAML.parse(SUMOConfiguration.class, new File(conf.YAMLConverterConfiguration)).orElseThrow();
+        temporalOrdering = new ArrayList<>();
+        networkFile = null;
+        timedIoTDevices = new HashMap<>();
+        roadSideUnits = new HashSet<>();
+        netGen = NetworkGeneratorFactory.generateFacade(concreteConf.generateRSUAdjacencyList);
+        rsuUpdater = RSUUpdaterFactory.generateFacade(concreteConf.updateRSUFields,
+                                                      concreteConf.default_rsu_communication_radius,
+                                                      concreteConf.default_max_vehicle_communication);
+        connectionPath = new StraightforwardAdjacencyList<>();
     }
 
     @Override
-    public boolean runSimulator(long begin,
-                             long end,
-                             long step) {
-        if (new File(conf.trace_file).exists()) {
-            System.out.println("Skipping the sumo running: the trace_file already exists");
-            return true;
-        }
-        File fout = new File(conf.logger_file);
-        FileOutputStream fos = null;
-        try {
-            fos = new FileOutputStream(fout);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-            return false;
-        }
-        BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
-        ProcessBuilder processBuilder = new ProcessBuilder();
-        processBuilder.command(conf.sumo_program, "-c", conf.sumo_configuration_file_path, "--begin", Long.toString(begin), "--end", Long.toString(end), "--step-length", Long.toString(step), "--fcd-output", conf.trace_file);
-        try {
-            Process process = processBuilder.start();
-            BufferedReader reader =
-                    new BufferedReader(new InputStreamReader(process.getInputStream()));
-            String line;
-            while ((line = reader.readLine()) != null) {
-                bw.write(line);
-                bw.newLine();
-            }
-            int exitCode = process.waitFor();
-            bw.write("\nExited with error code : ");
-            bw.write(exitCode);
-        } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
-        }
-        try {
-            bw.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-            return false;
-        }
-        return true;
-    }
-
-    @Override
-    public boolean dumpOrchestratorConfiguration() {
-        List<Double> temporalOrdering = new ArrayList<>();
-        File file = new File(conf.sumo_configuration_file_path);
+    protected boolean initReadSimulatorOutput() {
+        connectionPath.clear();
+        temporalOrdering.clear();
+        timedIoTDevices.clear();
+        networkFile = null;
+        File file = new File(concreteConf.sumo_configuration_file_path);
         Document configurationFile = null;
         try {
             configurationFile = db.parse(file);
@@ -94,7 +73,6 @@ public class SUMOConverter extends TrafficConverter {
             e.printStackTrace();
             return false;
         }
-
         File network_python = null;
         try {
             network_python = Paths.get(file.getParent(), XPathUtil.evaluate(configurationFile, "/configuration/input/net-file/@value"))
@@ -118,37 +96,19 @@ public class SUMOConverter extends TrafficConverter {
             network_python = new File(ap);
         }
         System.out.println("Loading the traffic light information...");
-        Document networkFile = null;
         try {
             networkFile = db.parse(network_python);
         } catch (SAXException | IOException e) {
             e.printStackTrace();
             return false;
         }
-        ArrayList<RSU> tls = new ArrayList<>();
-        NodeList traffic_lights = null;
-        try {
-            traffic_lights = XPathUtil.evaluateNodeList(networkFile, "/net/junction[@type='traffic_light']");
-        } catch (XPathExpressionException e) {
-            e.printStackTrace();
-            return false;
-        }
 
-        for (int i = 0, N = traffic_lights.getLength(); i<N; i++) {
-            var curr = traffic_lights.item(i).getAttributes();
-            writeRSUCsv(new RSU(curr.getNamedItem("id").getTextContent(),
-                    Double.parseDouble(curr.getNamedItem("x").getTextContent()),
-                    Double.parseDouble(curr.getNamedItem("y").getTextContent()),
-                    0,
-                    0));
-        }
-        writeRSUCsvEnd();
-
-        File trajectory_python = new File(conf.trace_file);
+        File trajectory_python = new File(concreteConf.trace_file);
         if (!trajectory_python.exists()) {
             System.err.println("ERROR: sumo has not built the trace file: " + trajectory_python.getAbsolutePath());
             return false;
         }
+
         System.out.println("Loading the vehicle information...");
         Document trace_document = null;
         try {
@@ -157,7 +117,6 @@ public class SUMOConverter extends TrafficConverter {
             e.printStackTrace();
             return false;
         }
-
         NodeList timestamp_eval;
         try {
             timestamp_eval = XPathUtil.evaluateNodeList(trace_document, "/fcd-export/timestep");
@@ -168,7 +127,10 @@ public class SUMOConverter extends TrafficConverter {
 
         for (int i = 0, N = timestamp_eval.getLength(); i<N; i++) {
             var curr = timestamp_eval.item(i);
-            Double currTime = Double.valueOf(curr.getAttributes().getNamedItem("time").getTextContent());
+            double currTime = Double.parseDouble(curr.getAttributes().getNamedItem("time").getTextContent());
+            temporalOrdering.add(currTime);
+            var ls = new ArrayList<TimedVehicle>();
+            timedIoTDevices.put(currTime, ls);
             var tag = timestamp_eval.item(i).getChildNodes();
             for (int j = 0, M = tag.getLength(); j < M; j++) {
                 var veh = tag.item(j);
@@ -186,11 +148,102 @@ public class SUMOConverter extends TrafficConverter {
                     rec.type = (attrs.getNamedItem("type").getTextContent());
                     rec.lane = (attrs.getNamedItem("lane").getTextContent());
                     rec.simtime = currTime;
-                    writeVehicleCsv(rec);
+                    ls.add(rec);
                 }
             }
         }
-        writeVehicleCsvEnd();
+
+        NodeList traffic_lights = null;
+        try {
+            traffic_lights = XPathUtil.evaluateNodeList(networkFile, "/net/junction[@type='traffic_light']");
+        } catch (XPathExpressionException e) {
+            e.printStackTrace();
+            return false;
+        }
+        for (int i = 0, N = traffic_lights.getLength(); i<N; i++) {
+            var curr = traffic_lights.item(i).getAttributes();
+            var rsu = new RSU(curr.getNamedItem("id").getTextContent(),
+                    Double.parseDouble(curr.getNamedItem("x").getTextContent()),
+                    Double.parseDouble(curr.getNamedItem("y").getTextContent()),
+                    concreteConf.default_rsu_communication_radius,
+                    concreteConf.default_max_vehicle_communication);
+            rsuUpdater.accept(rsu);
+            roadSideUnits.add(rsu);
+        }
+        connectionPath.clear();
+        var tmp = netGen.apply(roadSideUnits);
+        tmp.forEach((k, v) -> connectionPath.put(k.tl_id, v.tl_id));
+        return true;
+    }
+
+    @Override
+    protected List<Double> getSimulationTimeUnits() {
+        return temporalOrdering;
+    }
+
+    @Override
+    protected Collection<TimedVehicle> getTimedIoT(Double tick) {
+        return timedIoTDevices.get(tick);
+    }
+
+    @Override
+    protected StraightforwardAdjacencyList<String> getTimedEdgeNetwork(Double tick) {
+        return connectionPath;
+    }
+
+    @Override
+    protected HashSet<RSU> getTimedEdgeNodes(Double tick) {
+        return roadSideUnits;
+    }
+
+    @Override
+    protected void endReadSimulatorOutput() {
+        temporalOrdering.clear();
+        timedIoTDevices.clear();
+        networkFile = null;
+        connectionPath.clear();
+    }
+
+    @Override
+    public boolean runSimulator(long begin,
+                             long end,
+                             long step) {
+        if (new File(concreteConf.trace_file).exists()) {
+            System.out.println("Skipping the sumo running: the trace_file already exists");
+            return true;
+        }
+        File fout = new File(concreteConf.logger_file);
+        FileOutputStream fos = null;
+        try {
+            fos = new FileOutputStream(fout);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            return false;
+        }
+        BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
+        ProcessBuilder processBuilder = new ProcessBuilder();
+        processBuilder.command(concreteConf.sumo_program, "-c", concreteConf.sumo_configuration_file_path, "--begin", Long.toString(begin), "--end", Long.toString(end), "--step-length", Long.toString(step), "--fcd-output", concreteConf.trace_file);
+        try {
+            Process process = processBuilder.start();
+            BufferedReader reader =
+                    new BufferedReader(new InputStreamReader(process.getInputStream()));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                bw.write(line);
+                bw.newLine();
+            }
+            int exitCode = process.waitFor();
+            bw.write("\nExited with error code : ");
+            bw.write(exitCode);
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
+        try {
+            bw.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
         return true;
     }
 }

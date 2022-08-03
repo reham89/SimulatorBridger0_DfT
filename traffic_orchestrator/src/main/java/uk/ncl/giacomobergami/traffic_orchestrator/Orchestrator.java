@@ -5,13 +5,22 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import io.jenetics.ext.moea.Pareto;
 import org.apache.commons.lang3.tuple.Pair;
-import uk.ncl.giacomobergami.traffic_orchestrator.rsu_network.*;
+import uk.ncl.giacomobergami.traffic_orchestrator.rsu_network.netgen.NetworkGenerator;
+import uk.ncl.giacomobergami.traffic_orchestrator.rsu_network.netgen.NetworkGeneratorFactory;
+import uk.ncl.giacomobergami.traffic_orchestrator.rsu_network.rsu.RSUUpdater;
+import uk.ncl.giacomobergami.traffic_orchestrator.rsu_network.rsu.RSUUpdaterFactory;
 import uk.ncl.giacomobergami.traffic_orchestrator.solver.CandidateSolutionParameters;
 import uk.ncl.giacomobergami.traffic_orchestrator.solver.LocalTimeOptimizationProblem;
 import uk.ncl.giacomobergami.traffic_orchestrator.solver.TemporalNetworkingRanking;
 import uk.ncl.giacomobergami.utils.algorithms.ClusterDifference;
 import uk.ncl.giacomobergami.utils.algorithms.StringComparator;
+import uk.ncl.giacomobergami.utils.algorithms.Tarjan;
+import uk.ncl.giacomobergami.utils.asthmatic.WorkloadCSV;
+import uk.ncl.giacomobergami.utils.asthmatic.WorkloadCSVMediator;
+import uk.ncl.giacomobergami.utils.asthmatic.WorkloadFromVehicularProgram;
 import uk.ncl.giacomobergami.utils.gir.SquaredCartesianDistanceFunction;
+import uk.ncl.giacomobergami.utils.pipeline_confs.OrchestratorConfiguration;
+import uk.ncl.giacomobergami.utils.pipeline_confs.TrafficConfiguration;
 import uk.ncl.giacomobergami.utils.shared_data.*;
 import uk.ncl.giacomobergami.utils.structures.ConcretePair;
 import uk.ncl.giacomobergami.utils.structures.StraightforwardAdjacencyList;
@@ -20,13 +29,13 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.function.Supplier;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 public class Orchestrator {
 
-    private final OrchestratorConfigurator conf;
-    private final RSUUpdater rsuUpdater;
+    private final OrchestratorConfiguration conf;
+    private final TrafficConfiguration conf2;
     protected RSUMediator rsum;
     protected TimedVehicleMediator vehm;
     Comparator<double[]> comparator;
@@ -40,9 +49,11 @@ public class Orchestrator {
     NetworkGenerator netGen;
     StraightforwardAdjacencyList<RSU> network;
     SquaredCartesianDistanceFunction f;
+    List<String> tls_s;
 
-    public Orchestrator(OrchestratorConfigurator conf) {
+    public Orchestrator(OrchestratorConfiguration conf, TrafficConfiguration conf2) {
         this.conf = conf;
+        this.conf2 = conf2;
         rsum = new RSUMediator();
         vehm = new TimedVehicleMediator();
         gson = new GsonBuilder().setPrettyPrinting().create();
@@ -57,10 +68,10 @@ public class Orchestrator {
         reconstructVehicles = new HashMap<>();
         tls = Collections.emptyList();
         rsuProgramHashMap = new HashMap<>();
-        netGen = NetworkGeneratorFactory.generateFacade(conf.generateRSUAdjacencyList);
-        rsuUpdater = RSUUpdaterFactory.generateFacade(conf.updateRSUFields, conf);
+
         network = null;
         f = SquaredCartesianDistanceFunction.getInstance();
+        tls_s = null;
     }
 
     protected boolean write_json(File folder, String filename, Object writable)  {
@@ -80,15 +91,16 @@ public class Orchestrator {
     }
 
     protected List<RSU> readRSU() {
-        var reader = rsum.beginCSVRead(new File(conf.RSUCsvFile));
-        var ls =  Lists.newArrayList(reader);
-        ls.forEach(rsuUpdater);
-        try {
-            reader.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return ls;
+        throw new UnsupportedOperationException("TO REIMPLEMENT");
+//        var reader = rsum.beginCSVRead(new File(conf.RSUCsvFile));
+//        var ls =  Lists.newArrayList(reader);
+//        ls.forEach(rsuUpdater);
+//        try {
+//            reader.close();
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//        return ls;
     }
 
     protected TreeMap<Double, List<TimedVehicle>> readVehicles() {
@@ -167,7 +179,7 @@ public class Orchestrator {
             }
         }
 
-        List<String> tls_s = tls.stream().map(x -> x.tl_id).collect(Collectors.toList());
+        tls_s = tls.stream().map(x -> x.tl_id).distinct().collect(Collectors.toList());
         List<String> veh_s = new ArrayList<>(vehId);
 
         System.out.println("Computing all of the possible Pareto Routing scenarios...");
@@ -230,12 +242,20 @@ public class Orchestrator {
     }
 
     void serializeAll() {
-
         System.out.println("Serializing data...");
+        System.out.println(" * solver_time ");
         write_json(statsFolder, "solver_time.json", problemSolvingTime);
+
+        System.out.println(" * candidate solution ");
         write_json(statsFolder, "candidate.json", candidate);
+
+        System.out.println(" * reconstructed vehicles ");
         write_json(statsFolder, conf.vehiclejsonFile, reconstructVehicles);
+
+        System.out.println(" * RSU Programs ");
         write_json(statsFolder, conf.RSUJsonFile, rsuProgramHashMap);
+
+        System.out.println(" * Time for problem solving ");
         try {
             FileOutputStream tlsF = new FileOutputStream(Paths.get(statsFolder.getAbsolutePath(), conf.experiment_name+"_time_benchmark.csv").toFile());
             BufferedWriter flsF2 = new BufferedWriter(new OutputStreamWriter(tlsF));
@@ -250,6 +270,8 @@ public class Orchestrator {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        System.out.println(" * RSU geographical position ");
         try {
             FileOutputStream tlsF = new FileOutputStream(Paths.get(statsFolder.getAbsolutePath(), conf.experiment_name+"_tls.csv").toFile());
             BufferedWriter flsF2 = new BufferedWriter(new OutputStreamWriter(tlsF));
@@ -274,6 +296,7 @@ public class Orchestrator {
             e.printStackTrace();
         }
 
+        System.out.println(" * Just Last Mile Occupancy ");
         try {
             FileOutputStream tlsF = new FileOutputStream(Paths.get(statsFolder.getAbsolutePath(), conf.experiment_name+"_tracesMatch_toplot.csv").toFile());
             BufferedWriter flsF2 = new BufferedWriter(new OutputStreamWriter(tlsF));
@@ -294,7 +317,9 @@ public class Orchestrator {
             e.printStackTrace();
         }
 
+        System.out.println(" * RSU/EDGE communication devices infrastructure  ");
         if (network == null) {
+            System.out.println("  - [Reconstruting the graph]");
             network = new StraightforwardAdjacencyList<>();
             for (var rsu1 : this.tls) {
                 var sq1 = rsu1.communication_radius * rsu1.communication_radius;
@@ -311,7 +336,25 @@ public class Orchestrator {
                 }
             }
         }
+        System.out.println("  - [Dumping]");
         network.dump(Paths.get(statsFolder.getAbsolutePath(), conf.experiment_name+"_rsu_network.csv").toFile(), RSU::getTl_id);
+        System.out.println("  - [SCC]");
+        var scc = new Tarjan<RSU>().run(network, tls).stream().map(x -> x.stream().map(RSU::getTl_id).collect(Collectors.toList())).collect(Collectors.toList());
+        write_json(statsFolder, "RSU_scc.json", scc);
+        var belongingMap = Tarjan.asBelongingMap(scc);
+        var vehicularConverterToWorkflow = new WorkloadFromVehicularProgram(null);
+        AtomicInteger ai = new AtomicInteger();
+        CSVMediator<WorkloadCSV>.CSVWriter x = new WorkloadCSVMediator().beginCSVWrite(new File(statsFolder, "AsmathicWorkflow.csv"));
+        reconstructVehicles.entrySet().stream()
+                        .flatMap((k)->{
+                            vehicularConverterToWorkflow.setNewVehicularProgram(k.getValue().getProgram());
+                            return vehicularConverterToWorkflow.generateFirstMileSpecifications(conf2.step, ai, belongingMap).stream();
+                        }).forEach(x::write);
+        try {
+            x.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 }

@@ -38,12 +38,12 @@ public class ClusterDifference<T> implements Predicate<T> {
         return false;
     }
 
-    enum type {
+    public enum type {
         UNCHANGED,
         CHANGED
     }
 
-    enum typeOfChange {
+    public enum typeOfChange {
         REMOVAL_OF,
         ADDITION_OF
     }

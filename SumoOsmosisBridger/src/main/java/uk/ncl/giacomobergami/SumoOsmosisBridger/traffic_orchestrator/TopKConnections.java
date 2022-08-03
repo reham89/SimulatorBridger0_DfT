@@ -1,13 +1,14 @@
 package uk.ncl.giacomobergami.SumoOsmosisBridger.traffic_orchestrator;
 
 import com.eatthepath.jvptree.VPTree;
-import uk.ncl.giacomobergami.traffic_orchestrator.rsu_network.NetworkGenerator;
+import uk.ncl.giacomobergami.traffic_orchestrator.rsu_network.netgen.NetworkGenerator;
 import uk.ncl.giacomobergami.utils.data.YAML;
 import uk.ncl.giacomobergami.utils.gir.SquaredCartesianDistanceFunction;
 import uk.ncl.giacomobergami.utils.shared_data.RSU;
 import uk.ncl.giacomobergami.utils.structures.StraightforwardAdjacencyList;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
@@ -21,7 +22,7 @@ public class TopKConnections implements NetworkGenerator {
     }
 
     @Override
-    public StraightforwardAdjacencyList<RSU> apply(List<RSU> rsus) {
+    public StraightforwardAdjacencyList<RSU> apply(Collection<RSU> rsus) {
         var tree = new VPTree<>(dist, rsus);
         StraightforwardAdjacencyList<RSU> result = new StraightforwardAdjacencyList<>();
         for (var x : rsus) {
@@ -35,7 +36,10 @@ public class TopKConnections implements NetworkGenerator {
             }
             if (adj != null) {
                 for (var next : adj) {
-                    if (!Objects.equals(x, next)) result.put(x, next);
+                    if (!Objects.equals(x, next)) {
+                        result.put(x, next);
+                        result.put(next, x);
+                    }
                 }
             }
         }

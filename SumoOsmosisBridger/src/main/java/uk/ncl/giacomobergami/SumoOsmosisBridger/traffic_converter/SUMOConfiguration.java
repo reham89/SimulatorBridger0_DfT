@@ -5,6 +5,36 @@ public class SUMOConfiguration {
     public String logger_file;
     public String sumo_program;
     public String sumo_configuration_file_path;
+    public String generateRSUAdjacencyList;
+    public String updateRSUFields;
+    public double default_rsu_communication_radius;
+    public int default_max_vehicle_communication;
+
+
+    public String getGenerateRSUAdjacencyList() {
+        return generateRSUAdjacencyList;
+    }
+    public void setGenerateRSUAdjacencyList(String generateRSUAdjacencyList) {
+        this.generateRSUAdjacencyList = generateRSUAdjacencyList;
+    }
+    public String getUpdateRSUFields() {
+        return updateRSUFields;
+    }
+    public void setUpdateRSUFields(String updateRSUFields) {
+        this.updateRSUFields = updateRSUFields;
+    }
+    public double getDefault_rsu_communication_radius() {
+        return default_rsu_communication_radius;
+    }
+    public void setDefault_rsu_communication_radius(double default_rsu_communication_radius) {
+        this.default_rsu_communication_radius = default_rsu_communication_radius;
+    }
+    public int getDefault_max_vehicle_communication() {
+        return default_max_vehicle_communication;
+    }
+    public void setDefault_max_vehicle_communication(int default_max_vehicle_communication) {
+        this.default_max_vehicle_communication = default_max_vehicle_communication;
+    }
     public String getTrace_file() {
         return trace_file;
     }

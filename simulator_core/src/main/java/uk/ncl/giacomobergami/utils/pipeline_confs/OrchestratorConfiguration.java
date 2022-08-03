@@ -1,6 +1,6 @@
-package uk.ncl.giacomobergami.traffic_orchestrator;
+package uk.ncl.giacomobergami.utils.pipeline_confs;
 
-public class OrchestratorConfigurator {
+public class OrchestratorConfiguration {
         public boolean clairvoyance;
         public boolean use_top_k_nearest_targets_randomOne;
         public boolean use_pareto_front;
@@ -11,13 +11,13 @@ public class OrchestratorConfigurator {
         public boolean ignore_cubic;
         public boolean reduce_to_one;
         public boolean update_after_flow;
-        String experiment_name;
-        String RSUCsvFile;
-        String vehicleCSVFile;
-        String RSUJsonFile;
-        String vehiclejsonFile;
-        String output_stats_folder;
-        int use_top_k_nearest_targets;
+        public String experiment_name;
+        public String RSUCsvFile;
+        public String vehicleCSVFile;
+        public String RSUJsonFile;
+        public String vehiclejsonFile;
+        public String output_stats_folder;
+        public int use_top_k_nearest_targets;
         public double k1;
         public double k2;
         public double p1;

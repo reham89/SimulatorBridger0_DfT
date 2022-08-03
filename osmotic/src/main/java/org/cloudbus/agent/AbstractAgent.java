@@ -3,10 +3,9 @@ package org.cloudbus.agent;
 import org.cloudbus.cloudsim.core.CloudSim;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
-public abstract class AbstractAgent implements Agent{
+public abstract class AbstractAgent implements Agent {
     private List<AgentMessage> inQueue = new ArrayList<>();
 
     private String name;

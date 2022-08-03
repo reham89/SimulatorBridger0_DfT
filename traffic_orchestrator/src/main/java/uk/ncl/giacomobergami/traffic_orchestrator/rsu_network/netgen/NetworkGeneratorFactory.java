@@ -1,9 +1,6 @@
-package uk.ncl.giacomobergami.traffic_orchestrator.rsu_network;
+package uk.ncl.giacomobergami.traffic_orchestrator.rsu_network.netgen;
 
 import uk.ncl.giacomobergami.utils.design_patterns.ReflectiveFactoryMethod;
-
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 
 public class NetworkGeneratorFactory {
     public static NetworkGenerator generateFacade(String clazzPath) {

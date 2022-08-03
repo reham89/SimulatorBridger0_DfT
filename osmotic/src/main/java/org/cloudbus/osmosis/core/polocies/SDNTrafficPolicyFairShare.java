@@ -28,7 +28,7 @@ public class SDNTrafficPolicyFairShare extends SDNTrafficSchedulingPolicy {
 	protected List<Flow> packetList;
 
 	public SDNTrafficPolicyFairShare(){
-		packetList = new ArrayList<Flow>();		
+		packetList = new ArrayList<>();
 		setPolicyName("FairShair");
 	}
 	
@@ -39,13 +39,10 @@ public class SDNTrafficPolicyFairShare extends SDNTrafficSchedulingPolicy {
 
 	@Override
 	public void setFlowPriority(List<Flow> pkts) {
-		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
 	public Flow getFlowPrioritySingle() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
@@ -56,37 +53,29 @@ public class SDNTrafficPolicyFairShare extends SDNTrafficSchedulingPolicy {
 
 	@Override
 	public int checkAllQueueSize() {
-		// TODO Auto-generated method stub
 		return 0;
 	}
 
 	@Override
 	public boolean removeFlowFromList(Flow pkt) {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
 	public void removeFlowFromList(List<Flow> pkts) {
-		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
 	public List<Flow> splitFlow(Flow flow) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public void setFirstAppInQueue(int appId) {
-		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
 	public int getFirstAppInQueue() {
-		// TODO Auto-generated method stub
 		return 0;
 	}
 

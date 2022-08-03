@@ -1,12 +1,12 @@
 package uk.ncl.giacomobergami.utils.shared_data;
 
 import uk.ncl.giacomobergami.utils.algorithms.ClusterDifference;
+import uk.ncl.giacomobergami.utils.asthmatic.WorkloadCSV;
 import uk.ncl.giacomobergami.utils.structures.ConcretePair;
 import uk.ncl.giacomobergami.utils.structures.Union2;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.TreeMap;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class VehicularProgram {
 
@@ -66,9 +66,9 @@ public class VehicularProgram {
         }
     }
 
-    private final TreeMap<Double, ProgramDetails> pathingAtEachSimulationTime;
-    private ConcretePair<ConcretePair<Double, List<String>>, List<ClusterDifference<String>>> clusterConnection;
-    double startCommunicatingAtSimulationTime = Double.MAX_VALUE;
+    public final TreeMap<Double, ProgramDetails> pathingAtEachSimulationTime;
+    public ConcretePair<ConcretePair<Double, List<String>>, List<ClusterDifference<String>>> clusterConnection;
+    public double startCommunicatingAtSimulationTime = Double.MAX_VALUE;
 
     public TreeMap<Double, ProgramDetails> getPathingAtEachSimulationTime() {
         return pathingAtEachSimulationTime;
@@ -102,8 +102,14 @@ public class VehicularProgram {
         }
     }
 
+
+
+
+
     public void finaliseProgram() {
-        if (clusterConnection.getRight().size()+1 != pathingAtEachSimulationTime.size()) {
+        if (clusterConnection.getRight().isEmpty() != pathingAtEachSimulationTime.isEmpty())
+            throw new RuntimeException("ERROR");
+        else if (clusterConnection.getRight().size()+1 != pathingAtEachSimulationTime.size()) {
             throw new RuntimeException("ERROR");
         }
         var it = pathingAtEachSimulationTime.entrySet().iterator();

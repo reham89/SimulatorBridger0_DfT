@@ -16,3 +16,5 @@ reham*
 # Editor-based HTTP Client requests
 /httpRequests/
 /IoTSim-Osmosis-RES.iml
+/.gradle/
+log.txt

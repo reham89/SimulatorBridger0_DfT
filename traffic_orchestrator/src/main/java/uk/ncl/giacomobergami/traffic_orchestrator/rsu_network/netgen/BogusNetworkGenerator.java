@@ -1,12 +1,10 @@
-package uk.ncl.giacomobergami.traffic_orchestrator.rsu_network;
+package uk.ncl.giacomobergami.traffic_orchestrator.rsu_network.netgen;
 
 import uk.ncl.giacomobergami.utils.shared_data.RSU;
 import uk.ncl.giacomobergami.utils.structures.StraightforwardAdjacencyList;
 
-import java.util.List;
-
+import java.util.Collection;
 public class BogusNetworkGenerator implements NetworkGenerator {
-
     private BogusNetworkGenerator() {}
     private static BogusNetworkGenerator self = null;
     public static BogusNetworkGenerator getInstance() {
@@ -16,7 +14,7 @@ public class BogusNetworkGenerator implements NetworkGenerator {
     }
 
     @Override
-    public StraightforwardAdjacencyList<RSU> apply(List<RSU> rsus) {
+    public StraightforwardAdjacencyList<RSU> apply(Collection<RSU> rsus) {
         return null;
     }
 }

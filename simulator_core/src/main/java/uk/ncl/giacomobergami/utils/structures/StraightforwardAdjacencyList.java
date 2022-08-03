@@ -19,6 +19,10 @@ import java.util.function.Function;
 
 public class StraightforwardAdjacencyList<K> {
 
+    public Set<K> outgoing(K vertex) {
+        return m.get(vertex);
+    }
+
     public static class Edge<K> {
         public K key;
         public K value;
@@ -59,6 +63,9 @@ public class StraightforwardAdjacencyList<K> {
     public void setM(SetMultimap<K, K> m) {
         this.m = m;
     }
+    public Map<K, Collection<K>> asMap() {
+        return m.asMap();
+    }
 
     public StraightforwardAdjacencyList() {
         m = HashMultimap.create();
@@ -78,6 +85,7 @@ public class StraightforwardAdjacencyList<K> {
         var set = m.removeAll(src);
         return m.entries().removeIf(x ->x.getValue().equals(src)) || (set != null && (!set.isEmpty()));
     }
+
 
     public Set<Map.Entry<K, Collection<K>>> entrySet() {
         return m.asMap().entrySet();
