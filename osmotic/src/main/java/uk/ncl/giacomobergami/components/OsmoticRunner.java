@@ -10,9 +10,9 @@ import java.util.Optional;
 public class OsmoticRunner {
     private static OsmoticWrapper obj;
 
-    public static OsmoticWrapper generateFacade(OsmoticConfiguration conf) {
+    public static OsmoticWrapper generateFacade() {
         if (obj == null) {
-            obj = new OsmoticWrapper(conf);
+            obj = new OsmoticWrapper();
         }
         return obj;
     }
@@ -20,8 +20,8 @@ public class OsmoticRunner {
     public static void orchestrate(String configuration) {
         Optional<OsmoticConfiguration> conf = YAML.parse(OsmoticConfiguration.class, new File(configuration));
         conf.ifPresent(y -> {
-            OsmoticWrapper conv = generateFacade(y);
-            conv.init();
+            OsmoticWrapper conv = generateFacade();
+            conv.init(y);
             conv.start();
             conv.stop();
             conv.log();

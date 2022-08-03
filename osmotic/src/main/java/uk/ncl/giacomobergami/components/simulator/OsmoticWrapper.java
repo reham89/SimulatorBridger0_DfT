@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
  * This class provides an abstraction over the possible settings of running OSMOSIS
  */
 public class OsmoticWrapper {
-    private final OsmoticConfiguration conf;
+    private OsmoticConfiguration conf;
     OsmosisBuilder topologyBuilder;
     OsmesisBroker osmesisBroker;
     AgentBroker agentBroker;
@@ -41,6 +41,10 @@ public class OsmoticWrapper {
     private boolean started;
     private boolean finished;
     private double runTime;
+
+    public OsmoticWrapper() {
+        this(null);
+    }
 
     public OsmoticWrapper(OsmoticConfiguration conf) {
         this.conf = conf;
@@ -94,7 +98,19 @@ public class OsmoticWrapper {
         return conf;
     }
 
-    public boolean init() {
+    /**
+     * Re-setting another running environment
+     * @param newConfiguration
+     * @return
+     */
+    public boolean init(OsmoticConfiguration newConfiguration) {
+        stop();
+        init = false;
+        this.conf = newConfiguration;
+        return init();
+    }
+
+    private boolean init() {
         stop(); // ensuring that the previous simulation was stopped
         if (init) return init;
         Calendar calendar = Calendar.getInstance();
