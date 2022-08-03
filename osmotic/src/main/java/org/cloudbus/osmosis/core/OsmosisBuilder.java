@@ -220,23 +220,9 @@ public class OsmosisBuilder {
     }
 
     protected SDNController createCloudSDNController(ControllerEntity controllerEntity){
-        SDNTrafficSchedulingPolicy sdnMapReducePolicy = null;
-        SDNRoutingPolicy sdnRoutingPolicy = null;       
         String sdnName = controllerEntity.getName();
-//        switch (controllerEntity.getRoutingPolicy()){
-//            case "ShortestPathBw":
-//                sdnRoutingPolicy = new SDNRoutingLoadBalancing();
-//                break;
-//        }
-
-		sdnRoutingPolicy = SDNRoutingPolicyGeneratorFacade.generateFacade(controllerEntity.getRoutingPolicy());
-		sdnMapReducePolicy = SDNTrafficPolicyGeneratorFacade.generateFacade(controllerEntity.getTrafficPolicy());
-//        switch (controllerEntity.getTrafficPolicy()){
-//            case "FairShare":
-//                sdnMapReducePolicy = new SDNTrafficPolicyFairShare();
-//                break;
-//        }
-
+		var sdnRoutingPolicy = SDNRoutingPolicyGeneratorFacade.generateFacade(controllerEntity.getRoutingPolicy());
+		var sdnMapReducePolicy = SDNTrafficPolicyGeneratorFacade.generateFacade(controllerEntity.getTrafficPolicy());
         SDNController sdnController = new CloudSDNController(controllerEntity.getName(),sdnMapReducePolicy, sdnRoutingPolicy);
         sdnController.setName(sdnName);
         return sdnController;
@@ -289,24 +275,9 @@ public class OsmosisBuilder {
     }
  
     protected SDNController createWanController(ControllerEntity controllerEntity){
-        SDNTrafficSchedulingPolicy sdnMapReducePolicy = null;
-        SDNRoutingPolicy sdnRoutingPolicy = null;
-       
         String sdnName = controllerEntity.getName();
-
-//        switch (controllerEntity.getRoutingPolicy()){
-//            case "ShortestPathBw":
-//                sdnRoutingPolicy = new SDNRoutingLoadBalancing();
-//                break;
-//        }
-//
-//        switch (controllerEntity.getTrafficPolicy()){
-//            case "FairShare":
-//                sdnMapReducePolicy = new SDNTrafficPolicyFairShare();
-//                break;
-//        }
-		sdnRoutingPolicy = SDNRoutingPolicyGeneratorFacade.generateFacade(controllerEntity.getRoutingPolicy());
-		sdnMapReducePolicy = SDNTrafficPolicyGeneratorFacade.generateFacade(controllerEntity.getTrafficPolicy());
+		var sdnRoutingPolicy = SDNRoutingPolicyGeneratorFacade.generateFacade(controllerEntity.getRoutingPolicy());
+		var sdnMapReducePolicy = SDNTrafficPolicyGeneratorFacade.generateFacade(controllerEntity.getTrafficPolicy());
         SDNController sdnController = new SDWANController(controllerEntity.getName(),sdnMapReducePolicy, sdnRoutingPolicy);
         sdnController.setName(sdnName);
         return sdnController;
@@ -415,23 +386,9 @@ public class OsmosisBuilder {
 	}
     
     protected SDNController creatEdgeSDNController(ControllerEntity controllerEntity){
-        SDNTrafficSchedulingPolicy sdnMapReducePolicy = null;
-        SDNRoutingPolicy sdnRoutingPolicy = null;       
         String sdnName = controllerEntity.getName();
-
-//        switch (controllerEntity.getRoutingPolicy()){
-//            case "ShortestPathBw":
-//                sdnRoutingPolicy = new SDNRoutingLoadBalancing();
-//                break;
-//        }
-//
-//        switch (controllerEntity.getTrafficPolicy()){
-//            case "FairShare":
-//                sdnMapReducePolicy = new SDNTrafficPolicyFairShare();
-//                break;
-//        }
-		sdnRoutingPolicy = SDNRoutingPolicyGeneratorFacade.generateFacade(controllerEntity.getRoutingPolicy());
-		sdnMapReducePolicy = SDNTrafficPolicyGeneratorFacade.generateFacade(controllerEntity.getTrafficPolicy());
+		var sdnRoutingPolicy = SDNRoutingPolicyGeneratorFacade.generateFacade(controllerEntity.getRoutingPolicy());
+		var sdnMapReducePolicy = SDNTrafficPolicyGeneratorFacade.generateFacade(controllerEntity.getTrafficPolicy());
         SDNController sdnController = new EdgeSDNController(controllerEntity.getName(),sdnMapReducePolicy, sdnRoutingPolicy);
         sdnController.setName(sdnName);
         return sdnController;

@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 
 public class ClusterDifference<T> implements Predicate<T> {
 
+    private static List local_empty_list = new ArrayList();
     public type getChange() {
         return change;
     }
@@ -93,8 +94,8 @@ public class ClusterDifference<T> implements Predicate<T> {
     }
 
     public List<T> reconstructFrom(List<T> ls, Comparator<T> cmp) {
+        if (ls == null) ls = (List<T>)local_empty_list;
         if (change == type.CHANGED) {
-            if (ls == null) ls = Collections.emptyList();
             var tmp = ls.stream().filter(this).collect(Collectors.toList());
             for (var x : changes.entrySet()) {
                 if (x.getValue() == typeOfChange.REMOVAL_OF) continue;
@@ -110,11 +111,11 @@ public class ClusterDifference<T> implements Predicate<T> {
                                                          List<T> rs,
                                                          Comparator<T> no) {
         if (ls == null)
-            ls = Collections.emptyList();
+            ls = (List<T>)local_empty_list;
         else
             ls.sort(no);
         if (rs == null)
-            rs = Collections.emptyList();
+            rs = (List<T>)local_empty_list;
         else
             rs.sort(no);
         Map<T, typeOfChange> change = new HashMap<>();
@@ -151,6 +152,7 @@ public class ClusterDifference<T> implements Predicate<T> {
         for (var x : toDiff.entrySet()) {
             if (first) {
                 prevLs = x.getValue().get(holder);
+                if (prevLs == null) prevLs = (List<T>)local_empty_list;
                 cp = new ConcretePair<>(x.getKey(), prevLs);
                 first = false;
             } else {

@@ -38,7 +38,7 @@ public class WorkloadFromVehicularProgram {
 
     public List<WorkloadCSV> generateFirstMileSpecifications(double micro_interval,
                                                              AtomicInteger ai,
-                                                             Map<String, Integer> mel_to_vm) {
+                                                             HashMap<Double, HashMap<String, Integer>> mel_to_vm) {
         init();
         boolean firstFound = false;
         for (var tick : program.pathingAtEachSimulationTime.entrySet()) {
@@ -64,7 +64,7 @@ public class WorkloadFromVehicularProgram {
                 if (mel != null) {
                     if (val.setConnectionVariation.changes.get(mel) != ClusterDifference.typeOfChange.REMOVAL_OF)
                         throw new RuntimeException("ERROR");
-                    generateWorkloadAtStop(micro_interval, ai, mel_to_vm);
+                    generateWorkloadAtStop(micro_interval, ai, mel_to_vm.get(lastTick));
                 }
                 if (val.setConnectionVariation.changes.size() > 2)
                     throw new RuntimeException("ERROR");
@@ -76,7 +76,7 @@ public class WorkloadFromVehicularProgram {
                 }
             }
         }
-        finalize(micro_interval, ai, mel_to_vm);
+        finalize(micro_interval, ai, mel_to_vm.get(lastTick));
         return result;
     }
 

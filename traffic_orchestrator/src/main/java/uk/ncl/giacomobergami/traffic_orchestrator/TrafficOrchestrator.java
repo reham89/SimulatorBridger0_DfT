@@ -1,16 +1,16 @@
 package uk.ncl.giacomobergami.traffic_orchestrator;
 
+import com.google.common.collect.Multimaps;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 import io.jenetics.ext.moea.Pareto;
 import org.apache.commons.lang3.tuple.Pair;
-import uk.ncl.giacomobergami.traffic_orchestrator.rsu_network.netgen.NetworkGenerator;
 import uk.ncl.giacomobergami.traffic_orchestrator.solver.CandidateSolutionParameters;
 import uk.ncl.giacomobergami.traffic_orchestrator.solver.LocalTimeOptimizationProblem;
 import uk.ncl.giacomobergami.traffic_orchestrator.solver.TemporalNetworkingRanking;
 import uk.ncl.giacomobergami.utils.algorithms.ClusterDifference;
 import uk.ncl.giacomobergami.utils.algorithms.StringComparator;
-import uk.ncl.giacomobergami.utils.algorithms.Tarjan;
 import uk.ncl.giacomobergami.utils.asthmatic.WorkloadCSV;
 import uk.ncl.giacomobergami.utils.asthmatic.WorkloadCSVMediator;
 import uk.ncl.giacomobergami.utils.asthmatic.WorkloadFromVehicularProgram;
@@ -18,6 +18,7 @@ import uk.ncl.giacomobergami.utils.data.CSVMediator;
 import uk.ncl.giacomobergami.utils.gir.SquaredCartesianDistanceFunction;
 import uk.ncl.giacomobergami.utils.pipeline_confs.OrchestratorConfiguration;
 import uk.ncl.giacomobergami.utils.pipeline_confs.TrafficConfiguration;
+import uk.ncl.giacomobergami.utils.shared_data.edge.Edge;
 import uk.ncl.giacomobergami.utils.shared_data.edge.TimedEdge;
 import uk.ncl.giacomobergami.utils.shared_data.edge.TimedEdgeMediator;
 import uk.ncl.giacomobergami.utils.shared_data.edge.EdgeProgram;
@@ -26,16 +27,18 @@ import uk.ncl.giacomobergami.utils.shared_data.iot.TimedIoTMediator;
 import uk.ncl.giacomobergami.utils.shared_data.iot.IoT;
 import uk.ncl.giacomobergami.utils.shared_data.iot.IoTProgram;
 import uk.ncl.giacomobergami.utils.structures.ConcretePair;
-import uk.ncl.giacomobergami.utils.structures.StraightforwardAdjacencyList;
+import uk.ncl.giacomobergami.utils.structures.ReconstructNetworkInformation;
 
 import java.io.*;
+import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public class Orchestrator {
+public class TrafficOrchestrator {
 
     private final OrchestratorConfiguration conf;
     private final TrafficConfiguration conf2;
@@ -47,14 +50,12 @@ public class Orchestrator {
     HashMap<Double, Long> problemSolvingTime;
     CandidateSolutionParameters candidate;
     HashMap<String, IoT> reconstructVehicles;
-    List<TimedEdge> tls;
-    HashMap<String, TimedEdge> rsuProgramHashMap;
-    NetworkGenerator netGen;
-    StraightforwardAdjacencyList<TimedEdge> network;
+    ReconstructNetworkInformation timeEvolvingEdges;
     SquaredCartesianDistanceFunction f;
     List<String> tls_s;
+    HashMap<Double, HashMap<String, Integer>> belongingMap;
 
-    public Orchestrator(OrchestratorConfiguration conf, TrafficConfiguration conf2) {
+    public TrafficOrchestrator(OrchestratorConfiguration conf, TrafficConfiguration conf2) {
         this.conf = conf;
         this.conf2 = conf2;
         rsum = new TimedEdgeMediator();
@@ -69,12 +70,10 @@ public class Orchestrator {
         }
         problemSolvingTime = new HashMap<>();
         reconstructVehicles = new HashMap<>();
-        tls = Collections.emptyList();
-        rsuProgramHashMap = new HashMap<>();
-
-        network = null;
+        timeEvolvingEdges = null;
         f = SquaredCartesianDistanceFunction.getInstance();
         tls_s = null;
+        belongingMap = new HashMap<>();
     }
 
     protected boolean write_json(File folder, String filename, Object writable)  {
@@ -93,20 +92,51 @@ public class Orchestrator {
         return false;
     }
 
-    protected List<TimedEdge> readRSU() {
-        throw new UnsupportedOperationException("TO REIMPLEMENT");
-//        var reader = rsum.beginCSVRead(new File(conf.RSUCsvFile));
-//        var ls =  Lists.newArrayList(reader);
-//        ls.forEach(rsuUpdater);
-//        try {
-//            reader.close();
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//        return ls;
+    protected ReconstructNetworkInformation readEdges() {
+        Gson gson = new Gson();
+        Type sccType = new TypeToken<TreeMap<Double, List<List<String>>>>() {}.getType();
+        Type networkType = new TypeToken<HashMap<String, ConcretePair<ConcretePair<Double, List<String>>, List<ClusterDifference<String>>>>>() {}.getType();
+        BufferedReader reader1 = null, reader2 = null;
+        try {
+            reader1 = new BufferedReader(new FileReader(new File(conf2.RSUCsvFile+"_timed_scc.json").getAbsoluteFile()));
+            reader2 = new BufferedReader(new FileReader(new File(conf2.RSUCsvFile+"_neighboursChange.json").getAbsoluteFile()));
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
+        HashMap<String, ConcretePair<ConcretePair<Double, List<String>>, List<ClusterDifference<String>>>>
+                adjacencyListVariationInTime =  gson.fromJson(reader2, networkType);
+        TreeMap<Double, List<List<String>>>
+                timed_scc = gson.fromJson(reader1, sccType);
+        try {
+            reader1.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
+        var reader3 = rsum.beginCSVRead(new File(conf.RSUCsvFile));
+        HashMap<String, Edge> finalLS = new HashMap<>();
+        {
+            HashMap<String, HashMap<Double, TimedEdge>> ls = new HashMap<>();
+            while (reader3.hasNext()) {
+                var curr = reader3.next();
+                ls.computeIfAbsent(curr.id, s -> new HashMap<>()).put(curr.simtime, curr);
+            }
+            try {
+                reader3.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            for (var x : ls.entrySet()) {
+                finalLS.put(x.getKey(), new Edge(x.getValue(), null));
+            }
+        }
+        return new ReconstructNetworkInformation(adjacencyListVariationInTime,
+                                                 timed_scc,
+                                                 finalLS);
     }
 
-    protected TreeMap<Double, List<TimedIoT>> readVehicles() {
+    protected TreeMap<Double, List<TimedIoT>> readIoT() {
         var reader = vehm.beginCSVRead(new File(conf.vehicleCSVFile));
         TreeMap<Double, List<TimedIoT>> map = new TreeMap<>();
         while (reader.hasNext()) {
@@ -125,26 +155,37 @@ public class Orchestrator {
 
     public void run() {
         candidate = null;
-        tls = readRSU();
-        if (tls.isEmpty()) {
-            System.err.println("WARNING: tls are empty!");
-            return;
-        }
-        network = netGen.apply(tls);
+        timeEvolvingEdges = readEdges();
         HashSet<String> vehId = new HashSet<>();
         problemSolvingTime.clear();
         List<Double> temporalOrdering = new ArrayList<>();
-
+        HashMap<Set<String>, Integer> distinct_scc_mapping = new HashMap<>();
+        belongingMap.clear();
         reconstructVehicles.clear();
-        rsuProgramHashMap.clear();
-        tls.forEach(x -> rsuProgramHashMap.put(x.id, x));
         HashMap<Double, ArrayList<LocalTimeOptimizationProblem.Solution>> simulationSolutions = new HashMap<>();
-        var vehSet = readVehicles().entrySet();
-        if (vehSet == null || vehSet.isEmpty()) {
+        var vehSet = readIoT().entrySet();
+        if (vehSet.isEmpty()) {
             System.err.println("WARNING: vechicles are empty!");
             return;
         }
         for (var simTimeToVehicles : vehSet) {
+            if (!timeEvolvingEdges.hasNext()) {
+                throw new RuntimeException("ERROR: the TLS should have the same timing of the Vehicles");
+            }
+            var current = timeEvolvingEdges.next();
+            {
+                var tmpMap = Multimaps.asMap(current.edgeToSCC);
+                HashMap<String, Integer> bmT = new HashMap<>();
+                belongingMap.put(simTimeToVehicles.getKey(), bmT);
+                for (var set : tmpMap.values()) {
+                    var sS = new HashSet<String>();
+                    for (var x : set)
+                        sS.add(x.getId());
+                    Integer sccId = distinct_scc_mapping.computeIfAbsent(sS, strings -> distinct_scc_mapping.size());
+                    for (var x : sS)
+                        bmT.put(x, sccId);
+                }
+            }
             simTimeToVehicles.getValue().forEach(x -> vehId.add(x.id));
             var currTime = simTimeToVehicles.getKey();
             List<TimedIoT> vehs2 = simTimeToVehicles.getValue();
@@ -154,27 +195,28 @@ public class Orchestrator {
                }
                reconstructVehicles.get(tv.id).dynamicInformation.put(currTime, tv);
            }
-            LocalTimeOptimizationProblem solver = new LocalTimeOptimizationProblem(vehs2, tls, network);
+            LocalTimeOptimizationProblem solver = new LocalTimeOptimizationProblem(vehs2, current);
             if (solver.init()) {
                 if (conf.do_thresholding) {
                     if (conf.use_nearest_MEL_to_IoT) {
-                        solver.setNearestMELForIoT();
+                        solver.setNearestFirstMileMELForIoT();
                     } else {
-                        solver.setAllPossibleMELForIoT();
+                        solver.setAllPossibleFirstMileMELForIoT();
                     }
+
                     if (conf.use_greedy_algorithm) {
                         solver.setGreedyPossibleTargetsForIoT(conf.use_local_demand_forecast);
                     } else if (conf.use_top_k_nearest_targets > 0) {
-                        solver.setAllPossibleNearestKTargetsForCommunication(conf.use_top_k_nearest_targets, conf.use_top_k_nearest_targets_randomOne);
-                    }  else {
-                        solver.setAllPossibleTargetsForCommunication();
+                        solver.setAllPossibleNearestKTargetsForLastMileCommunication(conf.use_top_k_nearest_targets, conf.use_top_k_nearest_targets_randomOne);
+                    } else {
+                        solver.setAllPossibleTargetsForLastMileCommunication();
                     }
                 } else {
                     solver.alwaysCommunicateWithTheNearestMel();
                 }
 
                 ArrayList<LocalTimeOptimizationProblem.Solution> sol =
-                        solver.multi_objective_pareto(conf.k1, conf.k2, conf.ignore_cubic, comparator, conf.reduce_to_one, conf.update_after_flow);
+                        solver.multi_objective_pareto(conf.k1, conf.k2, conf.ignore_cubic, comparator, conf.reduce_to_one, conf.update_after_flow, conf.use_scc_neighbours);
 
                 problemSolvingTime.put(currTime, solver.getRunTime());
                 simulationSolutions.put(currTime, sol);
@@ -182,7 +224,7 @@ public class Orchestrator {
             }
         }
 
-        tls_s = tls.stream().map(x -> x.id).distinct().collect(Collectors.toList());
+        tls_s = new ArrayList<>(timeEvolvingEdges.getEdgeNodeForReconstruction().keySet());
         List<String> veh_s = new ArrayList<>(vehId);
 
         System.out.println("Computing all of the possible Pareto Routing scenarios...");
@@ -236,10 +278,12 @@ public class Orchestrator {
             var delta_clusters = ClusterDifference.computeTemporalDifference(candidate.inStringTime, tls_s, StringComparator.getInstance());
             var delta_network_neighbours = ClusterDifference.computeTemporalDifference(networkTopology, tls_s, StringComparator.getInstance());
 
-            for (var r : tls) {
+            for (var cp : timeEvolvingEdges.getEdgeNodeForReconstruction().entrySet()) {
+                var r = cp.getValue();
+                var id = cp.getKey();
                 var rsuProgram = new EdgeProgram(candidate.bestResult.keySet());
-                rsuProgram.finaliseProgram(delta_clusters.get(r.id), delta_network_neighbours.get(r.id));
-                rsuProgramHashMap.get(r.id).program_rsu = rsuProgram;
+                rsuProgram.finaliseProgram(delta_clusters.get(id), delta_network_neighbours.get(id));
+                r.setProgram(rsuProgram);
             }
         }
     }
@@ -256,7 +300,7 @@ public class Orchestrator {
         write_json(statsFolder, conf.vehiclejsonFile, reconstructVehicles);
 
         System.out.println(" * RSU Programs ");
-        write_json(statsFolder, conf.RSUJsonFile, rsuProgramHashMap);
+        write_json(statsFolder, conf.RSUJsonFile, timeEvolvingEdges.getEdgeNodeForReconstruction());
 
         System.out.println(" * Time for problem solving ");
         try {
@@ -266,31 +310,6 @@ public class Orchestrator {
             flsF2.newLine();
             for (var x : problemSolvingTime.entrySet()) {
                 flsF2.write(x.getKey()+","+x.getValue());
-                flsF2.newLine();
-            }
-            flsF2.close();
-            tlsF.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        System.out.println(" * RSU geographical position ");
-        try {
-            FileOutputStream tlsF = new FileOutputStream(Paths.get(statsFolder.getAbsolutePath(), conf.experiment_name+"_tls.csv").toFile());
-            BufferedWriter flsF2 = new BufferedWriter(new OutputStreamWriter(tlsF));
-            flsF2.write("Id,X,Y");
-            var XMax = tls.stream().map(x -> x.x).max(Comparator.comparingDouble(y -> y)).orElseGet(() -> 0.0);
-            var YMin = tls.stream().map(x -> x.y).min(Comparator.comparingDouble(y -> y)).orElseGet(() -> 0.0);
-            tls.sort(Comparator.comparingDouble(sem -> {
-                double x = sem.x - XMax;
-                double y = sem.y - YMin;
-                return (x*x)+(y*y);
-            }));
-            System.out.println(            tls.subList(0, Math.min(tls.size(), 8)).stream().map(x -> x.id
-            ).collect(Collectors.joining("\",\"","LS <- list(\"", "\")")));
-            flsF2.newLine();
-            for (var x : tls) {
-                flsF2.write(x.id +","+x.x +","+x.y);
                 flsF2.newLine();
             }
             flsF2.close();
@@ -309,8 +328,11 @@ public class Orchestrator {
             if ((candidate != null) && (candidate.inCurrentTime != null))
             for (var cp : candidate.inCurrentTime.entrySet()) {
                 Double time = cp.getKey();
-                for (var sem : tls) {
-                    flsF2.write(time+","+sem.id +","+cp.getValue().getOrDefault(sem, e).size());
+                for (var sem_cp : timeEvolvingEdges.getEdgeNodeForReconstruction().entrySet()) {
+                    var sem_id = sem_cp.getKey();
+                    var sem_ls = sem_cp.getValue();
+                    flsF2.write(time+","+sem_id +","+cp.getValue().getOrDefault(
+                            sem_ls.dynamicInformation.get(time), e).size());
                     flsF2.newLine();
                 }
             }
@@ -320,36 +342,13 @@ public class Orchestrator {
             e.printStackTrace();
         }
 
-        System.out.println(" * RSU/EDGE communication devices infrastructure  ");
-        if (network == null) {
-            System.out.println("  - [Reconstruting the graph]");
-            network = new StraightforwardAdjacencyList<>();
-            for (var rsu1 : this.tls) {
-                var sq1 = rsu1.communication_radius * rsu1.communication_radius;
-                for (var rsu2 : this.tls) {
-                    if (!Objects.equals(rsu1, rsu2)) {
-                        var sq2 = rsu2.communication_radius * rsu2.communication_radius;
-                        var d = f.getDistance(rsu1, rsu2);
-                        // we can establish a link if and only if they are respectively within their communication radius
-                        if ((d <= Math.min(sq1, sq2))) {
-                            network.put(rsu1, rsu2);
-                            network.put(rsu2, rsu1);
-                        }
-                    }
-                }
-            }
-        }
-        System.out.println("  - [Dumping]");
-        network.dump(Paths.get(statsFolder.getAbsolutePath(), conf.experiment_name+"_rsu_network.csv").toFile(), TimedEdge::getId);
-        System.out.println("  - [SCC]");
-        var scc = new Tarjan<TimedEdge>().run(network, tls).stream().map(x -> x.stream().map(TimedEdge::getId).collect(Collectors.toList())).collect(Collectors.toList());
-        write_json(statsFolder, "RSU_scc.json", scc);
-        var belongingMap = Tarjan.asBelongingMap(scc);
+        System.out.println(" * RSU/EDGE communication devices infrastructure");
+        System.out.println("  - [WorkloadCSV]");
         var vehicularConverterToWorkflow = new WorkloadFromVehicularProgram(null);
         AtomicInteger ai = new AtomicInteger();
         CSVMediator<WorkloadCSV>.CSVWriter x = new WorkloadCSVMediator().beginCSVWrite(new File(statsFolder, "AsmathicWorkflow.csv"));
         reconstructVehicles.entrySet().stream()
-                        .flatMap((k)->{
+                        .flatMap((Map.Entry<String, IoT> k) ->{
                             vehicularConverterToWorkflow.setNewVehicularProgram(k.getValue().getProgram());
                             return vehicularConverterToWorkflow.generateFirstMileSpecifications(conf2.step, ai, belongingMap).stream();
                         }).forEach(x::write);

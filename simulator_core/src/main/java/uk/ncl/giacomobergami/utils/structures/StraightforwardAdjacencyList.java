@@ -75,6 +75,16 @@ public class StraightforwardAdjacencyList<K> {
     public boolean put(K src, K dst) {
         return m.put(src, dst);
     }
+    public boolean putAll(K src, Iterable<K> dsts) {
+        return m.putAll(src, dsts);
+    }
+    public boolean putAll(K src, Iterator<K> dsts) {
+        boolean hasChange = false;
+        while ((dsts != null) && (dsts.hasNext())) {
+            hasChange |= m.put(src, dsts.next());
+        }
+        return hasChange;
+    }
     public boolean hasEdge(K src, K dst) {
         return m.containsEntry(src, dst);
     }

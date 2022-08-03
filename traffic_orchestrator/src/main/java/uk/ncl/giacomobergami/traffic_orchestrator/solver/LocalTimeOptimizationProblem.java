@@ -7,6 +7,7 @@ import uk.ncl.giacomobergami.utils.gir.SquaredCartesianDistanceFunction;
 import uk.ncl.giacomobergami.utils.shared_data.edge.TimedEdge;
 import uk.ncl.giacomobergami.utils.shared_data.iot.TimedIoT;
 import uk.ncl.giacomobergami.utils.structures.ConcretePair;
+import uk.ncl.giacomobergami.utils.structures.ReconstructNetworkInformation;
 import uk.ncl.giacomobergami.utils.structures.StraightforwardAdjacencyList;
 import uk.ncl.giacomobergami.utils.structures.Union2;
 
@@ -17,9 +18,7 @@ import java.util.stream.Collectors;
 
 public class LocalTimeOptimizationProblem {
     public List<TimedIoT> vehicles;
-    public List<TimedEdge> rsuses;
-    private final StraightforwardAdjacencyList<TimedEdge> rsuNetwork;
-    private final boolean noOriginalNetwork;
+    private final ReconstructNetworkInformation.TimedNetwork tInfo;
     SquaredCartesianDistanceFunction f;
     List<Map<TimedIoT, TimedEdge>> firstMileCommunication;
     List<Map<TimedIoT, TimedEdge>> targetCommunication;
@@ -29,19 +28,23 @@ public class LocalTimeOptimizationProblem {
     long run_time;
 
     public LocalTimeOptimizationProblem(List<TimedIoT> vehicles,
-                                        List<TimedEdge> rsuses,
-                                        StraightforwardAdjacencyList<TimedEdge> rsuNetwork
+                                        ReconstructNetworkInformation.TimedNetwork tInfo
                                         ) {
         this.vehicles = vehicles;
-        this.rsuses = rsuses;
-        noOriginalNetwork = rsuNetwork == null;
-        this.rsuNetwork = rsuNetwork = (noOriginalNetwork ? new StraightforwardAdjacencyList<>() : rsuNetwork);
-//        this.conf = conf;
+        this.tInfo = tInfo;
         f = SquaredCartesianDistanceFunction.getInstance();
         firstMileCommunication = Collections.emptyList();
         targetCommunication = Collections.emptyList();
         flow = new MinCostMaxFlow();
         rd = new Random();
+    }
+
+    public void setSCCLastMileTargets(boolean use_local_demand_forecast,
+                                      int use_top_k_nearest_targets,
+                                      boolean use_top_k_nearest_targets_randomOne) {
+        for (var x : vehicles_communicating_with_nearest_RSUs.entrySet()) {
+            
+        }
     }
 
     public class Solution {
@@ -137,11 +140,12 @@ public class LocalTimeOptimizationProblem {
      * @return
      */
     public ArrayList<Solution> multi_objective_pareto(double k1,
-                                                       double k2,
-                                                       boolean ignoreCubic,
-                                                       Comparator<double[]> dominance,
-                                                       boolean reduceToOne,
-                                                       boolean updateAfterFlow) {
+                                                      double k2,
+                                                      boolean ignoreCubic,
+                                                      Comparator<double[]> dominance,
+                                                      boolean reduceToOne,
+                                                      boolean updateAfterFlow,
+                                                      boolean use_scc_neighbours) {
         long startTime = System.currentTimeMillis();
         final ArrayList<Solution> solutionList = new ArrayList<>();
         final ArrayList<IntermediateSolution> all = new ArrayList<>();
@@ -151,6 +155,23 @@ public class LocalTimeOptimizationProblem {
             if (firstCommunication.isEmpty()) continue;
             for (Map<TimedIoT, TimedEdge> alpha : this.targetCommunication) {
                 if (alpha.isEmpty()) continue;
+                if (use_scc_neighbours) { // Checking that all of the nodes that are associated to nodes belonging to the given cluster
+                    // This should reduce the overall computational time while paretoing and serching,
+                    // by reduing the search space.
+                    boolean noMatch = false;
+                    if ((!firstCommunication.keySet().containsAll(alpha.keySet())) ||
+                            (!alpha.keySet().containsAll(firstCommunication.keySet())))
+                        continue;
+                    for (var key : firstCommunication.entrySet()) {
+                        var lhs = tInfo.edgeToSCC.get(key.getValue());
+                        var rhs = tInfo.edgeToSCC.get(alpha.get(key.getKey()));
+                        if (!lhs.equals(rhs)) {
+                            noMatch = true;
+                            break;
+                        }
+                    }
+                    if (noMatch) continue;
+                }
                 allPossiblePairs.add(new ConcretePair<>(firstCommunication, alpha));
             }
         }
@@ -161,7 +182,7 @@ public class LocalTimeOptimizationProblem {
             all.add(computeRanking(k1, k2, ignoreCubic, allPossiblePairs.get(i), updateAfterFlow));
         }
         final ParetoFront<double[]> front = new ParetoFront<>(dominance);
-        System.out.println("\nParetoing...\n");
+        System.out.println("\nParetoing...");
         all.forEach(x -> front.add(x.objectives));
         double[] prev = new double[]{Double.MAX_VALUE,Double.MAX_VALUE,Double.MAX_VALUE};
         for (int i = 0, N = all.size(); i<N; i++) {
@@ -232,7 +253,7 @@ public class LocalTimeOptimizationProblem {
 
         // Making all of the rsus as nodes of the graph, as we can distribute the load
         // within the network
-        for (var rsu : this.rsuses) {
+        for (var rsu : this.tInfo.tls) {
             var id = counter.getAndIncrement();
             rsus.put(rsu, id);
             vehOrRSUPath.put(id, Union2.right(rsu));
@@ -251,45 +272,25 @@ public class LocalTimeOptimizationProblem {
         int vertexSize = counter.get();
         int[][] capacity = new int[vertexSize][vertexSize];
         int[][] cost = new int[vertexSize][vertexSize];
-//        HashMap<ConcretePair<Integer, Integer>, IntVar> edges = new HashMap<>();
-        for (var rsu1 : this.rsuses) {
+        for (var rsu1 : this.tInfo.tls) {
             var sq1 = rsu1.communication_radius * rsu1.communication_radius;
             var r1 = rsus.get(rsu1);
-            for (var rsu2 : this.rsuses) {
+            for (var rsu2 : this.tInfo.tls) {
                 var r2 = rsus.get(rsu2);
                 if (!Objects.equals(r1, r2)) {
                     var sq2 = rsu2.communication_radius * rsu2.communication_radius;
-                    var d = f.getDistance(rsu1, rsu2);
 
                     // we can establish a link if and only if they are respectively within their communication radius
-                    if (((rsuNetwork == null) || rsuNetwork.hasEdge(rsu1, rsu2)) &&
-                            ((rsuNetwork != null) || (d <= Math.min(sq1, sq2)))) {
-
-                        if (noOriginalNetwork) {
-                            rsuNetwork.put(rsu1, rsu2);
-                            rsuNetwork.put(rsu2, rsu1);
-                        }
-
-//                        if (!RSUNetworkNeighbours.containsKey(rsu1)) {
-//                            RSUNetworkNeighbours.put(rsu1, new ArrayList<>());
-//                        }
-//                        if (!RSUNetworkNeighbours.containsKey(rsu2)) {
-//                            RSUNetworkNeighbours.put(rsu2, new ArrayList<>());
-//                        }
-//                        RSUNetworkNeighbours.get(rsu1).add(rsu2);
-//                        RSUNetworkNeighbours.get(rsu2).add(rsu1);
+                    if (tInfo.network.hasEdge(rsu1, rsu2)) {
                         // The communication capacity is capped at the minimum communicative threshold being shared
                         capacity[r1][r2] = capacity[r2][r1] = (int) Math.min(rsu1.max_vehicle_communication, rsu2.max_vehicle_communication);
                         // The communication cost is directly proportional to the nodes' distance
-                        cost[r1][r2] = cost[r2][r1] = (int) Math.round(k1 * d + k2);
-//                        IntVar r1r2 = model.newIntVar(0, capacity[r1][r2], "f"+r1+"t"+r2);
-//                        edges.put(new ConcretePair<>(r1, r2), r1r2);
-//                        edges.put(new ConcretePair<>(r2, r1), r1r2);
-//                        model.addLessOrEqual(r1r2, cost[r1][r2]); // C1
+                        cost[r1][r2] = cost[r2][r1] = (int) Math.round(k1 *  f.getDistance(rsu1, rsu2) + k2);
                     } else {
                         capacity[r1][r2] = capacity[r2][r1] = 0;
                         cost[r1][r2] = cost[r2][r1] = 0;
                     }
+
                 }
             }
         }
@@ -337,7 +338,6 @@ public class LocalTimeOptimizationProblem {
         var result = flow.getMaxFlow(capacity, cost, initialSource, finalTarget);
         for (var p : result.minedPaths) {
             var pp = p.stream().map(vehOrRSUPath::get).collect(Collectors.toList());
-//            System.out.println(pp);
             var v = pp.get(0).getVal1();
             var expected = pair.getValue().get(v);
             var returned = pp.get(pp.size()-1).getVal2();
@@ -376,15 +376,10 @@ public class LocalTimeOptimizationProblem {
             }
         }
 
-//        var it = RSUNetworkNeighbours.entrySet().iterator();
-//        while (it.hasNext()) {
-//            var x = it.next();
-//            x.setValue(Lists.newArrayList(Sets.newHashSet(x.getValue())));
-//        }
         obj_network = result.total_cost;
         return new IntermediateSolution(new double[]{obj_IoT, obj_mel, obj_network},
                                         paths,
-                                        rsuNetwork);
+                                        tInfo.network);
     }
 
     private List<Integer> updatePathWithFeasibleOne(Map<TimedIoT, Integer> vehs,
@@ -418,14 +413,10 @@ public class LocalTimeOptimizationProblem {
         return run_time;
     }
 
-    public boolean init(
-//            List<ConfiguationEntity.IotDeviceEntity> sumoIoTDevices,
-//                        List<ConfiguationEntity.VMEntity> allDestinations
-    ) {
+    public boolean init() {
         run_time = 0;
         long startTime = System.currentTimeMillis();
-//        if (sumoIoTDevices != null) sumoIoTDevices.clear();
-//        if (allDestinations != null) allDestinations.clear();
+
         vehicles_communicating_with_nearest_RSUs = new HashMap<>();
         for (TimedIoT veh: vehicles ) {
             vehicles_communicating_with_nearest_RSUs.put(veh, new ArrayList<>());
@@ -434,26 +425,14 @@ public class LocalTimeOptimizationProblem {
         boolean hasSomeResult = false;
         var tree = new VPTree<>(f, vehicles);
         var visitedVehicles = new HashSet<>();
-        for (TimedEdge x : rsuses) {
+        for (TimedEdge x : tInfo.tls) {
             var distanceQueryResult = tree.getAllWithinDistance(x, x.communication_radius * x.communication_radius);
             if (!distanceQueryResult.isEmpty()) {
                 hasSomeResult = true;
-                boolean hasInsertion = false;
                 for (var veh : distanceQueryResult) {
                     vehicles_communicating_with_nearest_RSUs.get(veh).add(x);
-                    if (visitedVehicles.add(veh.id)) {
-                        hasInsertion = true;
-//                        if (sumoIoTDevices != null)
-//                            sumoIoTDevices.add(veh.asIoDevice(conf.bw,
-//                                conf.max_battery_capacity,
-//                                conf.battery_sensing_rate,
-//                                conf.battery_sending_rate,
-//                                conf.network_type,
-//                                conf.protocol));
-                    }
+                    visitedVehicles.add(veh.id);
                 }
-//                if (hasInsertion && ((allDestinations != null)))
-//                    allDestinations.add(x.asVMEntity(conf.VM_pes, conf.VM_mips, conf.VM_ram, conf.VM_storage, conf.VM_bw, conf.VM_cloudletPolicy));
             }
         }
         long endTime = System.currentTimeMillis();
@@ -464,7 +443,7 @@ public class LocalTimeOptimizationProblem {
     /**
      * Given all of the possible MELs near to the vehicle, it considers only the one nearest to him for starting the communication
      */
-    public void setNearestMELForIoT() {
+    public void setNearestFirstMileMELForIoT() {
          long startTime = System.currentTimeMillis();
          firstMileCommunication = CartesianProduct.mapCartesianProduct(vehicles_communicating_with_nearest_RSUs.entrySet().stream().filter(e ->!e.getValue().isEmpty()).collect(Collectors.toMap(Map.Entry::getKey, x -> x.getValue().stream().min(Comparator.comparingDouble(o -> f.getDistance(x.getKey(), o))).stream().toList()))).stream().toList();
          run_time += (System.currentTimeMillis() - startTime);
@@ -488,7 +467,7 @@ public class LocalTimeOptimizationProblem {
     /**
      * Given all of the possible MELs near to the vehicle, it considers all of them
      */
-    public void setAllPossibleMELForIoT() {
+    public void setAllPossibleFirstMileMELForIoT() {
         long startTime = System.currentTimeMillis();
         firstMileCommunication = CartesianProduct.mapCartesianProduct(vehicles_communicating_with_nearest_RSUs.entrySet().stream()
                 .filter(e ->!e.getValue().isEmpty())
@@ -511,7 +490,7 @@ public class LocalTimeOptimizationProblem {
                 }
                 stringListHashMap.get(cp.getValue()).add(cp.getKey());
             }
-            trafficGreedyHeuristic(stringListHashMap, rsuses, result, useLocalDemandForecast);
+            trafficGreedyHeuristic(stringListHashMap, tInfo.tls, result, useLocalDemandForecast);
         }
         targetCommunication = CartesianProduct.mapCartesianProduct(result).stream().toList();
         run_time += (System.currentTimeMillis() - startTime);
@@ -571,13 +550,32 @@ public class LocalTimeOptimizationProblem {
         if (!vehsWithBusyRSUs.isEmpty()) {
             // Determining which RSUs will be affected by over-demands by busy semaphores
             for (TimedEdge busyTimedEdge : busyRSUs.keySet()) {
+                var localSCC = tInfo.edgeToSCC.get(busyTimedEdge);
                 // A valid distributor for a busyRSU is a semaphore which is not currently full
-                List<TimedEdge> distributor = semList.stream()
+                List<TimedEdge> distributor = localSCC.stream()
                         .filter(x -> {
                             var ls = updated.get(x);
-                            return (!x.equals(busyTimedEdge)) && ((ls == null ? 0 : ls.size()) < (int) busyTimedEdge.max_vehicle_communication);
+                            return (!x.equals(busyTimedEdge)) &&
+                                    ((ls == null ? 0 : ls.size()) < (int) x.max_vehicle_communication);
                         })
                         .collect(Collectors.toList());
+
+                // If the distributor list is empty, choose the node in the same cluster minimizing the burden
+                if (distributor.isEmpty()) {
+                    int minDiff = Integer.MAX_VALUE;
+                    TimedEdge candidateChoice = null;
+                    for (var candidate : localSCC) {
+                        var candidateLS = updated.get(candidate);
+                        var diff = candidateLS.size() - (int)candidate.max_vehicle_communication;
+                        if (diff < minDiff) {
+                            minDiff = diff;
+                            candidateChoice = candidate;
+                        }
+                    }
+                    if (minDiff != Integer.MAX_VALUE) {
+                        distributor.add(candidateChoice);
+                    } // Otherwise, there are no viable candidates!
+                }
                 for (TimedEdge cp2 : distributor) {
                     if (!distributorOf.containsKey(cp2))
                         distributorOf.put(cp2, new HashSet<>());
@@ -702,27 +700,27 @@ public class LocalTimeOptimizationProblem {
     /**
      * Considers all of the possible MELs in the communication network as possible targets
      */
-    public void setAllPossibleTargetsForCommunication() {
+    public void setAllPossibleTargetsForLastMileCommunication() {
         long start = System.currentTimeMillis();
-        targetCommunication = CartesianProduct.mapCartesianProduct(vehicles_communicating_with_nearest_RSUs.keySet().stream().filter(e -> !vehicles_communicating_with_nearest_RSUs.get(e).isEmpty()).collect(Collectors.<TimedIoT, TimedIoT, List<TimedEdge>>toMap(e->e, e->List.copyOf(rsuses)))).stream().toList();
+        targetCommunication = CartesianProduct.mapCartesianProduct(vehicles_communicating_with_nearest_RSUs.keySet().stream().filter(e -> !vehicles_communicating_with_nearest_RSUs.get(e).isEmpty()).collect(Collectors.<TimedIoT, TimedIoT, List<TimedEdge>>toMap(e->e, e->List.copyOf(tInfo.tls)))).stream().toList();
         run_time += (System.currentTimeMillis() - start);
     }
 
-    public void setAllPossibleNearestKTargetsForCommunication(int k, boolean randomOne) {
+    public void setAllPossibleNearestKTargetsForLastMileCommunication(int k, boolean randomOne) {
         long start = System.currentTimeMillis();
         targetCommunication = CartesianProduct.mapCartesianProduct(vehicles_communicating_with_nearest_RSUs.keySet().stream().filter(e -> !vehicles_communicating_with_nearest_RSUs.get(e).isEmpty()).collect(Collectors.<TimedIoT, TimedIoT, List<TimedEdge>>toMap(e->e, e-> {
             Function<TimedEdge, Double> fun = o -> f.getDistance(o, e);
             Comparator<TimedEdge> comparator = Comparator.comparingDouble(fun::apply);
             PriorityQueue<TimedEdge> pq = new PriorityQueue<>(k, comparator);
             int added = 0;
-            for (int i = 0; i < rsuses.size(); i++) {
-                if (fun.apply(rsuses.get(i)) > rsuses.get(i).communication_radius * rsuses.get(i).communication_radius) continue;
+            for (int i = 0; i < tInfo.tls.size(); i++) {
+                if (fun.apply(tInfo.tls.get(i)) > tInfo.tls.get(i).communication_radius * tInfo.tls.get(i).communication_radius) continue;
                 if (added < k) // add until heap is filled with k elements.
-                { pq.add(rsuses.get(i)); added++; }
-                else if (comparator.compare(pq.peek(), rsuses.get(i)) < 0) { // check if it's bigger than the
+                { pq.add(tInfo.tls.get(i)); added++; }
+                else if (comparator.compare(pq.peek(), tInfo.tls.get(i)) < 0) { // check if it's bigger than the
                     // smallest element in the heap.
                     pq.poll();
-                    pq.add(rsuses.get(i));
+                    pq.add(tInfo.tls.get(i));
                 }
             }
             if (randomOne) {

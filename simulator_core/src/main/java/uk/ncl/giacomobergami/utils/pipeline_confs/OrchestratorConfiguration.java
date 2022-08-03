@@ -6,6 +6,7 @@ public class OrchestratorConfiguration {
         public boolean use_pareto_front;
         public boolean use_nearest_MEL_to_IoT;
         public boolean use_greedy_algorithm;
+        public boolean use_scc_neighbours;
         public boolean do_thresholding;
         public boolean use_local_demand_forecast;
         public boolean ignore_cubic;

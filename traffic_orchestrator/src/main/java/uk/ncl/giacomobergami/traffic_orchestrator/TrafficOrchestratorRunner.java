@@ -9,12 +9,12 @@ import java.util.Optional;
 
 public class TrafficOrchestratorRunner {
     private static Class<?> clazz;
-    private static Orchestrator obj;
+    private static TrafficOrchestrator obj;
 
-    public static Orchestrator generateFacade(OrchestratorConfiguration conf,
-                                              TrafficConfiguration conf2) {
+    public static TrafficOrchestrator generateFacade(OrchestratorConfiguration conf,
+                                                     TrafficConfiguration conf2) {
         if (obj == null) {
-            obj = new Orchestrator(conf, conf2);
+            obj = new TrafficOrchestrator(conf, conf2);
         }
         return obj;
     }
@@ -24,7 +24,7 @@ public class TrafficOrchestratorRunner {
         Optional<OrchestratorConfiguration> conf = YAML.parse(OrchestratorConfiguration.class, new File(configuration));
         Optional<TrafficConfiguration> conf3 = YAML.parse(TrafficConfiguration.class, new File(conf2));
         conf.ifPresent(x -> conf3.ifPresent(y -> {
-            Orchestrator conv = generateFacade(x, y);
+            TrafficOrchestrator conv = generateFacade(x, y);
             conv.run();
             conv.serializeAll();
         }));

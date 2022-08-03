@@ -33,4 +33,5 @@ public class JSON {
         return arr; //or return Arrays.asList(new Gson().fromJson(s, clazz)); for a one-liner
     }
 
+
 }

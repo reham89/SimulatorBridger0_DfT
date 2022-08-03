@@ -15,6 +15,7 @@ ignore_cubic: yes
 reduce_to_one: yes
 update_after_flow: yes
 use_top_k_nearest_targets: 1
+use_scc_neighbours: yes
 k1: 1.0
 k2: 1.0
 p1: 1.0

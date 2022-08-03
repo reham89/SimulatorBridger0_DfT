@@ -41,14 +41,16 @@ public class ReconstructorIterator<H, T> implements Iterator<List<T>> {
 
     @Override
     public List<T> next() {
+        List<T> result;
         if (beginning) {
             previousReconstruction = reconstruction.getLeft().getValue();
             beginning = false;
-            return previousReconstruction;
+            result = previousReconstruction;
         } else {
             var tmp = reconstruction.getRight().get(i++).reconstructFrom(previousReconstruction, cmp);
             previousReconstruction = tmp;
-            return tmp;
+            result = tmp;
         }
+        return result;
     }
 }

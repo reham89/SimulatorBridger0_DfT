@@ -92,10 +92,9 @@ public abstract class IoTDevice extends SimEntity {
 			this.removeFlow(ev);
 			break;
 
-		case OsmoticTags.MOVING:
-			/*
-			 * To do list 
-			 */
+		case OsmoticTags.MOVING: {
+			System.out.println("MOVING AT TIME: " + CloudSim.clock() +" Update the program");
+		}
 			break;
 		}
 	}

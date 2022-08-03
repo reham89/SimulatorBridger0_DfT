@@ -172,7 +172,9 @@ public class SUMOConverter extends TrafficConverter {
         }
         connectionPath.clear();
         var tmp = netGen.apply(roadSideUnits);
-        tmp.forEach((k, v) -> connectionPath.put(k.id, v.id));
+        tmp.forEach((k, v) -> {
+            connectionPath.put(k.id, v.id);
+        });
         return true;
     }
 

@@ -29,6 +29,8 @@ import org.cloudbus.cloudsim.edge.core.edge.EdgeLet;
 import org.cloudbus.cloudsim.edge.iot.IoTDevice;
 import uk.ncl.giacomobergami.components.mel_routing.MELRoutingPolicy;
 
+import static org.cloudbus.osmosis.core.OsmoticTags.MOVING;
+
 /**
  * 
  * @author Khaled Alwasel
@@ -63,6 +65,12 @@ public class OsmoticBroker extends DatacenterBroker {
 	}
 	public void setEdgeSDNController(EdgeSDNController controller) {
 		this.edgeController = controller;
+	}
+
+	@Override
+	public void startEntity() {
+		super.startEntity();
+		send("temperature_1", 15, MOVING);
 	}
 
 	@Override
@@ -288,8 +296,8 @@ public class OsmoticBroker extends DatacenterBroker {
 				if(app.getAppStartTime() == -1){
 					app.setAppStartTime(CloudSim.clock());
 				}
-				double dealy = app.getDataRate()+app.getStartDataGenerationTime();
-				send(this.getId(), dealy, OsmoticTags.GENERATE_OSMESIS, app);
+				double delay = app.getDataRate()+app.getStartDataGenerationTime();
+				send(this.getId(), delay, OsmoticTags.GENERATE_OSMESIS, app);
 			}
 		}
 	}	
