@@ -11,15 +11,12 @@ public class ClusterDifference<T> implements Predicate<T> {
     public type getChange() {
         return change;
     }
-
     public Map<T, typeOfChange> getChanges() {
         return changes;
     }
-
     public void setChange(type change) {
         this.change = change;
     }
-
     public void setChanges(Map<T, typeOfChange> changes) {
         this.changes = changes;
     }
@@ -90,6 +87,11 @@ public class ClusterDifference<T> implements Predicate<T> {
         this.changes = changes;
     }
 
+    public static <T> List<T> reconstructFrom(ClusterDifference<T> self, List<T> ls, Comparator<T> cmp) {
+        if (self == null) return ls;
+        else return self.reconstructFrom(ls, cmp);
+    }
+
     public List<T> reconstructFrom(List<T> ls, Comparator<T> cmp) {
         if (change == type.CHANGED) {
             if (ls == null) ls = Collections.emptyList();
@@ -135,7 +137,7 @@ public class ClusterDifference<T> implements Predicate<T> {
         while (j<M) {
             change.put(rs.get(j++), typeOfChange.ADDITION_OF);
         }
-        return change.isEmpty() ? new ClusterDifference<T>() : new ClusterDifference<T>(type.CHANGED, change);
+        return change.isEmpty() ? new ClusterDifference<>() : new ClusterDifference<>(type.CHANGED, change);
     }
 
     public static <H, K, T> ConcretePair<ConcretePair<H, List<T>>, List<ClusterDifference<T>>>
