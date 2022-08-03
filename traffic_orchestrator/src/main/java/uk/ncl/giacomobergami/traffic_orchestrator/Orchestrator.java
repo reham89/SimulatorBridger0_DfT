@@ -233,8 +233,8 @@ public class Orchestrator {
             // This concept is relevant, so if we need to remove some nodes from the simulation,
             // and to add others. This also defines with which MELs and Vehicles should an element connect/disconnect
             // for its routing
-            var delta_clusters = ClusterDifference.diff(candidate.inStringTime, tls_s, StringComparator.getInstance());
-            var delta_network_neighbours = ClusterDifference.diff(networkTopology, tls_s, StringComparator.getInstance());
+            var delta_clusters = ClusterDifference.computeTemporalDifference(candidate.inStringTime, tls_s, StringComparator.getInstance());
+            var delta_network_neighbours = ClusterDifference.computeTemporalDifference(networkTopology, tls_s, StringComparator.getInstance());
 
             for (var r : tls) {
                 var rsuProgram = new EdgeProgram(candidate.bestResult.keySet());

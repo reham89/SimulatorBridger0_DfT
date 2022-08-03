@@ -73,7 +73,7 @@ public abstract class TrafficConverter {
             timedNodeAdjacency.put(tick, network.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, x->new ArrayList<>(x.getValue()))));
         }
 
-        var delta_network_neighbours = ClusterDifference.diff(timedNodeAdjacency, allTlsS, StringComparator.getInstance());
+        var delta_network_neighbours = ClusterDifference.computeTemporalDifference(timedNodeAdjacency, allTlsS, StringComparator.getInstance());
         try {
             Files.writeString(Paths.get(new File(conf.RSUCsvFile+"_"+"neighboursChange.json").getAbsolutePath()), gson.toJson(delta_network_neighbours));
         } catch (IOException e) {

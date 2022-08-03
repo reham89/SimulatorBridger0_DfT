@@ -81,7 +81,7 @@ public class TemporalNetworkingRanking {
         }
 
         // getting the simulation program associated to each vehicle
-        HashMap<String, ConcretePair<ConcretePair<Double, List<String>>, List<ClusterDifference<String>>>> local_delta_associations = ClusterDifference.diff(vehClustAssoc, veh_s, StringComparator.getInstance());
+        HashMap<String, ConcretePair<ConcretePair<Double, List<String>>, List<ClusterDifference<String>>>> local_delta_associations = ClusterDifference.computeTemporalDifference(vehClustAssoc, veh_s, StringComparator.getInstance());
 
         double totalChangePerVehicle = 0.0;
         // Among these, we prefer a solution minimizing the size of the deta_associations, for all of the vehicles
@@ -132,7 +132,7 @@ public class TemporalNetworkingRanking {
                     fillFromSimulationTime(vehClustAssoc, localCandidates, simulationTime);
 
                     // getting the simulation program associated to each vehicle
-                    HashMap<String, ConcretePair<ConcretePair<Double, List<String>>, List<ClusterDifference<String>>>> local_delta_associations = ClusterDifference.diff(vehClustAssoc, veh_s, StringComparator.getInstance());
+                    HashMap<String, ConcretePair<ConcretePair<Double, List<String>>, List<ClusterDifference<String>>>> local_delta_associations = ClusterDifference.computeTemporalDifference(vehClustAssoc, veh_s, StringComparator.getInstance());
 
                     double totalChangePerVehicle = 0.0;
                     // Among these, we prefer a solution minimizing the size of the deta_associations, for all of the vehicles
