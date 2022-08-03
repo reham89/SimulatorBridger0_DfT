@@ -115,7 +115,7 @@ public class OsmesisBroker extends DatacenterBroker {
 		}
 	}
 
-	private String melRoundRobinRoutingPolicy(String abstractMel, List<String> instances){
+	private String melRoundRobinRoutingPolicy(String abstractMel, List<String> instances) {
 		if (!roundRobinMelMap.containsKey(abstractMel)){
 			roundRobinMelMap.put(abstractMel,0);
 		}

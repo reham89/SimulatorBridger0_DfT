@@ -53,7 +53,7 @@ import org.cloudbus.res.dataproviders.res.RESResponse;
 public class OsmesisExample_1 {
 	public static final String configurationFile = "inputFiles/Example1_configuration.json";
 	public static final String osmesisAppFile =  "inputFiles/Example1_Worload.csv";
-	public static final String RES_CONFIG_FILE =  "inputFiles/Example_RES_config.json";
+//	public static final String RES_CONFIG_FILE =  "inputFiles/Example_RES_config.json";
     OsmosisBuilder topologyBuilder;
 	OsmesisBroker osmesisBroker;
 	EdgeSDNController edgeSDNController;
