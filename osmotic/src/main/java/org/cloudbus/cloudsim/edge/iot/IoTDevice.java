@@ -24,7 +24,7 @@ import org.cloudbus.cloudsim.edge.core.edge.Mobility;
 import org.cloudbus.cloudsim.edge.iot.network.EdgeNetworkInfo;
 import org.cloudbus.cloudsim.edge.utils.LogUtil;
 import org.cloudbus.osmosis.core.*;
-import org.cloudbus.osmosis.core.polocies.MovingPolicy;
+import org.cloudbus.osmosis.core.policies.MovingPolicy;
 
 /**
  * 
@@ -52,7 +52,7 @@ public abstract class IoTDevice extends SimEntity {
 
 	String associatedEdge;
 
-	private OsmosisRoutingTable routingTable = new OsmosisRoutingTable();
+	private OsmoticRoutingTable routingTable = new OsmoticRoutingTable();
 	private DeviceAgent osmoticDeviceAgent;
 
 	private List<Flow> flowList = new ArrayList<>(); 
@@ -84,15 +84,15 @@ public abstract class IoTDevice extends SimEntity {
 	public void processEvent(SimEvent ev) {
 		int tag = ev.getTag();
 		switch (tag) {
-		case OsmosisTags.SENSING:
+		case OsmoticTags.SENSING:
 			this.sensing(ev);
 			break;
 			
-		case  OsmosisTags.updateIoTBW:
+		case  OsmoticTags.updateIoTBW:
 			this.removeFlow(ev);
 			break;
 
-		case OsmosisTags.MOVING:
+		case OsmoticTags.MOVING:
 			/*
 			 * To do list 
 			 */
@@ -147,7 +147,7 @@ public abstract class IoTDevice extends SimEntity {
 	}
 	
 	private void sensing(SimEvent ev) {
-		OsmesisAppDescription app = (OsmesisAppDescription) ev.getData();
+		OsmoticAppDescription app = (OsmoticAppDescription) ev.getData();
 
 		// if the battery is drained,
 		this.updateBatteryBySensing();
@@ -174,7 +174,7 @@ public abstract class IoTDevice extends SimEntity {
 		workflowTag.setSourceDCName(app.getEdgeDatacenterName());
 		workflowTag.setDestinationDCName(app.getCloudDatacenterName());
 		flow.setWorkflowTag(workflowTag);
-		OsmesisBroker.workflowTag.add(workflowTag);
+		OsmoticBroker.workflowTag.add(workflowTag);
 		flow.addPacketSize(app.getIoTDeviceOutputSize());			
 		updateBandwidth();
 
@@ -186,11 +186,11 @@ public abstract class IoTDevice extends SimEntity {
 
 		//MEL ID Resolution in Osmotic Broker
 		//sendNow(flow.getDatacenterId(), OsmosisTags.TRANSMIT_IOT_DATA, flow);
-		sendNow(OsmesisBroker.brokerID, OsmosisTags.ROUTING_MEL_ID_RESOLUTION, flow); //necessary for osmotic flow routing - concept similar to ARP protocol
+		sendNow(OsmoticBroker.brokerID, OsmoticTags.ROUTING_MEL_ID_RESOLUTION, flow); //necessary for osmotic flow routing - concept similar to ARP protocol
 	}
 
 
-	private Flow createFlow(OsmesisAppDescription app) {
+	private Flow createFlow(OsmoticAppDescription app) {
 		//melID will be set in the osmosis broker in the MEL_ID_RESOLUTION process.
 		int melId = -1;
 		int datacenterId = -1;
@@ -237,7 +237,7 @@ public abstract class IoTDevice extends SimEntity {
 		}	
 	}
 
-	public OsmosisRoutingTable getRoutingTable() {
+	public OsmoticRoutingTable getRoutingTable() {
 		return routingTable;
 	}
 }

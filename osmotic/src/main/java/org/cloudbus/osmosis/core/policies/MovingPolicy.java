@@ -1,4 +1,4 @@
-package org.cloudbus.osmosis.core.polocies;
+package org.cloudbus.osmosis.core.policies;
 
 import org.cloudbus.cloudsim.edge.core.edge.Mobility;
 

@@ -25,8 +25,8 @@ import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity.SwitchEntity;
 import org.cloudbus.cloudsim.sdn.Link;
 import org.cloudbus.cloudsim.sdn.NetworkNIC;
 import org.cloudbus.cloudsim.sdn.Switch;
-import org.cloudbus.osmosis.core.polocies.SDNTrafficSchedulingPolicy;
-import org.cloudbus.osmosis.core.polocies.SDNRoutingPolicy;
+import uk.ncl.giacomobergami.components.sdn_traffic.SDNTrafficSchedulingPolicy;
+import uk.ncl.giacomobergami.components.sdn_routing.SDNRoutingPolicy;
 
 /**
  * 
@@ -38,8 +38,8 @@ import org.cloudbus.osmosis.core.polocies.SDNRoutingPolicy;
 
 public class SDWANController extends SDNController {
 	
-	private List<OsmesisDatacenter> osmesisDatacentres; 	
-	private Map<OsmesisDatacenter, List<Integer>> datacenterVmList;
+	private List<OsmoticDatacenter> osmesisDatacentres;
+	private Map<OsmoticDatacenter, List<Integer>> datacenterVmList;
 	protected Topology topology;
 	
 	public SDWANController(String name, SDNTrafficSchedulingPolicy sdnPolicy, SDNRoutingPolicy sdnRouting){
@@ -47,12 +47,12 @@ public class SDWANController extends SDNController {
 		this.datacenterName = "WAN_Layer";
 	}
 
-	public void addAllDatacenters(List<OsmesisDatacenter> osmesisDatacentres) {
+	public void addAllDatacenters(List<OsmoticDatacenter> osmesisDatacentres) {
 		this.osmesisDatacentres = new ArrayList<>();		
 		this.osmesisDatacentres = osmesisDatacentres;
 		
 		this.datacenterVmList = new HashMap<>();
-		for(OsmesisDatacenter dc : this.osmesisDatacentres){
+		for(OsmoticDatacenter dc : this.osmesisDatacentres){
 			List<Integer> list = new ArrayList<>();
 			for(Vm vm : dc.getVmList()){
 				list.add(vm.getId());
@@ -61,14 +61,14 @@ public class SDWANController extends SDNController {
 		}		
 	}
 		
-	public List<OsmesisDatacenter> getOsmesisDatacentres() {
+	public List<OsmoticDatacenter> getOsmesisDatacentres() {
 		return osmesisDatacentres;
 	}
 	
-	private OsmesisDatacenter findDatacenter(int vmId){
-		OsmesisDatacenter datacenter = null;		
+	private OsmoticDatacenter findDatacenter(int vmId){
+		OsmoticDatacenter datacenter = null;
 		
-		for(OsmesisDatacenter dc : this.osmesisDatacentres){
+		for(OsmoticDatacenter dc : this.osmesisDatacentres){
 			if(datacenterVmList.get(dc).contains(vmId)){
 				datacenter = dc;	
 			}
@@ -81,8 +81,8 @@ public class SDWANController extends SDNController {
 		int srcVm = flow.getOrigin();
 		int dstVm = flow.getDestination();
 		
-		OsmesisDatacenter srcDC = findDatacenter(srcVm);
-		OsmesisDatacenter destDC = findDatacenter(dstVm);		
+		OsmoticDatacenter srcDC = findDatacenter(srcVm);
+		OsmoticDatacenter destDC = findDatacenter(dstVm);
 		
 		NetworkNIC srchost = srcDC.getGateway();
 		NetworkNIC dsthost = destDC.getGateway();
@@ -103,7 +103,7 @@ public class SDWANController extends SDNController {
 			List<Link> links = sdnRoutingPoloicy.getLinks(flow.getOrigin(), flow.getDestination());
 			flow.setLinkList(links);
 			
-			sendNow(destDC.getSdnController().getId(), OsmosisTags.BUILD_ROUTE, flow);		
+			sendNow(destDC.getSdnController().getId(), OsmoticTags.BUILD_ROUTE, flow);
 			return;			
 												
 		} 		 	

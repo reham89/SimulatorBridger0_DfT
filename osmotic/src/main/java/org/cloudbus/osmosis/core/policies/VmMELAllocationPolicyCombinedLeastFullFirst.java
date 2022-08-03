@@ -6,7 +6,7 @@
  * Copyright (c) 2015, The University of Melbourne, Australia
  */
 
-package org.cloudbus.osmosis.core.polocies;
+package org.cloudbus.osmosis.core.policies;
 
 import org.cloudbus.cloudsim.Host;
 import org.cloudbus.cloudsim.Vm;
@@ -20,7 +20,7 @@ import org.cloudbus.cloudsim.sdn.example.policies.VmAllocationPolicyCombinedMost
  * @author Jungmin Son
  * @since CloudSimSDN 1.0
  */
-public class VmMELAllocationPolicyCombinedLeastFullFirst extends VmAllocationPolicyCombinedMostFullFirst{
+public class VmMELAllocationPolicyCombinedLeastFullFirst extends VmAllocationPolicyCombinedMostFullFirst {
 
 	public VmMELAllocationPolicyCombinedLeastFullFirst() {
 		super();

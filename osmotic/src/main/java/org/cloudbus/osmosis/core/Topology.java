@@ -63,6 +63,19 @@ public class Topology {
 
 	public void removeNode(NetworkNIC node) {
 		nodesTable.remove(node.getAddress());
+		Collection<Link> linksToRemove = nodeLinks.removeAll(node);
+		var nodeAddr = node.getAddress();
+		for (Link edge : linksToRemove) {
+			nodeLinkLists.remove(edge);
+			NetworkNIC dst = edge.dst();
+			var ls = nTnlinks.get(node, dst);
+			ls.remove(edge);
+			if (ls.isEmpty()) nTnlinks.remove(node, dst);
+			var ls2 = nodeLinks.get(dst);
+			ls2.remove(edge);
+			if (ls.isEmpty()) nodeLinks.removeAll(dst);
+			links.remove(nodeAddr, dst.getAddress());
+		}
 	}
 
 	public void addLink(int from, int to, long bw) {

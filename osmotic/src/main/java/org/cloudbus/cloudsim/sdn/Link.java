@@ -31,7 +31,13 @@ public class Link {
 	NetworkNIC highOrder; // order starts from core SW, to aggr SW, to edge SW, to Hosts
 	NetworkNIC lowOrder;  // order starts from Hosts, to edge SW, to aggr SW, to core SW
 	double bw;
-	
+
+	public NetworkNIC src() {
+		return highOrder;
+	}
+	public NetworkNIC dst() {
+		return lowOrder;
+	}
 	
 	double availableBW; // if it is 0 for all links, choose any one randomly
 	

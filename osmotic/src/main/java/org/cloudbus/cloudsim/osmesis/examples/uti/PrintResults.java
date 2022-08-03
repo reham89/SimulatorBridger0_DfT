@@ -18,9 +18,9 @@ import java.util.List;
 
 import org.cloudbus.cloudsim.Log;
 import org.cloudbus.osmosis.core.Flow;
-import org.cloudbus.osmosis.core.OsmesisAppDescription;
-import org.cloudbus.osmosis.core.OsmesisAppsParser;
-import org.cloudbus.osmosis.core.OsmesisBroker;
+import org.cloudbus.osmosis.core.OsmoticAppDescription;
+import org.cloudbus.osmosis.core.OsmoticAppsParser;
+import org.cloudbus.osmosis.core.OsmoticBroker;
 import org.cloudbus.osmosis.core.WorkflowInfo;
 
 
@@ -37,8 +37,8 @@ public class PrintResults {
 	public void printOsmesisNetwork() {
 		
 		List<WorkflowInfo> tags = new ArrayList<>();
-		for(OsmesisAppDescription app : OsmesisAppsParser.appList){
-			for(WorkflowInfo workflowTag : OsmesisBroker.workflowTag){
+		for(OsmoticAppDescription app : OsmoticAppsParser.appList){
+			for(WorkflowInfo workflowTag : OsmoticBroker.workflowTag){
 				workflowTag.getAppId();
 				if(app.getAppID() == workflowTag.getAppId()){
 					tags.add(workflowTag);
@@ -63,8 +63,8 @@ public class PrintResults {
 				, "SimluationTime"
 				, "appTotalRunningTmie"));
 
-		for(OsmesisAppDescription app : OsmesisAppsParser.appList){
-			for(WorkflowInfo workflowTag : OsmesisBroker.workflowTag){
+		for(OsmoticAppDescription app : OsmoticAppsParser.appList){
+			for(WorkflowInfo workflowTag : OsmoticBroker.workflowTag){
 				workflowTag.getAppId();
 				if(app.getAppID() == workflowTag.getAppId()){
 					tags.add(workflowTag);
@@ -91,7 +91,7 @@ public class PrintResults {
 				, "VmName"  				   
 				, "OsmesisCloudlet_MI" 
 				));
-		for(OsmesisAppDescription app : OsmesisAppsParser.appList){
+		for(OsmoticAppDescription app : OsmoticAppsParser.appList){
 			Log.printLine(String.format("%1s %15s %21s  %25s  %18s %22s %15s %24s %18s %14s"				
 					, app.getAppName()   				
 					, app.getDataRate()
@@ -107,7 +107,7 @@ public class PrintResults {
 		}		
 	}
 
-	private void printAppStat(OsmesisAppDescription app, List<WorkflowInfo> tags) {		 	
+	private void printAppStat(OsmoticAppDescription app, List<WorkflowInfo> tags) {
 		String appName = app.getAppName();
 		String isIoTDeviceDrained = app.getIoTDeviceBatteryStatus();
 		double iotDeviceTotalConsumption = app.getIoTDeviceBatteryConsumption();

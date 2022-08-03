@@ -29,8 +29,8 @@ import java.util.Queue;
  * 
 **/
 
-public class OsmesisAppsParser {
-	public static List<OsmesisAppDescription> appList = new ArrayList<>();
+public class OsmoticAppsParser {
+	public static List<OsmoticAppDescription> appList = new ArrayList<>();
 	public static void startParsingExcelAppFile(String appFileName){
 			
 			BufferedReader br = null;
@@ -81,7 +81,7 @@ public class OsmesisAppsParser {
 					VmName = lineitems.poll();		
 					OsmesisCloudlet = Long.parseLong(lineitems.poll());								
 					
-					OsmesisAppDescription appComposition = new OsmesisAppDescription(OsmesisAppName, appID, DataRate, StopDataGenerationTime,
+					OsmoticAppDescription appComposition = new OsmoticAppDescription(OsmesisAppName, appID, DataRate, StopDataGenerationTime,
 							IoTDeviceName,IoTDeviceOutput, MELName, OsmesisEdgeletSize, MELOutput, VmName, OsmesisCloudlet, StartDataGenerationTime);
 										
 					appList.add(appComposition);

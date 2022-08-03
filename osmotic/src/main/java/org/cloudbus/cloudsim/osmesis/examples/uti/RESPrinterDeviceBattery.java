@@ -1,9 +1,9 @@
 package org.cloudbus.cloudsim.osmesis.examples.uti;
 
 import org.cloudbus.cloudsim.Log;
-import org.cloudbus.osmosis.core.OsmesisAppDescription;
-import org.cloudbus.osmosis.core.OsmesisAppsParser;
-import org.cloudbus.osmosis.core.OsmesisBroker;
+import org.cloudbus.osmosis.core.OsmoticAppDescription;
+import org.cloudbus.osmosis.core.OsmoticAppsParser;
+import org.cloudbus.osmosis.core.OsmoticBroker;
 import org.cloudbus.osmosis.core.WorkflowInfo;
 import org.cloudbus.res.EnergyController;
 import org.cloudbus.res.config.AppConfig;
@@ -74,8 +74,8 @@ public class RESPrinterDeviceBattery {
 
         //collect all osmotic flows
         List<WorkflowInfo> tags = new ArrayList<>();
-        for (OsmesisAppDescription app : OsmesisAppsParser.appList) {
-            for (WorkflowInfo workflowTag : OsmesisBroker.workflowTag) {
+        for (OsmoticAppDescription app : OsmoticAppsParser.appList) {
+            for (WorkflowInfo workflowTag : OsmoticBroker.workflowTag) {
                 workflowTag.getAppId();
                 if (app.getAppID() == workflowTag.getAppId()) {
                     tags.add(workflowTag);

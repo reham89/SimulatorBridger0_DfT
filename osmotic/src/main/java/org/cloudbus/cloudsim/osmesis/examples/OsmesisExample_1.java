@@ -17,30 +17,22 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import org.cloudbus.cloudsim.Log;
-import org.cloudbus.cloudsim.Vm;
 import org.cloudbus.cloudsim.core.CloudSim;
 import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity;
-import org.cloudbus.cloudsim.edge.core.edge.MEL;
 import org.cloudbus.cloudsim.edge.utils.LogUtil;
 import org.cloudbus.cloudsim.osmesis.examples.uti.LogPrinter;
 import org.cloudbus.cloudsim.osmesis.examples.uti.PrintResults;
 import org.cloudbus.cloudsim.sdn.Switch;
 import org.cloudbus.osmosis.core.EdgeSDNController;
-import org.cloudbus.osmosis.core.OsmesisBroker;
-import org.cloudbus.osmosis.core.OsmesisDatacenter;
+import org.cloudbus.osmosis.core.OsmoticBroker;
+import org.cloudbus.osmosis.core.OsmoticDatacenter;
 import org.cloudbus.osmosis.core.OsmosisBuilder;
 import org.cloudbus.osmosis.core.OsmosisOrchestrator;
 import org.cloudbus.osmosis.core.SDNController;
 
-import org.cloudbus.osmosis.core.OsmesisAppsParser;
-import org.cloudbus.res.EnergyController;
-import org.cloudbus.res.config.AppConfig;
-import org.cloudbus.res.dataproviders.res.RESResponse;
+import org.cloudbus.osmosis.core.OsmoticAppsParser;
 
 /**
  * 
@@ -55,7 +47,7 @@ public class OsmesisExample_1 {
 	public static final String osmesisAppFile =  "inputFiles/Example1_Worload.csv";
 //	public static final String RES_CONFIG_FILE =  "inputFiles/Example_RES_config.json";
     OsmosisBuilder topologyBuilder;
-	OsmesisBroker osmesisBroker;
+	OsmoticBroker osmesisBroker;
 	EdgeSDNController edgeSDNController;
 
 	public static void main(String[] args) throws Exception {
@@ -71,7 +63,7 @@ public class OsmesisExample_1 {
 
 		// Initialize the CloudSim library
 		CloudSim.init(num_user, calendar, trace_flag);
-		osmesisBroker  = new OsmesisBroker("OsmesisBroker");
+		osmesisBroker  = new OsmoticBroker("OsmesisBroker");
 		topologyBuilder = new OsmosisBuilder(osmesisBroker);
 		ConfiguationEntity config = buildTopologyFromFile(configurationFile);
 		//
@@ -81,16 +73,16 @@ public class OsmesisExample_1 {
         
         OsmosisOrchestrator maestro = new OsmosisOrchestrator();
         
-		OsmesisAppsParser.startParsingExcelAppFile(osmesisAppFile);
+		OsmoticAppsParser.startParsingExcelAppFile(osmesisAppFile);
 		List<SDNController> controllers = new ArrayList<>();
-		for(OsmesisDatacenter osmesisDC : topologyBuilder.getOsmesisDatacentres()){
+		for(OsmoticDatacenter osmesisDC : topologyBuilder.getOsmesisDatacentres()){
 			osmesisBroker.submitVmList(osmesisDC.getVmList(), osmesisDC.getId());
 			controllers.add(osmesisDC.getSdnController());
 			osmesisDC.getSdnController().setWanOorchestrator(maestro);			
 		}
 		controllers.add(topologyBuilder.getSdWanController());
 		maestro.setSdnControllers(controllers);
-		osmesisBroker.submitOsmesisApps(OsmesisAppsParser.appList);
+		osmesisBroker.submitOsmesisApps(OsmoticAppsParser.appList);
 		osmesisBroker.setDatacenters(topologyBuilder.getOsmesisDatacentres());
 
 		double startTime = CloudSim.startSimulation();
@@ -101,7 +93,7 @@ public class OsmesisExample_1 {
 			
 		Log.printLine();
 
-		for(OsmesisDatacenter osmesisDC : topologyBuilder.getOsmesisDatacentres()){		
+		for(OsmoticDatacenter osmesisDC : topologyBuilder.getOsmesisDatacentres()){
 			List<Switch> switchList = osmesisDC.getSdnController().getSwitchList();
 			LogPrinter.printEnergyConsumption(osmesisDC.getName(), osmesisDC.getSdnhosts(), switchList, startTime);
 			Log.printLine();

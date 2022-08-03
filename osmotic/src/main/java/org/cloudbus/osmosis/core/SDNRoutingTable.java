@@ -31,7 +31,6 @@ import com.google.common.collect.Table;
  */
 
 public class SDNRoutingTable {
-
 	int srcVmID; 
 	int destVmId; 
 	NetworkNIC srcHost;

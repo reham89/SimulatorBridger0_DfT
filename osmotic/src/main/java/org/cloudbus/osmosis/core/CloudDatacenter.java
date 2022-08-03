@@ -38,7 +38,7 @@ import org.cloudbus.cloudsim.sdn.Switch;
  * 
 **/
 
-public class CloudDatacenter extends OsmesisDatacenter {
+public class CloudDatacenter extends OsmoticDatacenter {
 
 		public static int cloudletsNumers = 0;
 		int lastProcessTime;	

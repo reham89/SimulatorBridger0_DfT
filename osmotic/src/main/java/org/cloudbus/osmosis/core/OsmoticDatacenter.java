@@ -47,7 +47,7 @@ import org.cloudbus.cloudsim.sdn.example.policies.VmSchedulerTimeSharedEnergy;
  * 
 **/
 
-public abstract class OsmesisDatacenter extends Datacenter{
+public abstract class OsmoticDatacenter extends Datacenter{
 
 	private Switch gateway;
 	private String dcType;
@@ -65,8 +65,8 @@ public abstract class OsmesisDatacenter extends Datacenter{
 
 	public abstract void initEdgeTopology(List<EdgeDevice> devices, List<SwitchEntity> switchEntites, List<LinkEntity> linkEntites);
 		
-	public OsmesisDatacenter(String name, DatacenterCharacteristics characteristics,
-			VmAllocationPolicy vmAllocationPolicy, List<Storage> storageList, double schedulingInterval)
+	public OsmoticDatacenter(String name, DatacenterCharacteristics characteristics,
+							 VmAllocationPolicy vmAllocationPolicy, List<Storage> storageList, double schedulingInterval)
 			throws Exception {
 		super(name, characteristics, vmAllocationPolicy, storageList, schedulingInterval);
 

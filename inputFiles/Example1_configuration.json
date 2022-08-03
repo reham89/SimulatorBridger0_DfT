@@ -59,8 +59,8 @@
 		"controllers": [
 		{
 			"name": "edge1_sdn1",
-			"trafficPolicy": "FairShare",
-			"routingPolicy": "ShortestPathBw"
+			"trafficPolicy": "uk.ncl.giacomobergami.components.sdn_traffic.SDNTrafficPolicyFairShare",
+			"routingPolicy": "uk.ncl.giacomobergami.components.sdn_routing.SDNRoutingTraditionalShortestPath"
 		}
 		],
 		"switches":[
@@ -385,8 +385,8 @@
 		[
 			{
 			  "name": "dc1_sdn1",
-			  "trafficPolicy": "FairShare",
-			  "routingPolicy": "ShortestPathBw"
+			  "trafficPolicy": "uk.ncl.giacomobergami.components.sdn_traffic.SDNTrafficPolicyFairShare",
+			  "routingPolicy": "uk.ncl.giacomobergami.components.sdn_routing.SDNRoutingTraditionalShortestPath"
 			}
 		],
         "switches":
@@ -575,8 +575,8 @@
 	  {
 		"controllers": {
 		  "name": "wan_sdn",
-		  "trafficPolicy": "FairShare",
-		  "routingPolicy": "ShortestPathBw"
+		  "trafficPolicy": "uk.ncl.giacomobergami.components.sdn_traffic.SDNTrafficPolicyFairShare",
+		  "routingPolicy": "uk.ncl.giacomobergami.components.sdn_routing.SDNRoutingTraditionalShortestPath"
 		},	
 		"switches":[
 		{

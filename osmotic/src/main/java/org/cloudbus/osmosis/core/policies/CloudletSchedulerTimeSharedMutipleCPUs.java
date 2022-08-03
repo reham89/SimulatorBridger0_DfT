@@ -9,7 +9,7 @@
  * 
  */
 
-package org.cloudbus.osmosis.core.polocies;
+package org.cloudbus.osmosis.core.policies;
 
 import java.util.List;
 

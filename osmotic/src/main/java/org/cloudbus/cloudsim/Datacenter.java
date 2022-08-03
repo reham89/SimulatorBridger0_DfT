@@ -11,10 +11,7 @@ import org.cloudbus.cloudsim.core.CloudSim;
 import org.cloudbus.cloudsim.core.CloudSimTags;
 import org.cloudbus.cloudsim.core.SimEntity;
 import org.cloudbus.cloudsim.core.SimEvent;
-import org.cloudbus.cloudsim.edge.core.edge.EdgeDataCenter;
-import org.cloudbus.cloudsim.edge.core.edge.MEL;
-import org.cloudbus.osmosis.core.EdgeSDNController;
-import org.cloudbus.osmosis.core.OsmesisBroker;
+import org.cloudbus.osmosis.core.OsmoticBroker;
 
 import java.util.*;
 
@@ -132,7 +129,7 @@ public class Datacenter extends SimEntity {
 	 * @post $none
 	 */
 	
-	OsmesisBroker eb;
+	OsmoticBroker eb;
 	
 	@Override
 	public void processEvent(SimEvent ev) {

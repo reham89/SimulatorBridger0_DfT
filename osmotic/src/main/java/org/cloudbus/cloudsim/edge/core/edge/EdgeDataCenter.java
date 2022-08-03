@@ -26,7 +26,6 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.cloudbus.agent.AgentBroker;
-import org.cloudbus.agent.DCAgent;
 import org.cloudbus.cloudsim.DatacenterCharacteristics;
 import org.cloudbus.cloudsim.Storage;
 import org.cloudbus.cloudsim.Vm;
@@ -34,20 +33,19 @@ import org.cloudbus.cloudsim.VmAllocationPolicy;
 import org.cloudbus.cloudsim.core.CloudSim;
 import org.cloudbus.cloudsim.core.SimEvent;
 import org.cloudbus.cloudsim.core.predicates.PredicateType;
-import org.cloudbus.cloudsim.edge.core.edge.EdgeDevice;
 import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity.HostEntity;
 import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity.LinkEntity;
 import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity.SwitchEntity;
 import org.cloudbus.osmosis.core.Flow;
-import org.cloudbus.osmosis.core.OsmesisBroker;
-import org.cloudbus.osmosis.core.OsmesisDatacenter;
-import org.cloudbus.osmosis.core.OsmosisTags;
+import org.cloudbus.osmosis.core.OsmoticBroker;
+import org.cloudbus.osmosis.core.OsmoticDatacenter;
+import org.cloudbus.osmosis.core.OsmoticTags;
 import org.cloudbus.osmosis.core.Topology;
 import org.cloudbus.cloudsim.sdn.SDNHost;
 import org.cloudbus.cloudsim.sdn.Switch;
 
 
-public class EdgeDataCenter extends OsmesisDatacenter{
+public class EdgeDataCenter extends OsmoticDatacenter {
 	
 	private List<Flow> flowList = new ArrayList<>(); 
 	private List<Flow> flowListHis = new ArrayList<>();
@@ -74,15 +72,15 @@ public class EdgeDataCenter extends OsmesisDatacenter{
 		int tag = ev.getTag();
 		switch (tag) {
 			
-		case OsmosisTags.TRANSMIT_IOT_DATA:
+		case OsmoticTags.TRANSMIT_IOT_DATA:
 			this.transferIoTData(ev);
 			break;
 			
-		case OsmosisTags.INTERNAL_EVENT:
+		case OsmoticTags.INTERNAL_EVENT:
 			updateFlowTransmission();
 			break;			
 			
-		case OsmosisTags.BUILD_ROUTE:
+		case OsmoticTags.BUILD_ROUTE:
 			sendMelDataToClouds(ev);
 			break;
 			
@@ -94,7 +92,7 @@ public class EdgeDataCenter extends OsmesisDatacenter{
 
 	private void sendMelDataToClouds(SimEvent ev) {
 		Flow flow  = (Flow) ev.getData();
-		sendNow(this.getSdnController().getId(), OsmosisTags.BUILD_ROUTE, flow);
+		sendNow(this.getSdnController().getId(), OsmoticTags.BUILD_ROUTE, flow);
 	}
 
 	public void updateFlowTransmission() {		
@@ -108,7 +106,6 @@ public class EdgeDataCenter extends OsmesisDatacenter{
 		
 		if(finshedFlows.size() != 0){
 			this.flowList.removeAll(finshedFlows);
-			
 			for(Vm vm : this.getVmList()){
 				MEL mel = (MEL) vm;				
 				this.removeFlows(mel, finshedFlows);				
@@ -116,11 +113,11 @@ public class EdgeDataCenter extends OsmesisDatacenter{
 			}
 			for(Flow flow : finshedFlows){
 				// update IoT device Bw
-				int tagRemoveFlow = OsmosisTags.updateIoTBW;		
+				int tagRemoveFlow = OsmoticTags.updateIoTBW;
 				sendNow(flow.getOrigin(), tagRemoveFlow, flow); // tell IoT device to update its bandwidth by removing this finished flow
 												
-				int tag = OsmosisTags.Transmission_ACK;		
-				sendNow(OsmesisBroker.brokerID, tag, flow);
+				int tag = OsmoticTags.Transmission_ACK;
+				sendNow(OsmoticBroker.brokerID, tag, flow);
 			}
 			
 			updateAllFlowsBw();
@@ -146,8 +143,6 @@ public class EdgeDataCenter extends OsmesisDatacenter{
 		// update the main bw of every flow
 		for(Flow getFlow : this.flowList){
 			getFlow.updateBandwidth();
-//			System.out.println(CloudSim.clock + " the flow " + getFlow.getFlowId() + " left data to be transferred is " + getFlow.getAmountToBeProcessed() + 
-//					"; and BW is " + getFlow.getFlowBandwidth());
 		}
 	}
 	
@@ -197,7 +192,7 @@ public class EdgeDataCenter extends OsmesisDatacenter{
 
 	private void determineEarliestFinishingFlow() {
 		
-		CloudSim.cancelAll(getId(), new PredicateType(OsmosisTags.INTERNAL_EVENT));
+		CloudSim.cancelAll(getId(), new PredicateType(OsmoticTags.INTERNAL_EVENT));
 		double eft = Double.MAX_VALUE;
 		double finishingTime;
 		
@@ -208,7 +203,7 @@ public class EdgeDataCenter extends OsmesisDatacenter{
 					eft = finishingTime;
 				}
 			}			
-			send(this.getId(), eft,  OsmosisTags.INTERNAL_EVENT);
+			send(this.getId(), eft,  OsmoticTags.INTERNAL_EVENT);
 		}
 	}
 

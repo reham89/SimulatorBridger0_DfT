@@ -9,7 +9,7 @@
  * 
  */
 
-package org.cloudbus.osmosis.core.polocies;
+package uk.ncl.giacomobergami.components.sdn_routing;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -35,7 +35,7 @@ import com.google.common.collect.Multimap;
  */
 
 public abstract class SDNRoutingPolicy {
-	private List<NetworkNIC> nodeList = new ArrayList<NetworkNIC>();
+	private List<NetworkNIC> nodeList = new ArrayList<>();
 	protected List<SDNRoutingTable> sdnRoutingTables = new ArrayList<>();
 	protected Topology topology;
 	private String policyName;

@@ -12,8 +12,8 @@
 package org.cloudbus.osmosis.core;
 
 import org.cloudbus.cloudsim.edge.core.edge.EdgeDataCenter;
-import org.cloudbus.osmosis.core.polocies.SDNTrafficSchedulingPolicy;
-import org.cloudbus.osmosis.core.polocies.SDNRoutingPolicy;
+import uk.ncl.giacomobergami.components.sdn_traffic.SDNTrafficSchedulingPolicy;
+import uk.ncl.giacomobergami.components.sdn_routing.SDNRoutingPolicy;
 
 
 /**

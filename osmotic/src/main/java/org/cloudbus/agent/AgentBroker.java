@@ -1,7 +1,7 @@
 package org.cloudbus.agent;
 
 import org.cloudbus.cloudsim.edge.iot.IoTDevice;
-import org.cloudbus.osmosis.core.OsmesisDatacenter;
+import org.cloudbus.osmosis.core.OsmoticDatacenter;
 import org.cloudbus.res.EnergyController;
 import org.cloudbus.res.config.AppConfig;
 
@@ -125,7 +125,7 @@ public class AgentBroker {
     }
 
     //Agents creation
-    public void createDCAgent(String dcName, OsmesisDatacenter dc){
+    public void createDCAgent(String dcName, OsmoticDatacenter dc){
         if (dcAgentClass==null) return;
         try {
             DCAgent dcAgent = (DCAgent) dcAgentClass.newInstance();

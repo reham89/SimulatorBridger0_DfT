@@ -19,7 +19,7 @@ package org.cloudbus.osmosis.core;
  * 
 **/
 
-public class OsmosisTags {
+public class OsmoticTags {
 	
 	private static final int Osmosis_BASE = 80000000;
 

@@ -8,8 +8,7 @@
  * Copyright (c) 2020, Newcastle University (UK) and Saudi Electronic University (Saudi Arabia) 
  * 
  */
-
-package org.cloudbus.osmosis.core.polocies;
+package uk.ncl.giacomobergami.components.sdn_traffic;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,61 +21,43 @@ import org.cloudbus.osmosis.core.Flow;
  * @contact kalwasel@gmail.com
  * @since BigDataSDNSim 1.0
  */
-
 public class SDNTrafficPolicyFairShare extends SDNTrafficSchedulingPolicy {
 
 	protected List<Flow> packetList;
 
 	public SDNTrafficPolicyFairShare(){
 		packetList = new ArrayList<>();
-		setPolicyName("FairShair");
+		setPolicyName("FairShare");
 	}
 	
 	@Override
-	public void setFlowPriority(Flow pkt) {
-		packetList.add(pkt);
-	}
+	public void setFlowPriority(Flow pkt) { packetList.add(pkt); }
 
 	@Override
-	public void setFlowPriority(List<Flow> pkts) {
-	}
+	public void setFlowPriority(List<Flow> pkts) {}
 
 	@Override
-	public Flow getFlowPrioritySingle() {
-		return null;
-	}
+	public Flow getFlowPrioritySingle() { return null; }
 
 	@Override
-	public List<Flow> getFlowPriorityList() {
-		return packetList;
-	}
+	public List<Flow> getFlowPriorityList() { return packetList; }
 
 	@Override
-	public int checkAllQueueSize() {
-		return 0;
-	}
+	public int checkAllQueueSize() { return 0; }
 
 	@Override
-	public boolean removeFlowFromList(Flow pkt) {
-		return false;
-	}
+	public boolean removeFlowFromList(Flow pkt) { return false; }
 
 	@Override
-	public void removeFlowFromList(List<Flow> pkts) {
-	}
+	public void removeFlowFromList(List<Flow> pkts) {}
 
 	@Override
-	public List<Flow> splitFlow(Flow flow) {
-		return null;
-	}
+	public List<Flow> splitFlow(Flow flow) { return null; }
 
 	@Override
-	public void setFirstAppInQueue(int appId) {
-	}
+	public void setFirstAppInQueue(int appId) { }
 
 	@Override
-	public int getFirstAppInQueue() {
-		return 0;
-	}
+	public int getFirstAppInQueue() { return 0; }
 
 }

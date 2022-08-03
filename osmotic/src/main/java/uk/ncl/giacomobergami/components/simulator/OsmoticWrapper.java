@@ -36,7 +36,7 @@ import java.util.stream.Collectors;
 public class OsmoticWrapper {
     private OsmoticConfiguration conf;
     OsmosisBuilder topologyBuilder;
-    OsmesisBroker osmesisBroker;
+    OsmoticBroker osmesisBroker;
     AgentBroker agentBroker;
     Map<String, EnergyController> energyControllers;
     private boolean init;
@@ -70,8 +70,8 @@ public class OsmoticWrapper {
     public void stop() {
         if (started) {
             CloudSim.stopSimulation();
-            OsmesisAppsParser.appList.clear();
-            OsmesisBroker.workflowTag.clear();
+            OsmoticAppsParser.appList.clear();
+            OsmoticBroker.workflowTag.clear();
             osmesisBroker = null;
             topologyBuilder = null;
             agentBroker = null;
@@ -171,7 +171,7 @@ public class OsmoticWrapper {
         if (conf.terminate_simulation_at > 0)
             CloudSim.terminateSimulation(conf.terminate_simulation_at);
 
-        osmesisBroker  = new OsmesisBroker(conf.OsmesisBroker);
+        osmesisBroker  = new OsmoticBroker(conf.OsmesisBroker);
         MELRoutingPolicy melSwitchPolicy = MELRoutingPolicyGeneratorFacade.generateFacade(conf.mel_switch_policy);
         osmesisBroker.setMelRouting(melSwitchPolicy);
 
@@ -190,17 +190,17 @@ public class OsmoticWrapper {
         }
 
         OsmosisOrchestrator conductor = new OsmosisOrchestrator();
-        OsmesisAppsParser.startParsingExcelAppFile(conf.osmesisAppFile);
+        OsmoticAppsParser.startParsingExcelAppFile(conf.osmesisAppFile);
 
         List<SDNController> controllers = new ArrayList<>();
-        for(OsmesisDatacenter osmesisDC : topologyBuilder.getOsmesisDatacentres()){
+        for(OsmoticDatacenter osmesisDC : topologyBuilder.getOsmesisDatacentres()){
             osmesisBroker.submitVmList(osmesisDC.getVmList(), osmesisDC.getId());
             controllers.add(osmesisDC.getSdnController());
             osmesisDC.getSdnController().setWanOorchestrator(conductor);
         }
         controllers.add(topologyBuilder.getSdWanController());
         conductor.setSdnControllers(controllers);
-        osmesisBroker.submitOsmesisApps(OsmesisAppsParser.appList);
+        osmesisBroker.submitOsmesisApps(OsmoticAppsParser.appList);
         osmesisBroker.setDatacenters(topologyBuilder.getOsmesisDatacentres());
 
         init = true;
@@ -221,7 +221,7 @@ public class OsmoticWrapper {
 
             Log.printLine();
 
-            for(OsmesisDatacenter osmesisDC : topologyBuilder.getOsmesisDatacentres()){
+            for(OsmoticDatacenter osmesisDC : topologyBuilder.getOsmesisDatacentres()){
                 List<Switch> switchList = osmesisDC.getSdnController().getSwitchList();
                 LogPrinter.printEnergyConsumption(osmesisDC.getName(), osmesisDC.getSdnhosts(), switchList, runTime);
                 Log.printLine();

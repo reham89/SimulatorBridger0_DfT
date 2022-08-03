@@ -13,16 +13,12 @@
 package org.cloudbus.cloudsim.osmesis.examples;
 
 import org.cloudbus.agent.AgentBroker;
-import org.cloudbus.agent.config.AgentConfigLoader;
-import org.cloudbus.agent.config.AgentConfigProvider;
-import org.cloudbus.agent.config.TopologyLink;
 import org.cloudbus.cloudsim.Log;
 import org.cloudbus.cloudsim.core.CloudSim;
 import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity;
 import org.cloudbus.cloudsim.edge.utils.LogUtil;
 import org.cloudbus.cloudsim.osmesis.examples.uti.LogPrinter;
 import org.cloudbus.cloudsim.osmesis.examples.uti.PrintResults;
-import org.cloudbus.cloudsim.osmesis.examples.uti.RESPrinter;
 import org.cloudbus.cloudsim.osmesis.examples.uti.RESPrinterDeviceBattery;
 import org.cloudbus.cloudsim.sdn.Switch;
 import org.cloudbus.osmosis.core.*;
@@ -54,7 +50,7 @@ public class RES_example7 {
     //public static final String AGENT_CONFIG_FILE="inputFiles/agent/RES_example6_agent_config.json";
 
     OsmosisBuilder topologyBuilder;
-    OsmesisBroker osmesisBroker;
+    OsmoticBroker osmesisBroker;
     EdgeSDNController edgeSDNController;
 
     public static void main(String[] args) throws Exception {
@@ -104,7 +100,7 @@ public class RES_example7 {
 
         // Initialize the CloudSim library
         CloudSim.init(num_user, calendar, trace_flag);
-        osmesisBroker  = new OsmesisBroker("OsmesisBroker");
+        osmesisBroker  = new OsmoticBroker("OsmesisBroker");
         topologyBuilder = new OsmosisBuilder(osmesisBroker);
 
         ConfiguationEntity config = buildTopologyFromFile(configurationFile);
@@ -115,16 +111,16 @@ public class RES_example7 {
 
         OsmosisOrchestrator maestro = new OsmosisOrchestrator();
 
-        OsmesisAppsParser.startParsingExcelAppFile(osmesisAppFile);
+        OsmoticAppsParser.startParsingExcelAppFile(osmesisAppFile);
         List<SDNController> controllers = new ArrayList<>();
-        for(OsmesisDatacenter osmesisDC : topologyBuilder.getOsmesisDatacentres()){
+        for(OsmoticDatacenter osmesisDC : topologyBuilder.getOsmesisDatacentres()){
             osmesisBroker.submitVmList(osmesisDC.getVmList(), osmesisDC.getId());
             controllers.add(osmesisDC.getSdnController());
             osmesisDC.getSdnController().setWanOorchestrator(maestro);
         }
         controllers.add(topologyBuilder.getSdWanController());
         maestro.setSdnControllers(controllers);
-        osmesisBroker.submitOsmesisApps(OsmesisAppsParser.appList);
+        osmesisBroker.submitOsmesisApps(OsmoticAppsParser.appList);
         osmesisBroker.setDatacenters(topologyBuilder.getOsmesisDatacentres());
 
         double startTime = CloudSim.startSimulation();
@@ -135,7 +131,7 @@ public class RES_example7 {
 
         Log.printLine();
 
-        for(OsmesisDatacenter osmesisDC : topologyBuilder.getOsmesisDatacentres()){
+        for(OsmoticDatacenter osmesisDC : topologyBuilder.getOsmesisDatacentres()){
             List<Switch> switchList = osmesisDC.getSdnController().getSwitchList();
             LogPrinter.printEnergyConsumption(osmesisDC.getName(), osmesisDC.getSdnhosts(), switchList, startTime);
             Log.printLine();

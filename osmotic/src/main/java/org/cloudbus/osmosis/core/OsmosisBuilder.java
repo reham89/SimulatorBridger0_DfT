@@ -27,7 +27,6 @@ import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity.EdgeDeviceEntity;
 import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity.IotDeviceEntity;
 import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity.LogEntity;
 import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity.MELEntities;
-import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity.MobilityEntity;
 import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity.NetworkModelEntity;
 import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity.VMEntity;
 import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity.VmAllcationPolicyEntity;
@@ -52,11 +51,13 @@ import org.cloudbus.cloudsim.sdn.Switch;
 import org.cloudbus.cloudsim.sdn.example.policies.VmAllocationPolicyCombinedMostFullFirst;
 import org.cloudbus.cloudsim.sdn.example.policies.VmSchedulerTimeSharedEnergy;
 import org.cloudbus.cloudsim.sdn.power.PowerUtilizationMaxHostInterface;
-import org.cloudbus.osmosis.core.polocies.SDNTrafficPolicyFairShare;
-import org.cloudbus.osmosis.core.polocies.SDNTrafficSchedulingPolicy;
-import org.cloudbus.osmosis.core.polocies.SDNRoutingLoadBalancing;
-import org.cloudbus.osmosis.core.polocies.SDNRoutingPolicy;
-import org.cloudbus.osmosis.core.polocies.VmMELAllocationPolicyCombinedLeastFullFirst;
+import uk.ncl.giacomobergami.components.sdn_routing.SDNRoutingPolicyGeneratorFacade;
+import uk.ncl.giacomobergami.components.sdn_traffic.SDNTrafficPolicyFairShare;
+import uk.ncl.giacomobergami.components.sdn_traffic.SDNTrafficPolicyGeneratorFacade;
+import uk.ncl.giacomobergami.components.sdn_traffic.SDNTrafficSchedulingPolicy;
+import uk.ncl.giacomobergami.components.sdn_routing.SDNRoutingLoadBalancing;
+import uk.ncl.giacomobergami.components.sdn_routing.SDNRoutingPolicy;
+import org.cloudbus.osmosis.core.policies.VmMELAllocationPolicyCombinedLeastFullFirst;
 
 import java.io.FileReader;
 import java.lang.reflect.Constructor;
@@ -71,7 +72,7 @@ import java.util.*;
 **/
 
 public class OsmosisBuilder {    
-	private OsmesisBroker  broker;
+	private OsmoticBroker broker;
 	List<CloudDatacenter> cloudDatacentres;
 	public static  List<EdgeDataCenter> edgeDatacentres;
 	public static int flowId = 1;
@@ -85,7 +86,7 @@ public class OsmosisBuilder {
 		return sdWanController;
 	}
 
-	private List<OsmesisDatacenter> osmesisDatacentres; 
+	private List<OsmoticDatacenter> osmesisDatacentres;
 
 
 	public List<EdgeDataCenter> getEdgeDatacentres() {
@@ -95,12 +96,12 @@ public class OsmosisBuilder {
 		return cloudDatacentres;
 	}
 	  
-    public OsmosisBuilder(OsmesisBroker osmesisBroker) {
+    public OsmosisBuilder(OsmoticBroker osmesisBroker) {
     	this.broker = osmesisBroker;
     	this.osmesisDatacentres = new ArrayList<>();
 	}
 
-	  public List<OsmesisDatacenter> getOsmesisDatacentres() {
+	  public List<OsmoticDatacenter> getOsmesisDatacentres() {
 		return osmesisDatacentres;
 	}
     
@@ -120,7 +121,7 @@ public class OsmosisBuilder {
         osmesisDatacentres.addAll(this.edgeDatacentres);        
         List<Switch> datacenterGateways = new ArrayList<>();
 		
-        for(OsmesisDatacenter osmesisDC : this.getOsmesisDatacentres()){
+        for(OsmoticDatacenter osmesisDC : this.getOsmesisDatacentres()){
 			datacenterGateways.add(osmesisDC.getSdnController().getGateway());			
 		
         }		
@@ -222,17 +223,19 @@ public class OsmosisBuilder {
         SDNTrafficSchedulingPolicy sdnMapReducePolicy = null;
         SDNRoutingPolicy sdnRoutingPolicy = null;       
         String sdnName = controllerEntity.getName();
-        switch (controllerEntity.getRoutingPolicy()){
-            case "ShortestPathBw":
-                sdnRoutingPolicy = new SDNRoutingLoadBalancing();
-                break;
-        }
+//        switch (controllerEntity.getRoutingPolicy()){
+//            case "ShortestPathBw":
+//                sdnRoutingPolicy = new SDNRoutingLoadBalancing();
+//                break;
+//        }
 
-        switch (controllerEntity.getTrafficPolicy()){
-            case "FairShare":
-                sdnMapReducePolicy = new SDNTrafficPolicyFairShare();
-                break;
-        }
+		sdnRoutingPolicy = SDNRoutingPolicyGeneratorFacade.generateFacade(controllerEntity.getRoutingPolicy());
+		sdnMapReducePolicy = SDNTrafficPolicyGeneratorFacade.generateFacade(controllerEntity.getTrafficPolicy());
+//        switch (controllerEntity.getTrafficPolicy()){
+//            case "FairShare":
+//                sdnMapReducePolicy = new SDNTrafficPolicyFairShare();
+//                break;
+//        }
 
         SDNController sdnController = new CloudSDNController(controllerEntity.getName(),sdnMapReducePolicy, sdnRoutingPolicy);
         sdnController.setName(sdnName);
@@ -278,8 +281,8 @@ public class OsmosisBuilder {
         return sdWanController;
     }
     
-    private void setWanControllerToDatacenters(SDNController wanController, List<OsmesisDatacenter> datacentres) {
-        for (OsmesisDatacenter datacenter: datacentres) {
+    private void setWanControllerToDatacenters(SDNController wanController, List<OsmoticDatacenter> datacentres) {
+        for (OsmoticDatacenter datacenter: datacentres) {
             SDNController controller = datacenter.getSdnController();
             controller.setWanController(wanController);
         }
@@ -291,18 +294,19 @@ public class OsmosisBuilder {
        
         String sdnName = controllerEntity.getName();
 
-        switch (controllerEntity.getRoutingPolicy()){
-            case "ShortestPathBw":
-                sdnRoutingPolicy = new SDNRoutingLoadBalancing();
-                break;
-        }
-
-        switch (controllerEntity.getTrafficPolicy()){
-            case "FairShare":
-                sdnMapReducePolicy = new SDNTrafficPolicyFairShare();
-                break;
-        }
-
+//        switch (controllerEntity.getRoutingPolicy()){
+//            case "ShortestPathBw":
+//                sdnRoutingPolicy = new SDNRoutingLoadBalancing();
+//                break;
+//        }
+//
+//        switch (controllerEntity.getTrafficPolicy()){
+//            case "FairShare":
+//                sdnMapReducePolicy = new SDNTrafficPolicyFairShare();
+//                break;
+//        }
+		sdnRoutingPolicy = SDNRoutingPolicyGeneratorFacade.generateFacade(controllerEntity.getRoutingPolicy());
+		sdnMapReducePolicy = SDNTrafficPolicyGeneratorFacade.generateFacade(controllerEntity.getTrafficPolicy());
         SDNController sdnController = new SDWANController(controllerEntity.getName(),sdnMapReducePolicy, sdnRoutingPolicy);
         sdnController.setName(sdnName);
         return sdnController;
@@ -415,24 +419,25 @@ public class OsmosisBuilder {
         SDNRoutingPolicy sdnRoutingPolicy = null;       
         String sdnName = controllerEntity.getName();
 
-        switch (controllerEntity.getRoutingPolicy()){
-            case "ShortestPathBw":
-                sdnRoutingPolicy = new SDNRoutingLoadBalancing();
-                break;
-        }
-
-        switch (controllerEntity.getTrafficPolicy()){
-            case "FairShare":
-                sdnMapReducePolicy = new SDNTrafficPolicyFairShare();
-                break;
-        }
-
+//        switch (controllerEntity.getRoutingPolicy()){
+//            case "ShortestPathBw":
+//                sdnRoutingPolicy = new SDNRoutingLoadBalancing();
+//                break;
+//        }
+//
+//        switch (controllerEntity.getTrafficPolicy()){
+//            case "FairShare":
+//                sdnMapReducePolicy = new SDNTrafficPolicyFairShare();
+//                break;
+//        }
+		sdnRoutingPolicy = SDNRoutingPolicyGeneratorFacade.generateFacade(controllerEntity.getRoutingPolicy());
+		sdnMapReducePolicy = SDNTrafficPolicyGeneratorFacade.generateFacade(controllerEntity.getTrafficPolicy());
         SDNController sdnController = new EdgeSDNController(controllerEntity.getName(),sdnMapReducePolicy, sdnRoutingPolicy);
         sdnController.setName(sdnName);
         return sdnController;
     }
     
-	private List<MEL> createMEL(List<MELEntities> melEntities, int edgeDatacenterId, OsmesisBroker broker) {		
+	private List<MEL> createMEL(List<MELEntities> melEntities, int edgeDatacenterId, OsmoticBroker broker) {
 		List<MEL> vms = new ArrayList<>();
 		for (MELEntities melEntity : melEntities) {
 

@@ -30,8 +30,8 @@ import org.cloudbus.cloudsim.sdn.NetworkNIC;
 import org.cloudbus.cloudsim.sdn.SDNHost;
 import org.cloudbus.cloudsim.sdn.Switch;
 
-import org.cloudbus.osmosis.core.polocies.SDNTrafficSchedulingPolicy;
-import org.cloudbus.osmosis.core.polocies.SDNRoutingPolicy;
+import uk.ncl.giacomobergami.components.sdn_traffic.SDNTrafficSchedulingPolicy;
+import uk.ncl.giacomobergami.components.sdn_routing.SDNRoutingPolicy;
 
 /**
  * 
@@ -50,7 +50,7 @@ public class SDNController extends NetworkOperatingSystem {
 	private OsmosisOrchestrator orchestrator;
 
 	protected String datacenterName; 
-	private OsmesisBroker edgeDatacenterBroker;	
+	private OsmoticBroker edgeDatacenterBroker;
 	
 	private Datacenter datacenter;
 	private Switch gateway;
@@ -74,12 +74,12 @@ public class SDNController extends NetworkOperatingSystem {
 		Flow flow;
 		switch(tag){
 		
-		case OsmosisTags.BUILD_ROUTE:		
+		case OsmoticTags.BUILD_ROUTE:
 			 flow = (Flow) ev.getData();			
 			scheduleFlow(flow);
 			break;
 					
-		case OsmosisTags.BUILD_ROUTE_GREEN:		
+		case OsmoticTags.BUILD_ROUTE_GREEN:
 			@SuppressWarnings("unchecked")
 			List<Object> list = (List<Object>) ev.getData();
 			 startTransmittingGreenEnergy(list);
@@ -140,7 +140,7 @@ public class SDNController extends NetworkOperatingSystem {
 			flow.setLinkList(links);
 
 			System.out.println("==>"+CloudSim.getEntityName(this.getWanOorchestrator().getId()));
-			sendNow(this.getWanController().getId(), OsmosisTags.BUILD_ROUTE, flow);
+			sendNow(this.getWanController().getId(), OsmoticTags.BUILD_ROUTE, flow);
 			return;
 		}
 
@@ -150,7 +150,7 @@ public class SDNController extends NetworkOperatingSystem {
 		flow.setLinkList(links);
 
 		System.out.println("==>"+CloudSim.getEntityName(this.getWanOorchestrator().getId()));
-		sendNow(this.getWanOorchestrator().getId(), OsmosisTags.START_TRANSMISSION, flow);																
+		sendNow(this.getWanOorchestrator().getId(), OsmoticTags.START_TRANSMISSION, flow);
 	}
 
 	protected void processCompleteFlows(List<Channel> channels){
@@ -234,7 +234,7 @@ public class SDNController extends NetworkOperatingSystem {
 		}
 	}				
 	
-	public void setEdgeDataCenterBroker(OsmesisBroker edgeDataCenterBroker) {
+	public void setEdgeDataCenterBroker(OsmoticBroker edgeDataCenterBroker) {
 		edgeDatacenterBroker = edgeDataCenterBroker;
 	}
 	
@@ -242,7 +242,7 @@ public class SDNController extends NetworkOperatingSystem {
 		return this.orchestrator;
 	}
 	
-	public OsmesisBroker getEdgeDataCenterBroker() {
+	public OsmoticBroker getEdgeDataCenterBroker() {
 		return edgeDatacenterBroker;
 	}
 
@@ -271,7 +271,7 @@ public class SDNController extends NetworkOperatingSystem {
 		return this.gateway;
 	}
 
-	public void addAllDatacenters(List<OsmesisDatacenter> osmesisDatacentres) {
+	public void addAllDatacenters(List<OsmoticDatacenter> osmesisDatacentres) {
 
 	}
 

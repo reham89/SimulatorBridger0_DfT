@@ -37,23 +37,22 @@ import uk.ncl.giacomobergami.components.mel_routing.MELRoutingPolicy;
  * 
 **/
 
-public class OsmesisBroker extends DatacenterBroker {
+public class OsmoticBroker extends DatacenterBroker {
 
 	public EdgeSDNController edgeController;
 	public List<Cloudlet> edgeletList = new ArrayList<>();
-	public List<OsmesisAppDescription> appList;
+	public List<OsmoticAppDescription> appList;
 	public Map<String, Integer> iotDeviceNameToId = new HashMap<>();
 	public Map<Integer, List<? extends Vm>> mapVmsToDatacenter  = new HashMap<>();
 	public static int brokerID;
 	public Map<String, Integer> iotVmIdByName = new HashMap<>();
 	public static List<WorkflowInfo> workflowTag = new ArrayList<>();
-	public List<OsmesisDatacenter> datacenters = new ArrayList<>();
+	public List<OsmoticDatacenter> datacenters = new ArrayList<>();
 
 	//private Map<String, Integer> roundRobinMelMap = new HashMap<>();
 
 	public CentralAgent osmoticCentralAgent;
-	
-	public OsmesisBroker(String name) {
+	public OsmoticBroker(String name) {
 		super(name);
 		this.appList = new ArrayList<>();		
 		brokerID = this.getId();
@@ -62,7 +61,6 @@ public class OsmesisBroker extends DatacenterBroker {
 	public EdgeSDNController getEdgeSDNController() {
 		return edgeController;
 	}
-
 	public void setEdgeSDNController(EdgeSDNController controller) {
 		this.edgeController = controller;
 	}
@@ -88,11 +86,11 @@ public class OsmesisBroker extends DatacenterBroker {
 			this.processVmCreate(ev);			
 			break;
 			
-		case OsmosisTags.GENERATE_OSMESIS:
+		case OsmoticTags.GENERATE_OSMESIS:
 			generateIoTData(ev);
 			break;
 			
-		case OsmosisTags.Transmission_ACK:
+		case OsmoticTags.Transmission_ACK:
 			askMelToProccessData(ev);
 			break;
 			
@@ -100,7 +98,7 @@ public class OsmesisBroker extends DatacenterBroker {
 			processCloudletReturn(ev);
 			break;
 			
-		case OsmosisTags.Transmission_SDWAN_ACK:
+		case OsmoticTags.Transmission_SDWAN_ACK:
 			askCloudVmToProccessData(ev);
 			break;
 				
@@ -108,7 +106,7 @@ public class OsmesisBroker extends DatacenterBroker {
 			this.shutdownEntity();
 			break;
 
-		case OsmosisTags.ROUTING_MEL_ID_RESOLUTION:
+		case OsmoticTags.ROUTING_MEL_ID_RESOLUTION:
 			this.melResolution(ev);
 
 		default:
@@ -124,44 +122,13 @@ public class OsmesisBroker extends DatacenterBroker {
 		this.melRouting = melRouting;
 	}
 
-	//	private String melRoundRobinRoutingPolicy(String abstractMel, List<String> instances) {
-//		if (!roundRobinMelMap.containsKey(abstractMel)){
-//			roundRobinMelMap.put(abstractMel,0);
-//		}
-//		int pos = roundRobinMelMap.get(abstractMel);
-//		String result = instances.get(pos);
-//		pos++;
-//
-//		if (pos>= instances.size()){
-//			pos=0;
-//		}
-//
-//		roundRobinMelMap.put(abstractMel,pos);
-//		return result;
-//	}
-//
-//	List<String> findMELinstances(String name){ // Getting all of the elements being the same STRING and a number after the dot
-//		List<String> result = new ArrayList<String>();
-//
-//		String reg = name.replaceAll("(.\\*)$", "");
-//		reg = "^"+reg+".[0-9]+$";
-//
-//		for(String melName: iotVmIdByName.keySet()){
-//			if (melName.matches(reg)){
-//				result.add(melName);
-//			}
-//		}
-//		return result;
-//	}
-
 	private void melResolution(SimEvent ev) {
 		Flow flow = (Flow) ev.getData();
 		String melName = flow.getAppNameDest();
 		int mel_id = -1;
 
 		if (melRouting.test(melName)){
-			// Using a RoundRobin policy for determining the next MEL
-//			List<String> instances = findMELinstances(melName);
+			// Using a policy for determining the next MEL
 			String melInstanceName = melRouting.apply(melName, this);
 			flow.setAppNameDest(melInstanceName);
 			mel_id = getVmIdByName(melInstanceName); //name of VM
@@ -182,7 +149,7 @@ public class OsmesisBroker extends DatacenterBroker {
 		}
 
 		flow.setDestination(mel_id);
-		sendNow(flow.getDatacenterId(), OsmosisTags.TRANSMIT_IOT_DATA, flow);
+		sendNow(flow.getDatacenterId(), OsmoticTags.TRANSMIT_IOT_DATA, flow);
 	}
 
 	protected void processCloudletReturn(SimEvent ev)
@@ -226,7 +193,7 @@ public class OsmesisBroker extends DatacenterBroker {
 		Flow flow = (Flow) ev.getData();		
 		int appId = flow.getOsmesisAppId();		
 		int dest = flow.getDestination();				
-		OsmesisAppDescription app = getAppById(appId);
+		OsmoticAppDescription app = getAppById(appId);
 		long length = app.getOsmesisCloudletSize();		
 		EdgeLet cloudLet =	generateEdgeLet(length);							
 		cloudLet.setVmId(dest);
@@ -236,7 +203,7 @@ public class OsmesisBroker extends DatacenterBroker {
 		cloudLet.setWorkflowTag(flow.getWorkflowTag());
 		cloudLet.getWorkflowTag().setCloudLet(cloudLet);		
 		this.setCloudletSubmittedList(edgeletList);		
-		cloudLet.setUserId(OsmesisBroker.brokerID);								
+		cloudLet.setUserId(OsmoticBroker.brokerID);
 		this.setCloudletSubmittedList(edgeletList);
 		int dcId = getDatacenterIdByVmId(dest);
 		sendNow(dcId, CloudSimTags.CLOUDLET_SUBMIT, cloudLet);
@@ -245,7 +212,7 @@ public class OsmesisBroker extends DatacenterBroker {
 	private void askMelToSendDataToCloud(SimEvent ev) {
 		EdgeLet edgeLet = (EdgeLet) ev.getData();		
 		int osmesisAppId = edgeLet.getOsmesisAppId();		
-		OsmesisAppDescription app = getAppById(osmesisAppId);
+		OsmoticAppDescription app = getAppById(osmesisAppId);
 		int sourceId = edgeLet.getVmId(); // MEL or VM  			
 		int destId = this.getVmIdByName(app.getVmName()); // MEL or VM
 		int id = OsmosisBuilder.flowId ;		
@@ -258,12 +225,12 @@ public class OsmesisBroker extends DatacenterBroker {
 		flow.setWorkflowTag(edgeLet.getWorkflowTag());
 		flow.getWorkflowTag().setEdgeToCloudFlow(flow);		
 		OsmosisBuilder.flowId++; 					
-		sendNow(melDataceneter, OsmosisTags.BUILD_ROUTE, flow);			
+		sendNow(melDataceneter, OsmoticTags.BUILD_ROUTE, flow);
 	}	
 
-	private OsmesisAppDescription getAppById(int osmesisAppId) {
-		OsmesisAppDescription osmesis = null;
-		for(OsmesisAppDescription app : this.appList){
+	private OsmoticAppDescription getAppById(int osmesisAppId) {
+		OsmoticAppDescription osmesis = null;
+		for(OsmoticAppDescription app : this.appList){
 			if(app.getAppID() == osmesisAppId){
 				osmesis = app;
 			}
@@ -301,7 +268,7 @@ public class OsmesisBroker extends DatacenterBroker {
 	public void processVmCreate(SimEvent ev) {
 		super.processVmCreate(ev);
 		if (allRequestedVmsCreated()) {		
-			for(OsmesisAppDescription app : this.appList){				
+			for(OsmoticAppDescription app : this.appList){				
 				int iotDeviceID = getiotDeviceIdByName(app.getIoTDeviceName());
 
 				//This is necessary for osmotic flow abstract routing.
@@ -322,18 +289,18 @@ public class OsmesisBroker extends DatacenterBroker {
 					app.setAppStartTime(CloudSim.clock());
 				}
 				double dealy = app.getDataRate()+app.getStartDataGenerationTime();
-				send(this.getId(), dealy, OsmosisTags.GENERATE_OSMESIS, app);
+				send(this.getId(), dealy, OsmoticTags.GENERATE_OSMESIS, app);
 			}
 		}
 	}	
 
 	private void generateIoTData(SimEvent ev){
-		OsmesisAppDescription app = (OsmesisAppDescription) ev.getData();
+		OsmoticAppDescription app = (OsmoticAppDescription) ev.getData();
 		if((CloudSim.clock() >= app.getStartDataGenerationTime()) &&
 				(CloudSim.clock() < app.getStopDataGenerationTime()) &&
 				!app.getIsIoTDeviceDied()){
-			sendNow(app.getIoTDeviceId(), OsmosisTags.SENSING, app);
-			send(this.getId(), app.getDataRate(), OsmosisTags.GENERATE_OSMESIS, app);
+			sendNow(app.getIoTDeviceId(), OsmoticTags.SENSING, app);
+			send(this.getId(), app.getDataRate(), OsmoticTags.GENERATE_OSMESIS, app);
 		}
 	}
 			
@@ -341,7 +308,7 @@ public class OsmesisBroker extends DatacenterBroker {
 		return this.getVmsCreatedList().size() == getVmList().size() - getVmsDestroyed();
 	}
 
-	public void submitOsmesisApps(List<OsmesisAppDescription> appList) {
+	public void submitOsmesisApps(List<OsmoticAppDescription> appList) {
 		this.appList = appList;		
 	}
 
@@ -364,13 +331,13 @@ public class OsmesisBroker extends DatacenterBroker {
 	}
 
 
-	public void setDatacenters(List<OsmesisDatacenter> osmesisDatacentres) {
+	public void setDatacenters(List<OsmoticDatacenter> osmesisDatacentres) {
 		this.datacenters = osmesisDatacentres;		
 	}
 	
 	private int getDatacenterIdByVmId(int vmId){
 		int dcId = 0;
-		for(OsmesisDatacenter dc :datacenters){
+		for(OsmoticDatacenter dc :datacenters){
 			for(Vm vm : dc.getVmList()){
 				if(vm.getId() == vmId){
 					dcId = dc.getId();					
@@ -382,7 +349,7 @@ public class OsmesisBroker extends DatacenterBroker {
 	
 	private String getDatacenterNameById(int id){
 		String name = "";
-		for(OsmesisDatacenter dc :datacenters){			
+		for(OsmoticDatacenter dc :datacenters){
 			if(dc.getId() == id){
 				name = dc.getName();
 			}

@@ -13,9 +13,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Hashtable;
 
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -28,9 +26,7 @@ import org.cloudbus.cloudsim.core.CloudSim;
 
 import org.cloudbus.cloudsim.core.SimEntity;
 import org.cloudbus.cloudsim.core.SimEvent;
-import org.cloudbus.cloudsim.core.predicates.PredicateType;
 
-import org.cloudbus.osmosis.core.OsmosisTags;
 import org.cloudbus.osmosis.core.Topology;
 
 /**

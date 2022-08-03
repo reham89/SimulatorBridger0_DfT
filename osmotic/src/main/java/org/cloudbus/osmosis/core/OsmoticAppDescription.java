@@ -24,7 +24,7 @@ import org.cloudbus.cloudsim.edge.core.edge.EdgeLet;
  * 
 **/
 
-public class OsmesisAppDescription {
+public class OsmoticAppDescription {
 	
 	private String appName;	
 	private int workflowId;	
@@ -63,7 +63,7 @@ public class OsmesisAppDescription {
 
 	private double IoTDeviceBatteryConsumption;	
 
-	public OsmesisAppDescription(String appName,
+	public OsmoticAppDescription(String appName,
 								 int appID,
 								 double DataRate,
 								 double StopDataGenerationTime,

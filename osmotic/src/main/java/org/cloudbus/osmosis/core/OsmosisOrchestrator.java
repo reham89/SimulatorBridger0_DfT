@@ -80,11 +80,11 @@ public class OsmosisOrchestrator extends SimEntity {
 		int tag = ev.getTag();
 		
 		switch(tag){		
-		case OsmosisTags.START_TRANSMISSION:		
+		case OsmoticTags.START_TRANSMISSION:
 			Flow flow = (Flow) ev.getData();			
 			transmitFlow(flow);
 			break;
-			case OsmosisTags.SDN_INTERNAL_EVENT: 
+			case OsmoticTags.SDN_INTERNAL_EVENT:
 			internalFlowProcess(); 
 			break;
 		default: 
@@ -157,7 +157,7 @@ public class OsmosisOrchestrator extends SimEntity {
 	
 	protected void removeCompletedFlows(Flow flow ){				
 		flow.setFinishTime(CloudSim.clock());				
-		sendNow(OsmesisBroker.brokerID, OsmosisTags.Transmission_SDWAN_ACK, flow);							
+		sendNow(OsmoticBroker.brokerID, OsmoticTags.Transmission_SDWAN_ACK, flow);
 	}
 	
 	private Channel removeChannel(String key) {
@@ -210,11 +210,11 @@ public class OsmosisOrchestrator extends SimEntity {
 	}
 	
 	protected void sendInternalEvent() {
-		CloudSim.cancelAll(getId(), new PredicateType(OsmosisTags.SDN_INTERNAL_EVENT));
+		CloudSim.cancelAll(getId(), new PredicateType(OsmoticTags.SDN_INTERNAL_EVENT));
 		if(channelTable.size() != 0) {
 			// More to process. Send event again		
 			double delay = this.nextFinishTime();					
-			send(this.getId(), delay, OsmosisTags.SDN_INTERNAL_EVENT);
+			send(this.getId(), delay, OsmoticTags.SDN_INTERNAL_EVENT);
 		}		
 	}
 

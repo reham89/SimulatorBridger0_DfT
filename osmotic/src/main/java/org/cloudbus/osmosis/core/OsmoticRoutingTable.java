@@ -3,10 +3,10 @@ package org.cloudbus.osmosis.core;
 import java.util.HashMap;
 import java.util.Map;
 
-public class OsmosisRoutingTable {
+public class OsmoticRoutingTable {
     Map<String, String> table;
 
-    public OsmosisRoutingTable() {
+    public OsmoticRoutingTable() {
         table = new HashMap<>();
     }
 

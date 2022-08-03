@@ -10,7 +10,7 @@
  */
 
 
-package org.cloudbus.osmosis.core.polocies;
+package uk.ncl.giacomobergami.components.sdn_routing;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -32,7 +32,6 @@ import com.google.common.collect.Table;
  * @contact kalwasel@gmail.com
  * @since BigDataSDNSim 1.0
  */
-
 
 public class SDNRoutingTraditionalShortestPath extends SDNRoutingPolicy {
 	int[][] nodeGraphDistance;

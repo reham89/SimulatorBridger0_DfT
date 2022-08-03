@@ -409,9 +409,8 @@ public class Flow {
 			amountToBeProcessed = 0;
 		}
 		
-		if (amountToBeProcessed == 0){ 
-//			transmissionTime = timeSpent;
-			transmissionTime  = currentTime - this.startTime;
+		if (amountToBeProcessed == 0){
+			transmissionTime  = currentTime - this.startTime; // time spent
 			return true;
 		}
 		return false;

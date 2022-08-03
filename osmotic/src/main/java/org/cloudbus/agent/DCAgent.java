@@ -1,13 +1,13 @@
 package org.cloudbus.agent;
 
-import org.cloudbus.osmosis.core.OsmesisDatacenter;
+import org.cloudbus.osmosis.core.OsmoticDatacenter;
 import org.cloudbus.res.EnergyController;
 
 public class DCAgent extends AbstractAgent {
-    protected OsmesisDatacenter osmesisDatacenter;
+    protected OsmoticDatacenter osmesisDatacenter;
     protected EnergyController energyController;
 
-    public DCAgent(OsmesisDatacenter osmesisDatacenter) {
+    public DCAgent(OsmoticDatacenter osmesisDatacenter) {
         this.osmesisDatacenter = osmesisDatacenter;
     }
 
@@ -15,11 +15,11 @@ public class DCAgent extends AbstractAgent {
         //This is necessary for dynamic agent instance creation.
     }
 
-    public void setOsmesisDatacenter(OsmesisDatacenter osmesisDatacenter) {
+    public void setOsmesisDatacenter(OsmoticDatacenter osmesisDatacenter) {
         this.osmesisDatacenter = osmesisDatacenter;
     }
 
-    public OsmesisDatacenter getOsmesisDatacenter() {
+    public OsmoticDatacenter getOsmesisDatacenter() {
         return osmesisDatacenter;
     }
 
