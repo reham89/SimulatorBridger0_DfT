@@ -34,7 +34,15 @@
 				"bwSize":100,				
 				"storage":10000,
 				"mips":10000				
-            }
+            },
+			{
+				"name":"edgeDevice_3",
+				"pes" : 4,
+				"ramSize":10000,
+				"bwSize":100,
+				"storage":10000,
+				"mips":10000
+			}
             ],
 		"MELEntities":[
 		{
@@ -46,6 +54,15 @@
 			"vmm":"xxx",			
 			"cloudletSchedulerClassName":"org.cloudbus.cloudsim.CloudletSchedulerTimeShared"
 		},
+			{
+				"name":"MEL_1.2",
+				"bw":100,
+				"mips":250,
+				"ram":10000,
+				"pesNumber":1,
+				"vmm":"xxx",
+				"cloudletSchedulerClassName":"org.cloudbus.cloudsim.CloudletSchedulerTimeShared"
+			},
 		{
 			"name":"MEL_2",					
 			"bw":100,
@@ -60,7 +77,7 @@
 		{
 			"name": "edge1_sdn1",
 			"trafficPolicy": "uk.ncl.giacomobergami.components.sdn_traffic.SDNTrafficPolicyFairShare",
-			"routingPolicy": "uk.ncl.giacomobergami.components.sdn_routing.SDNRoutingTraditionalShortestPath"
+			"routingPolicy": "uk.ncl.giacomobergami.components.sdn_routing.SDNRoutingLoadBalancing"
 		}
 		],
 		"switches":[
@@ -123,7 +140,8 @@
 			{ "source" : "core2" , "destination" : "edge4" , "bw" : 100},
 			{ "source" : "core2" , "destination" : "edge5" , "bw" : 100},			
 			{ "source" : "edge1" , "destination" : "edgeDevice_1" , "bw" : 100},
-			{ "source" : "edge2" , "destination" : "edgeDevice_2" , "bw" : 100}
+			{ "source" : "edge2" , "destination" : "edgeDevice_2" , "bw" : 100},
+			{ "source" : "edge3" , "destination" : "edgeDevice_3" , "bw" : 100}
 		],
 		"ioTDevices":[
 			  {
@@ -386,7 +404,7 @@
 			{
 			  "name": "dc1_sdn1",
 			  "trafficPolicy": "uk.ncl.giacomobergami.components.sdn_traffic.SDNTrafficPolicyFairShare",
-			  "routingPolicy": "uk.ncl.giacomobergami.components.sdn_routing.SDNRoutingTraditionalShortestPath"
+			  "routingPolicy": "uk.ncl.giacomobergami.components.sdn_routing.SDNRoutingLoadBalancing"
 			}
 		],
         "switches":
@@ -576,7 +594,7 @@
 		"controllers": {
 		  "name": "wan_sdn",
 		  "trafficPolicy": "uk.ncl.giacomobergami.components.sdn_traffic.SDNTrafficPolicyFairShare",
-		  "routingPolicy": "uk.ncl.giacomobergami.components.sdn_routing.SDNRoutingTraditionalShortestPath"
+		  "routingPolicy": "uk.ncl.giacomobergami.components.sdn_routing.SDNRoutingLoadBalancing"
 		},	
 		"switches":[
 		{
