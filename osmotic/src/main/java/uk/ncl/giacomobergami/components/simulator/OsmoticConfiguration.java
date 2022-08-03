@@ -12,8 +12,6 @@ public class OsmoticConfiguration {
     public double   terminate_simulation_at;
     public String   mel_switch_policy;
 
-
-
     public String getMel_switch_policy() {
         return mel_switch_policy;
     }

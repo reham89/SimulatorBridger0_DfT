@@ -1,6 +1,6 @@
-package uk.ncl.giacomobergami.SumoOsmosisBridger.osmotic.mel_routing;
+package uk.ncl.giacomobergami.components.mel_routing;
 
-import uk.ncl.giacomobergami.components.MELRoutingPolicy;
+import uk.ncl.giacomobergami.components.mel_routing.MELRoutingPolicy;
 
 import java.util.HashMap;
 import java.util.List;

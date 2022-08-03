@@ -1,4 +1,4 @@
-package uk.ncl.giacomobergami.components;
+package uk.ncl.giacomobergami.components.mel_routing;
 
 import java.util.List;
 import java.util.function.BiFunction;

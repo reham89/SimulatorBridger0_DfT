@@ -16,6 +16,8 @@ import org.cloudbus.osmosis.core.*;
 import org.cloudbus.res.EnergyController;
 import org.cloudbus.res.config.AppConfig;
 import org.cloudbus.res.dataproviders.res.RESResponse;
+import uk.ncl.giacomobergami.components.mel_routing.MELRoutingPolicy;
+import uk.ncl.giacomobergami.components.mel_routing.MELRoutingPolicyGeneratorFacade;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -98,11 +100,7 @@ public class OsmoticWrapper {
         return conf;
     }
 
-    /**
-     * Re-setting another running environment
-     * @param newConfiguration
-     * @return
-     */
+
     public boolean init(OsmoticConfiguration newConfiguration) {
         stop();
         init = false;
@@ -172,7 +170,11 @@ public class OsmoticWrapper {
         CloudSim.init(conf.num_user, calendar, conf.trace_flag);
         if (conf.terminate_simulation_at > 0)
             CloudSim.terminateSimulation(conf.terminate_simulation_at);
+
         osmesisBroker  = new OsmesisBroker(conf.OsmesisBroker);
+        MELRoutingPolicy melSwitchPolicy = MELRoutingPolicyGeneratorFacade.generateFacade(conf.mel_switch_policy);
+        osmesisBroker.setMelRouting(melSwitchPolicy);
+
         topologyBuilder = new OsmosisBuilder(osmesisBroker);
 
         if (fileExists(conf.configurationFile) != null) {

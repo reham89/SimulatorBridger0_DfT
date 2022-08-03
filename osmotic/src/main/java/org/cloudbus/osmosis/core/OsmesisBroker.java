@@ -27,6 +27,7 @@ import org.cloudbus.cloudsim.core.CloudSimTags;
 import org.cloudbus.cloudsim.core.SimEvent;
 import org.cloudbus.cloudsim.edge.core.edge.EdgeLet;
 import org.cloudbus.cloudsim.edge.iot.IoTDevice;
+import uk.ncl.giacomobergami.components.mel_routing.MELRoutingPolicy;
 
 /**
  * 
@@ -48,7 +49,7 @@ public class OsmesisBroker extends DatacenterBroker {
 	public static List<WorkflowInfo> workflowTag = new ArrayList<>();
 	private List<OsmesisDatacenter> datacenters = new ArrayList<>();
 
-	private Map<String, Integer> roundRobinMelMap = new HashMap<>();
+	//private Map<String, Integer> roundRobinMelMap = new HashMap<>();
 
 	private CentralAgent osmoticCentralAgent;
 	
@@ -115,21 +116,29 @@ public class OsmesisBroker extends DatacenterBroker {
 		}
 	}
 
-	private String melRoundRobinRoutingPolicy(String abstractMel, List<String> instances) {
-		if (!roundRobinMelMap.containsKey(abstractMel)){
-			roundRobinMelMap.put(abstractMel,0);
-		}
-		int pos = roundRobinMelMap.get(abstractMel);
-		String result = instances.get(pos);
-		pos++;
-
-		if (pos>= instances.size()){
-			pos=0;
-		}
-
-		roundRobinMelMap.put(abstractMel,pos);
-		return result;
+	MELRoutingPolicy melRouting;
+	public MELRoutingPolicy getMelRouting() {
+		return melRouting;
 	}
+	public void setMelRouting(MELRoutingPolicy melRouting) {
+		this.melRouting = melRouting;
+	}
+
+	//	private String melRoundRobinRoutingPolicy(String abstractMel, List<String> instances) {
+//		if (!roundRobinMelMap.containsKey(abstractMel)){
+//			roundRobinMelMap.put(abstractMel,0);
+//		}
+//		int pos = roundRobinMelMap.get(abstractMel);
+//		String result = instances.get(pos);
+//		pos++;
+//
+//		if (pos>= instances.size()){
+//			pos=0;
+//		}
+//
+//		roundRobinMelMap.put(abstractMel,pos);
+//		return result;
+//	}
 
 	private boolean isAbstractMEL(String name){ // Check if it is a STRING.*
 		boolean result = name.matches("^\\S*.[*]$");
@@ -158,7 +167,7 @@ public class OsmesisBroker extends DatacenterBroker {
 		if (isAbstractMEL(melName)){
 			// Using a RoundRobin policy for determining the next MEL
 			List<String> instances = findMELinstances(melName);
-			String melInstanceName = melRoundRobinRoutingPolicy(melName,instances);
+			String melInstanceName = melRouting.apply(melName,instances);
 			flow.setAppNameDest(melInstanceName);
 			mel_id = getVmIdByName(melInstanceName); //name of VM
 

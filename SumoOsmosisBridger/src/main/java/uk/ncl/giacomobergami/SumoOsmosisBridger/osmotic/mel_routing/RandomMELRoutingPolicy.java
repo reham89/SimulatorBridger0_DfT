@@ -1,7 +1,7 @@
 package uk.ncl.giacomobergami.SumoOsmosisBridger.osmotic.mel_routing;
 
 import org.apache.commons.math3.random.MersenneTwister;
-import uk.ncl.giacomobergami.components.MELRoutingPolicy;
+import uk.ncl.giacomobergami.components.mel_routing.MELRoutingPolicy;
 
 import java.util.List;
 

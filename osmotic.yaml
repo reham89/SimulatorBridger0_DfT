@@ -7,4 +7,4 @@ trace_flag: no
 simulationStartTime:
 OsmesisBroker: "OsmesisBroker"
 terminate_simulation_at: -1
-mel_switch_policy: "uk.ncl.giacomobergami.SumoOsmosisBridger.osmotic.mel_routing.RoundRobinMELRoutingPolicy"
+mel_switch_policy: "uk.ncl.giacomobergami.components.mel_routing.RoundRobinMELRoutingPolicy"
