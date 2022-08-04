@@ -1,7 +1,7 @@
 package uk.ncl.giacomobergami.SumoOsmosisBridger;
 
 import uk.ncl.giacomobergami.traffic_converter.TrafficConverterRunner;
-import uk.ncl.giacomobergami.traffic_orchestrator.TrafficOrchestratorRunner;
+import uk.ncl.giacomobergami.traffic_orchestrator.CentralAgentPlannerRunner;
 
 public class MainExample {
 
@@ -13,7 +13,7 @@ public class MainExample {
             orchestrator = args[1];
         }
         TrafficConverterRunner.convert(converter);
-        TrafficOrchestratorRunner.orchestrate(orchestrator, converter);
+        CentralAgentPlannerRunner.orchestrate(orchestrator, converter);
     }
 
 }
