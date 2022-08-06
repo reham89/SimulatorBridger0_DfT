@@ -94,13 +94,7 @@ public class Host implements Comparable<Host> {
 		this.numberofExistingLargeVM = numberofExistingLargeVM;
 	}
 
-//	public void setSubOptionListEachHost(List<SubOption> subOptionListEachHost) {
-//		this.subOptionListEachHost = subOptionListEachHost;
-//	}
-
 	private int remainingCapacity;
-
-	// private List<SubOption> subOptionListEachHost = new ArrayList<SubOption>();
 
 	private int numberofExistingSmallVM;
 

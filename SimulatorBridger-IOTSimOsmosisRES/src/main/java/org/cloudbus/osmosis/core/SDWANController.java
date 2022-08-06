@@ -20,11 +20,14 @@ import java.util.List;
 import java.util.Map;
 
 import org.cloudbus.cloudsim.Vm;
+import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity;
 import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity.LinkEntity;
 import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity.SwitchEntity;
 import org.cloudbus.cloudsim.sdn.Link;
 import org.cloudbus.cloudsim.sdn.NetworkNIC;
 import org.cloudbus.cloudsim.sdn.Switch;
+import uk.ncl.giacomobergami.components.sdn_routing.SDNRoutingPolicyGeneratorFacade;
+import uk.ncl.giacomobergami.components.sdn_traffic.SDNTrafficPolicyGeneratorFacade;
 import uk.ncl.giacomobergami.components.sdn_traffic.SDNTrafficSchedulingPolicy;
 import uk.ncl.giacomobergami.components.sdn_routing.SDNRoutingPolicy;
 
@@ -41,6 +44,16 @@ public class SDWANController extends SDNController {
 	private List<OsmoticDatacenter> osmesisDatacentres;
 	private Map<OsmoticDatacenter, List<Integer>> datacenterVmList;
 	protected Topology topology;
+
+	public SDWANController(ConfiguationEntity.WanEntity controllerEntity, List<Switch> datacenterGateways) {
+		this(controllerEntity.getControllers().getName(),
+				SDNTrafficPolicyGeneratorFacade.generateFacade(controllerEntity.getControllers().getTrafficPolicy()),
+				SDNRoutingPolicyGeneratorFacade.generateFacade(controllerEntity.getControllers().getRoutingPolicy()));
+		setName(controllerEntity.getControllers().getName());
+		initSdWANTopology(controllerEntity.getSwitches(),
+						  controllerEntity.getLinks(),
+				          datacenterGateways);
+	}
 	
 	public SDWANController(String name, SDNTrafficSchedulingPolicy sdnPolicy, SDNRoutingPolicy sdnRouting){
 		super(name, sdnPolicy,sdnRouting);

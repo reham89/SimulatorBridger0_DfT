@@ -23,6 +23,7 @@ import org.cloudbus.cloudsim.Vm;
 import org.cloudbus.cloudsim.VmAllocationPolicy;
 import org.cloudbus.cloudsim.core.MainEventManager;
 import org.cloudbus.cloudsim.core.SimEvent;
+import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity;
 import org.cloudbus.cloudsim.edge.core.edge.EdgeDevice;
 import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity.HostEntity;
 import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity.LinkEntity;
@@ -43,14 +44,21 @@ public class CloudDatacenter extends OsmoticDatacenter {
 		public static int cloudletsNumers = 0;
 		int lastProcessTime;	
 
-		public CloudDatacenter(String name,
-								DatacenterCharacteristics characteristics,
-								VmAllocationPolicy vmAllocationPolicy,
-								List<Storage> storageList,
-								double schedulingInterval,
-								SDNController sdnController) throws Exception {
-			super(name, characteristics, vmAllocationPolicy, storageList, schedulingInterval);		
-			this.sdnController = sdnController;		
+		public CloudDatacenter(ConfiguationEntity.CloudDataCenterEntity dataCenterEntity,
+							   DatacenterCharacteristics characteristics,
+							   VmAllocationPolicy vmAllocationPolicy,
+							   List<Storage> storageList,
+							   double schedulingInterval,
+							   SDNController sdnController) {
+			super(dataCenterEntity.getName(), characteristics, vmAllocationPolicy, storageList, schedulingInterval);
+			this.sdnController = sdnController;
+			this.sdnController.setDatacenter(this);
+			initCloudTopology(dataCenterEntity.getHosts(),
+					dataCenterEntity.getSwitches(),
+					dataCenterEntity.getLinks());
+			feedSDNWithTopology();
+			setGateway(getSdnController().getGateway());
+			setDcType(dataCenterEntity.getType());
 		}
 
 		public void addVm(Vm vm){
@@ -81,12 +89,13 @@ public class CloudDatacenter extends OsmoticDatacenter {
 					'}';
 		}
 		
-	public void initCloudTopology(List<HostEntity> hostEntites, List<SwitchEntity> switchEntites, List<LinkEntity> linkEntites) {
+	public void initCloudTopology(List<HostEntity> hostEntites,
+								  List<SwitchEntity> switchEntites,
+								  List<LinkEntity> linkEntites) {
 		 topology  = new Topology();		 
-		 sdnhosts = new ArrayList<SDNHost>();
-		 switches= new ArrayList<Switch>();
-		 
-		Hashtable<String,Integer> nameIdTable = new Hashtable<String, Integer>();
+		 sdnhosts = new ArrayList<>();
+		 switches= new ArrayList<>();
+		Hashtable<String,Integer> nameIdTable = new Hashtable<>();
 					    		    		    
 		for(HostEntity hostEntity : hostEntites){															
 			long pes =  hostEntity.getPes();
@@ -95,11 +104,11 @@ public class CloudDatacenter extends OsmoticDatacenter {
 			long storage = hostEntity.getStorage();					
 			long bw = hostEntity.getBw(); 																				
 			String hostName = hostEntity.getName();					
-			Host host = createHost(OsmosisTopologyBuilder.hostId, ram, bw, storage, pes, mips);
+			Host host = createHost(OsmosisTopologyBuilder.hostId.getAndIncrement(), ram, bw, storage, pes, mips);
 			host.setDatacenter(this);
 			SDNHost sdnHost = new SDNHost(host, hostName);
 			nameIdTable.put(hostName, sdnHost.getAddress());					
-			OsmosisTopologyBuilder.hostId++;
+//			OsmosisTopologyBuilder.hostId++;
 			this.topology.addNode(sdnHost);
 			this.hosts.add(host);
 			this.sdnhosts.add(sdnHost);			
@@ -136,5 +145,11 @@ public class CloudDatacenter extends OsmoticDatacenter {
 			List<LinkEntity> linkEntites) {
 		// TODO Auto-generated method stub
 		
-	}		
+	}
+
+
+	public void setDCAndAddVMsToSDNHosts() {
+		sdnController.setDatacenter(this);
+		sdnController.addVmsToSDNhosts(getVmList());
+	}
 }

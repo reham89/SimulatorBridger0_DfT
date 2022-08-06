@@ -36,13 +36,10 @@ import org.cloudbus.cloudsim.core.predicates.PredicateType;
 import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity.HostEntity;
 import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity.LinkEntity;
 import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity.SwitchEntity;
-import org.cloudbus.osmosis.core.Flow;
-import org.cloudbus.osmosis.core.OsmoticBroker;
-import org.cloudbus.osmosis.core.OsmoticDatacenter;
-import org.cloudbus.osmosis.core.OsmoticTags;
-import org.cloudbus.osmosis.core.Topology;
+import org.cloudbus.osmosis.core.*;
 import org.cloudbus.cloudsim.sdn.SDNHost;
 import org.cloudbus.cloudsim.sdn.Switch;
+import org.cloudbus.osmosis.core.policies.VmMELAllocationPolicyCombinedLeastFullFirst;
 
 
 public class EdgeDataCenter extends OsmoticDatacenter {
@@ -50,13 +47,40 @@ public class EdgeDataCenter extends OsmoticDatacenter {
 	private List<Flow> flowList = new ArrayList<>(); 
 	private List<Flow> flowListHis = new ArrayList<>();
 
-	public EdgeDataCenter(String name, DatacenterCharacteristics characteristics,
-			VmAllocationPolicy vmAllocationPolicy, List<Storage> storageList, double schedulingInterval)
-			throws Exception {
+	public EdgeDataCenter(String name,
+						  DatacenterCharacteristics characteristics,
+						  VmAllocationPolicy vmAllocationPolicy,
+						  List<Storage> storageList,
+						  double schedulingInterval)  {
 		super(name, characteristics, vmAllocationPolicy, storageList, schedulingInterval);
 
 		//Osmosis Agents
 		AgentBroker.getInstance().createDCAgent(name, this);
+	}
+
+	public EdgeDataCenter(ConfiguationEntity.EdgeDataCenterEntity edgeDCEntity,
+						  DatacenterCharacteristics characteristics,
+						  LinkedList<Storage> storageList,
+						  double schedulingInterval) {
+		this(edgeDCEntity.getName(),
+				characteristics,
+				(edgeDCEntity.getVmAllocationPolicy().getClassName().equals("VmAllocationPolicyCombinedLeastFullFirst")) ?
+						new VmMELAllocationPolicyCombinedLeastFullFirst() : null,
+				storageList,
+				schedulingInterval
+				);
+		setDcType(edgeDCEntity.getType());
+	}
+
+	public EdgeDataCenter(ConfiguationEntity.EdgeDataCenterEntity edgeDCEntity,
+						  List<EdgeDevice> hostList,
+						  LinkedList<Storage> storageList,
+						  double schedulingInterval) {
+		this(edgeDCEntity, new DatacenterCharacteristics(hostList, edgeDCEntity.getCharacteristics()), storageList, schedulingInterval);
+		setSdnController(new EdgeSDNController(edgeDCEntity.getControllers().get(0), this));
+		initEdgeTopology(hostList, edgeDCEntity.getSwitches(),edgeDCEntity.getLinks());
+		getSdnController().setTopology(topology, hosts, sdnhosts, switches);
+		setGateway(getSdnController().getGateway());
 	}
 
 	@Override
@@ -113,11 +137,8 @@ public class EdgeDataCenter extends OsmoticDatacenter {
 			}
 			for(Flow flow : finshedFlows){
 				// update IoT device Bw
-				int tagRemoveFlow = OsmoticTags.updateIoTBW;
-				sendNow(flow.getOrigin(), tagRemoveFlow, flow); // tell IoT device to update its bandwidth by removing this finished flow
-												
-				int tag = OsmoticTags.Transmission_ACK;
-				sendNow(OsmoticBroker.brokerID, tag, flow);
+				sendNow(flow.getOrigin(), OsmoticTags.updateIoTBW, flow); // tell IoT device to update its bandwidth by removing this finished flow
+				sendNow(OsmoticBroker.brokerID, OsmoticTags.Transmission_ACK, flow);
 			}
 			
 			updateAllFlowsBw();
@@ -161,37 +182,36 @@ public class EdgeDataCenter extends OsmoticDatacenter {
 
 	private void transferIoTData(SimEvent ev) {		
 		updateFlowTransmission();
-		
-		Flow flow = (Flow) ev.getData();		
+
+		Flow flow = (Flow) ev.getData();
 		flow.setDatacenterName(this.getName());
 		if(flow.getStartTime() == -1){
 			flow.setStartTime(MainEventManager.clock());
-		}		
+		}
 
 		this.flowList.add(flow);
 		flowListHis.add(flow);
-		
+
 		Vm vm = null;
 		for(Vm getVm : this.getVmList()){
-			if(getVm.getId() == flow.getDestination()){		
+			if(getVm.getId() == flow.getDestination()){
 				vm = getVm;
 				break;
 			}
-		}	
-		
+		}
+
 		if(vm != null){
 			MEL mel = (MEL) vm;
 			mel.addFlow(flow);
-		}		
-		
+		}
+
 		updateAllFlowsBw();
-		
-		flow.setPreviousTime(MainEventManager.clock());
+
+		flow.setPreviousTime(MainEventManager.clock()); // This makes the computation to progress
 		determineEarliestFinishingFlow();
 	}
 
 	private void determineEarliestFinishingFlow() {
-		
 		MainEventManager.cancelAll(getId(), new PredicateType(OsmoticTags.INTERNAL_EVENT));
 		double eft = Double.MAX_VALUE;
 		double finishingTime;

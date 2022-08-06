@@ -13,12 +13,17 @@ package org.cloudbus.cloudsim.edge.core.edge;
 
 
 
+import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
 import org.cloudbus.cloudsim.Host;
 import org.cloudbus.cloudsim.Pe;
 import org.cloudbus.cloudsim.VmScheduler;
-import org.cloudbus.cloudsim.provisioners.BwProvisioner;
-import org.cloudbus.cloudsim.provisioners.RamProvisioner;
+import org.cloudbus.cloudsim.provisioners.*;
+import org.cloudbus.cloudsim.sdn.example.policies.VmSchedulerTimeSharedEnergy;
 
 /**
  * 
@@ -35,15 +40,35 @@ public class EdgeDevice extends Host {
 	private boolean enabled;		
 	
 	public EdgeDevice(int id, String deviceName, RamProvisioner ramProvisioner, BwProvisioner bwProvisioner,
-			long storage, List<? extends Pe> peList, VmScheduler vmScheduler) {
-		
-		super(id, ramProvisioner, bwProvisioner, storage, peList, vmScheduler);
+			long storage, List<? extends Pe> peList) {
+		super(id, ramProvisioner, bwProvisioner, storage, peList,
+				new VmSchedulerTimeSharedEnergy(peList));
 		this.deviceName = deviceName;
 		this.enabled = true;
 	}
-	
 
-	public String getDeviceName() {
+	public static List<Pe> generatePEList( ConfiguationEntity.EdgeDeviceEntity hostEntity) {
+		return IntStream.range(0, hostEntity.getPes())
+				.mapToObj(i -> new Pe(i, new PeProvisionerSimple(hostEntity.getMips())))
+				.collect(Collectors.toList());
+//		var peList = new LinkedList<Pe>();
+//		int peId=0;
+//		for(int i= 0; i < hostEntity.getPes(); i++) {
+//			peList.add(new Pe(peId++,new PeProvisionerSimple(hostEntity.getMips())));
+//		}
+	}
+
+    public EdgeDevice(AtomicInteger idGen, ConfiguationEntity.EdgeDeviceEntity hostEntity) {
+        this(idGen.getAndIncrement(),
+				hostEntity.getName(),
+				new RamProvisionerSimple(hostEntity.getRamSize()),
+				new BwProvisionerSimple(hostEntity.getBwSize()),
+				hostEntity.getStorage(),
+				generatePEList(hostEntity));
+    }
+
+
+    public String getDeviceName() {
 		return deviceName;
 	}
 

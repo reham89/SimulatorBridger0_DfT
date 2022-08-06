@@ -19,7 +19,9 @@ import org.cloudbus.agent.DeviceAgent;
 import org.cloudbus.cloudsim.core.MainEventManager;
 import org.cloudbus.cloudsim.core.SimEntity;
 import org.cloudbus.cloudsim.core.SimEvent;
+import org.cloudbus.cloudsim.core.predicates.Predicate;
 import org.cloudbus.cloudsim.edge.core.edge.Battery;
+import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity;
 import org.cloudbus.cloudsim.edge.core.edge.Mobility;
 import org.cloudbus.cloudsim.edge.iot.network.EdgeNetworkInfo;
 import org.cloudbus.cloudsim.edge.utils.LogUtil;
@@ -57,15 +59,33 @@ public abstract class IoTDevice extends SimEntity {
 
 	private List<Flow> flowList = new ArrayList<>(); 
 	
-	public IoTDevice(String name, EdgeNetworkInfo networkModel, double bandwidth) {
-		super(name);
+	public IoTDevice(EdgeNetworkInfo networkModel,
+					 ConfiguationEntity.IotDeviceEntity onta) {
+		super(onta.getName());
 		this.battery = new Battery();	
 		this.networkModel = networkModel;
-		this.enabled = true;		
-		this.bw = bandwidth;
-
+		this.enabled = true;
+		this.bw = onta.getBw();
+		
 		//Osmosis Agents
-		AgentBroker.getInstance().createDeviceAgent(name, this);
+		AgentBroker.getInstance().createDeviceAgent(onta.getName(), this);
+
+		// Battery Setting
+		battery.setMaxCapacity(onta.getMax_battery_capacity());
+		if (onta.getInitial_battery_capacity()==0.0){
+			battery.setCurrentCapacity(onta.getMax_battery_capacity());
+		} else {
+			battery.setCurrentCapacity(onta.getInitial_battery_capacity());
+		}
+		battery.setBatterySensingRate(onta.getBattery_sensing_rate());
+		battery.setBatterySendingRate(onta.getBattery_sending_rate());
+		battery.setResPowered(onta.isRes_powered());
+		battery.setPeakSolarPower(onta.getSolar_peak_power());
+		battery.setBatteryVoltage(onta.getBattery_voltage());
+		battery.setMaxChargingCurrent(onta.getMax_charging_current());
+
+		// Mobility Setting
+		this.mobility = new Mobility(onta.getMobilityEntity());
 	}
 	
 	@Override
@@ -159,6 +179,7 @@ public abstract class IoTDevice extends SimEntity {
 			this.setEnabled(false);
 			LogUtil.info(this.getClass().getSimpleName()+" " + this.getId() + "'s battery has been drained");
 			this.runningTime = MainEventManager.clock();
+			MainEventManager.cancelAll(getId(), MainEventManager.SIM_ANY);
 			return;
 		}
 
@@ -177,14 +198,11 @@ public abstract class IoTDevice extends SimEntity {
 		flow.addPacketSize(app.getIoTDeviceOutputSize());			
 		updateBandwidth();
 
-
-
 		//Adaptive Osmosis Flow Routing
 		String finalMEL = routingTable.getRule(flow.getAppNameDest());
 		flow.setAppNameDest(finalMEL);
 
 		//MEL ID Resolution in Osmotic Broker
-		//sendNow(flow.getDatacenterId(), OsmosisTags.TRANSMIT_IOT_DATA, flow);
 		sendNow(OsmoticBroker.brokerID, OsmoticTags.ROUTING_MEL_ID_RESOLUTION, flow); //necessary for osmotic flow routing - concept similar to ARP protocol
 	}
 

@@ -44,17 +44,17 @@ import uk.ncl.giacomobergami.components.sdn_routing.SDNRoutingPolicy;
 public class SDNController extends NetworkOperatingSystem {
 	
 	
-	protected SDNRoutingPolicy sdnRoutingPoloicy;
-	private SDNTrafficSchedulingPolicy sdnSchedulingPolicy;	
+	protected volatile SDNRoutingPolicy sdnRoutingPoloicy;
+	private volatile SDNTrafficSchedulingPolicy sdnSchedulingPolicy;
 	
-	private OsmosisOrchestrator orchestrator;
+	private volatile OsmosisOrchestrator orchestrator;
 
 	protected String datacenterName; 
-	private OsmoticBroker edgeDatacenterBroker;
+	private volatile OsmoticBroker edgeDatacenterBroker;
 	
-	private Datacenter datacenter;
-	private Switch gateway;
-    private SDNController wanController;
+	private volatile Datacenter datacenter;
+	private volatile Switch gateway;
+    private volatile SDNController wanController;
 	
     protected String name;
     
@@ -101,12 +101,13 @@ public class SDNController extends NetworkOperatingSystem {
 		
 		int srcVm = flow.getOrigin();
 		int dstVm = flow.getDestination();
-		System.out.println(MainEventManager.getEntityName(flow.getOrigin())+"-->"+ MainEventManager.getEntityName(flow.getDestination()));
 
 		NetworkNIC srchost = findSDNHost(srcVm);
 		NetworkNIC dsthost = findSDNHost(dstVm);
 		int flowId = flow.getFlowId();
-		
+		System.out.println(srchost+"-->"+dsthost);
+
+
 		if (srchost == null)			
 		{			
 			srchost = this.getGateway(); // packets coming from outside the datacenter			
@@ -118,8 +119,7 @@ public class SDNController extends NetworkOperatingSystem {
 			List<NetworkNIC> listNodes = new ArrayList<NetworkNIC>();					
 			listNodes.add(srchost);			
 			getSdnSchedulingPolicy().setAppFlowStartTime(flow, flow.getSubmitTime()); // no transmission 
-					
-			removeCompletedFlows(flow);
+
 			return;
 		} 
 
@@ -149,20 +149,7 @@ public class SDNController extends NetworkOperatingSystem {
 		List<Link> links = sdnRoutingPoloicy.getLinks(flow.getOrigin(), flow.getDestination());
 		flow.setLinkList(links);
 
-//		System.out.println("==>"+CloudSim.getEntityName(this.getWanOorchestrator().getId()));
 		sendNow(this.getWanOorchestrator().getId(), OsmoticTags.START_TRANSMISSION, flow);
-	}
-
-	protected void processCompleteFlows(List<Channel> channels){
-		for(Channel ch:channels) {												
-			for (Flow flow : ch.getFinishedFlows()){
-				removeCompletedFlows(flow);
-			}
-		}
-	}
-	
-	protected void removeCompletedFlows(Flow flow ){				
-						
 	}
 		 
 	protected boolean buildSDNForwardingTableVmBased(int srcVm, int dstVm, int flowId, Flow flow) {		

@@ -12,6 +12,7 @@
 package org.cloudbus.cloudsim.edge.iot;
 
 import org.cloudbus.cloudsim.core.SimEvent;
+import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity;
 import org.cloudbus.cloudsim.edge.iot.IoTDevice;
 import org.cloudbus.cloudsim.edge.iot.network.EdgeNetworkInfo;
 
@@ -24,8 +25,10 @@ import org.cloudbus.cloudsim.edge.iot.network.EdgeNetworkInfo;
 **/
 
 public class CarSensor extends IoTDevice {
-	public CarSensor(EdgeNetworkInfo networkModel, String name, double bandwidth) {
-		super(name, networkModel, bandwidth);		
+
+	public CarSensor(EdgeNetworkInfo networkModel,
+					 ConfiguationEntity.IotDeviceEntity onta) {
+		super(networkModel, onta);
 	}
 	@Override
 	public boolean updateBatteryBySensing() {

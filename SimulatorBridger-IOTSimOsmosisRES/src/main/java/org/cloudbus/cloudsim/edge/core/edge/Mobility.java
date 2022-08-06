@@ -15,7 +15,17 @@ public class Mobility {
 
 	}
 
-	public static class MovingRange{
+    public Mobility(ConfiguationEntity.MobilityEntity moto) {
+		this(moto.getLocation());
+		movable = moto.isMovable();
+		if (moto.isMovable()) {
+			range = new MovingRange(moto.getRange().beginX, moto.getRange().endX);
+			signalRange = moto.getSignalRange();
+			velocity = moto.getVelocity();
+		}
+    }
+
+    public static class MovingRange{
 		public int beginX;
 		public int endX;
 

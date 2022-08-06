@@ -70,7 +70,6 @@ public class OsmoticBroker extends DatacenterBroker {
 	@Override
 	public void startEntity() {
 		super.startEntity();
-		send("temperature_1", 15, MOVING);
 	}
 
 	@Override
@@ -110,7 +109,7 @@ public class OsmoticBroker extends DatacenterBroker {
 			askCloudVmToProccessData(ev);
 			break;
 				
-		case CloudSimTags.END_OF_SIMULATION:
+		case CloudSimTags.END_OF_SIMULATION: // just printing
 			this.shutdownEntity();
 			break;
 
@@ -323,8 +322,8 @@ public class OsmoticBroker extends DatacenterBroker {
 	public int getiotDeviceIdByName(String melName){
 		return this.iotDeviceNameToId.get(melName);
 	}
-	
-	public void setIoTDevices(List<IoTDevice> devices) {	
+
+	public void addIoTDevices(List<IoTDevice> devices) {
 		for(IoTDevice device : devices){
 			iotDeviceNameToId.put(device.getName(), device.getId());
 		}
@@ -363,5 +362,9 @@ public class OsmoticBroker extends DatacenterBroker {
 			}
 		}
 		return name;
+	}
+
+	public void addIoTDevice(IoTDevice device) {
+		iotDeviceNameToId.put(device.getName(), device.getId());
 	}
 }

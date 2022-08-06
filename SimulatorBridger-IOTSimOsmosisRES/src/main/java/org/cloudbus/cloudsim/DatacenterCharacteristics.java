@@ -11,6 +11,8 @@ package org.cloudbus.cloudsim;
 import java.util.List;
 
 import org.cloudbus.cloudsim.core.MainEventManager;
+import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity;
+import org.cloudbus.cloudsim.edge.core.edge.EdgeDevice;
 import org.cloudbus.cloudsim.lists.HostList;
 import org.cloudbus.cloudsim.lists.PeList;
 
@@ -127,7 +129,29 @@ public class DatacenterCharacteristics {
 		setCostPerBw(costPerBw);
 	}
 
-	/**
+	public DatacenterCharacteristics(
+			List<? extends Host> hostList) {
+		this(
+				"x86", "Linux", "Xen", hostList, 10.0,  3.0, 0.05,
+				0.001, 0.0);
+	}
+
+	public DatacenterCharacteristics(List<EdgeDevice> hostList,
+									 ConfiguationEntity.EdgeDatacenterCharacteristicsEntity characteristicsEntity) {
+//		String architecture = characteristicsEntity.getArchitecture();
+//		String os = characteristicsEntity.getOs();
+//		String vmm = characteristicsEntity.getVmm();
+//		double timeZone = characteristicsEntity.getTimeZone();
+//		double costPerMem = characteristicsEntity.getCostPerMem();
+//		double cost = characteristicsEntity.getCost();
+//
+//		double costPerStorage = characteristicsEntity.getCostPerStorage();
+//		double costPerBw = characteristicsEntity.getCostPerBw();;
+		this(characteristicsEntity.getArchitecture(), characteristicsEntity.getOs(), characteristicsEntity.getVmm(),
+				hostList, characteristicsEntity.getTimeZone(), characteristicsEntity.getCost(), characteristicsEntity.getCostPerMem(), characteristicsEntity.getCostPerStorage(), characteristicsEntity.getCostPerBw());
+	}
+
+    /**
 	 * Gets the name of a resource.
 	 * 
 	 * @return the resource name

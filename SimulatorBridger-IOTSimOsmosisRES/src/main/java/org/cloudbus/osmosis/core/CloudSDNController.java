@@ -11,6 +11,9 @@
 
 package org.cloudbus.osmosis.core;
 
+import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity;
+import uk.ncl.giacomobergami.components.sdn_routing.SDNRoutingPolicyGeneratorFacade;
+import uk.ncl.giacomobergami.components.sdn_traffic.SDNTrafficPolicyGeneratorFacade;
 import uk.ncl.giacomobergami.components.sdn_traffic.SDNTrafficSchedulingPolicy;
 import uk.ncl.giacomobergami.components.sdn_routing.SDNRoutingPolicy;
 
@@ -23,7 +26,14 @@ import uk.ncl.giacomobergami.components.sdn_routing.SDNRoutingPolicy;
 **/
 
 public class CloudSDNController extends SDNController {	
-	
+
+	public CloudSDNController(ConfiguationEntity.ControllerEntity params) {
+		super(params.name,
+				SDNTrafficPolicyGeneratorFacade.generateFacade(params.getTrafficPolicy()),
+				SDNRoutingPolicyGeneratorFacade.generateFacade(params.getRoutingPolicy()));
+		setName(params.name);
+	}
+
 	public CloudSDNController(String name, SDNTrafficSchedulingPolicy sdnPolicy, SDNRoutingPolicy sdnRouting){
 		super(name, sdnPolicy,sdnRouting);		
 	}

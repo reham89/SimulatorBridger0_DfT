@@ -84,10 +84,12 @@ public class OsmosisOrchestrator extends SimEntity {
 			Flow flow = (Flow) ev.getData();			
 			transmitFlow(flow);
 			break;
-			case OsmoticTags.SDN_INTERNAL_EVENT:
+
+		case OsmoticTags.SDN_INTERNAL_EVENT:
 			internalFlowProcess(); 
 			break;
-		default: 
+
+		default:
 			System.out.println(this.getName() + ": Unknown event received by "+super.getName()+". Tag:"+ev.getTag());
 			break;
 		}

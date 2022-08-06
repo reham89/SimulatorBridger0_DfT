@@ -164,8 +164,7 @@ public class NetworkDatacenter extends Datacenter {
 					data[2] = CloudSimTags.FALSE;
 
 					// unique tag = operation tag
-					int tag = CloudSimTags.CLOUDLET_SUBMIT_ACK;
-					sendNow(cl.getUserId(), tag, data);
+					sendNow(cl.getUserId(), CloudSimTags.CLOUDLET_SUBMIT_ACK, data);
 				}
 
 				sendNow(cl.getUserId(), CloudSimTags.CLOUDLET_RETURN, cl);

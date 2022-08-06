@@ -22,13 +22,9 @@ import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity.CloudDataCenterEn
 import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity.ControllerEntity;
 import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity.EdgeDataCenterEntity;
 import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity.EdgeDatacenterCharacteristicsEntity;
-import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity.EdgeDeviceEntity;
 import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity.IotDeviceEntity;
 import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity.LogEntity;
-import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity.MELEntities;
 import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity.NetworkModelEntity;
-import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity.VMEntity;
-import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity.VmAllcationPolicyEntity;
 import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity.WanEntity;
 import org.cloudbus.cloudsim.edge.core.edge.Mobility.MovingRange;
 import org.cloudbus.cloudsim.edge.iot.IoTDevice;
@@ -41,23 +37,18 @@ import org.cloudbus.cloudsim.edge.iot.protocol.MQTTProtocol;
 import org.cloudbus.cloudsim.edge.iot.protocol.XMPPProtocol;
 import org.cloudbus.cloudsim.edge.utils.LogUtil;
 import org.cloudbus.cloudsim.edge.utils.LogUtil.Level;
-import org.cloudbus.cloudsim.provisioners.BwProvisioner;
-import org.cloudbus.cloudsim.provisioners.BwProvisionerSimple;
-import org.cloudbus.cloudsim.provisioners.PeProvisionerSimple;
-import org.cloudbus.cloudsim.provisioners.RamProvisioner;
-import org.cloudbus.cloudsim.provisioners.RamProvisionerSimple;
 import org.cloudbus.cloudsim.sdn.Switch;
 import org.cloudbus.cloudsim.sdn.example.policies.VmAllocationPolicyCombinedMostFullFirst;
-import org.cloudbus.cloudsim.sdn.example.policies.VmSchedulerTimeSharedEnergy;
-import org.cloudbus.cloudsim.sdn.power.PowerUtilizationMaxHostInterface;
+import uk.ncl.giacomobergami.components.IoTGeneratorFactory;
 import uk.ncl.giacomobergami.components.sdn_routing.SDNRoutingPolicyGeneratorFacade;
 import uk.ncl.giacomobergami.components.sdn_traffic.SDNTrafficPolicyGeneratorFacade;
 import org.cloudbus.osmosis.core.policies.VmMELAllocationPolicyCombinedLeastFullFirst;
 
 import java.io.File;
-import java.io.Reader;
 import java.lang.reflect.Constructor;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 /**
  * 
@@ -75,22 +66,13 @@ public class OsmosisTopologyBuilder {
 	public static int edgeLetId = 1;
 	private SDNController sdWanController;
 	
-	public static int hostId = 1;
-	private static int vmId = 1;
+	public static AtomicInteger hostId = new AtomicInteger(1);
+	private static AtomicInteger vmId = new AtomicInteger(1);
 	
 	public SDNController getSdWanController() {
 		return sdWanController;
 	}
-
 	private List<OsmoticDatacenter> osmesisDatacentres;
-
-
-	public List<EdgeDataCenter> getEdgeDatacentres() {
-		return edgeDatacentres;
-	}
-	  public List<CloudDatacenter> getCloudDatacentres() {
-		return cloudDatacentres;
-	}
 	  
     public OsmosisTopologyBuilder(OsmoticBroker osmesisBroker) {
     	this.broker = osmesisBroker;
@@ -98,373 +80,126 @@ public class OsmosisTopologyBuilder {
 	}
 
 	public OsmosisTopologyBuilder buildTopology(File filename) {
-		if (filename != null) {
-			return buildTopology(Objects.requireNonNull(ConfiguationEntity.fromFile(filename)));
-		}
-		return null;
+		return buildTopology(Objects.requireNonNull(ConfiguationEntity.fromFile(Objects.requireNonNull(filename))));
 	}
 
-	  public List<OsmoticDatacenter> getOsmesisDatacentres() {
+	public List<OsmoticDatacenter> getOsmesisDatacentres() {
 		return osmesisDatacentres;
 	}
 
     public OsmosisTopologyBuilder buildTopology(ConfiguationEntity topologyEntity) {
-        this.cloudDatacentres = buildCloudDatacentres(topologyEntity.getCloudDatacenter());
-        this.edgeDatacentres = buildEdgeDatacentres(topologyEntity.getEdgeDatacenter());
+		List<Switch> datacenterGateways = new ArrayList<>();
+		for (var x : topologyEntity.getCloudDatacenter()) {
+			var y = createCloudDatacenter(x);
+			var controller = y.getSdnController();
+			datacenterGateways.add(controller.getGateway());
+			osmesisDatacentres.add(y);
+		}
+		for (var x : topologyEntity.getEdgeDatacenter()) {
+			var y = buildEdgeDatacenter(x);
+			var controller = y.getSdnController();
+			datacenterGateways.add(controller.getGateway());
+			osmesisDatacentres.add(y);
+		}
+
         initLog(topologyEntity);
 
-        osmesisDatacentres.addAll(this.cloudDatacentres);
-        osmesisDatacentres.addAll(this.edgeDatacentres);
-
-        List<Switch> datacenterGateways = new ArrayList<>();
-        for(OsmoticDatacenter osmesisDC : this.getOsmesisDatacentres()){
-			datacenterGateways.add(osmesisDC.getSdnController().getGateway());
-        }
-        this.sdWanController = buildWan(topologyEntity.getSdwan(), datacenterGateways);
-        setWanControllerToDatacenters(sdWanController, osmesisDatacentres);
+        sdWanController = new SDWANController(topologyEntity.getSdwan().get(0), datacenterGateways);
+		osmesisDatacentres.forEach(datacenter -> datacenter.getSdnController().setWanController(sdWanController));
         sdWanController.addAllDatacenters(osmesisDatacentres);
 		return this;
     }
 
-    /*
-     * 
-     * Create Cloud DataCenters 
-     * 
-     */
-    
-    protected List<CloudDatacenter> buildCloudDatacentres(List<CloudDataCenterEntity> datacentreEntities) {
-        List<CloudDatacenter> datacentres = new ArrayList<CloudDatacenter>();
+	private CloudDatacenter createCloudDatacenter(CloudDataCenterEntity datacentreEntity) {
+		SDNController sdnController = new CloudSDNController(datacentreEntity.getControllers().get(0));
+		List<Host> hostList = sdnController.getHostList();
+		LinkedList<Storage> storageList = new LinkedList<>();
+		var allPol = datacentreEntity.getVmAllocationPolicy();
+		VmAllocationPolicyFactory vmAllocationFactory = (allPol.equals("VmAllocationPolicyCombinedFullFirst")) ?
+				(hl -> new VmAllocationPolicyCombinedMostFullFirst()) :
+				((allPol.equals(("VmAllocationPolicyCombinedLeastFullFirst"))) ?
+						hl -> new VmMELAllocationPolicyCombinedLeastFullFirst() :
+						null);
+		DatacenterCharacteristics characteristics = new DatacenterCharacteristics(hostList);
 
-        for(CloudDataCenterEntity datacentreEntity: datacentreEntities){
-            // Assumption: every datacentre only has one controller
-            SDNController sdnController = createCloudSDNController(datacentreEntity.getControllers().get(0));                       
-            VmAllocationPolicyFactory vmAllocationPolicyFactory = null;
-            if(datacentreEntity.getVmAllocationPolicy().equals("VmAllocationPolicyCombinedFullFirst")){
-            	vmAllocationPolicyFactory = hostList -> new VmAllocationPolicyCombinedMostFullFirst();	
-            }
-            if(datacentreEntity.getVmAllocationPolicy().equals("VmAllocationPolicyCombinedLeastFullFirst")){
-            	vmAllocationPolicyFactory = hostList -> new VmMELAllocationPolicyCombinedLeastFullFirst();	
-            }
+		// Create Datacenter with previously set parameters
+		try {
+			// Why to use maxHostHandler!
+			var loc_datacentre = new CloudDatacenter(datacentreEntity,
+					                                 characteristics,
+					                                 vmAllocationFactory.create(hostList),
+					                                 storageList,
+					                                 0,
+					                                 sdnController);
 
-            CloudDatacenter datacentre = createCloudDatacenter(
-                    datacentreEntity.getName(),
-                    sdnController,                    
-                    vmAllocationPolicyFactory
-            );
-            datacentre.initCloudTopology(datacentreEntity.getHosts(),datacentreEntity.getSwitches(),
-            		datacentreEntity.getLinks());
-            datacentre.feedSDNWithTopology(sdnController);
-            datacentre.setGateway(datacentre.getSdnController().getGateway());
-            datacentre.setDcType(datacentreEntity.getType());
-            List<Vm> vmList = createVMs(datacentreEntity.getVMs());  
-            
-			for(Vm mel : vmList){
-				datacentre.mapVmNameToID(mel.getId(), mel.getVmName());
-			}
-			
-			this.broker.mapVmNameToId(datacentre.getVmNameToIdList());
-            
-            sdnController.setDatacenter(datacentre);        
-            sdnController.addVmsToSDNhosts(vmList);
-            datacentre.getVmAllocationPolicy().setUpVmTopology(datacentre.getHosts());
-            datacentre.setVmList(vmList);
-            datacentres.add(datacentre);
-        }
+			List<Vm> vmList = datacentreEntity
+					.getVMs()
+					.stream()
+					.map(x -> {
+						var vm = new Vm(x, this.broker, vmId);
+						loc_datacentre.mapVmNameToID(vm.getId(), vm.getVmName());
+						return vm;
+					})
+					.collect(Collectors.toList());
 
-        return datacentres;
-    }
-    
-    protected CloudDatacenter createCloudDatacenter(String name, SDNController sdnController,                                                            
-                                                             VmAllocationPolicyFactory vmAllocationFactory) {
-  
-        List<Host> hostList = sdnController.getHostList();
-        String arch = "x86"; // system architecture
-        String os = "Linux"; // operating system
-        String vmm = "Xen";
-        double time_zone = 10.0; // time zone this resource located
-        double cost = 3.0; // the cost of using processing in this resource
-        double costPerMem = 0.05; // the cost of using memory in this resource
-        double costPerStorage = 0.001; // the cost of using storage in this
-        double costPerBw = 0.0; // the cost of using bw in this resource
-        LinkedList<Storage> storageList = new LinkedList<Storage>(); 
-
-        DatacenterCharacteristics characteristics = new DatacenterCharacteristics(
-                arch, os, vmm, hostList, time_zone, cost, costPerMem,
-                costPerStorage, costPerBw);
-
-        // Create Datacenter with previously set parameters
-        CloudDatacenter datacenter = null;
-        try {
-            VmAllocationPolicy vmPolicy = vmAllocationFactory.create(hostList);            
-            System.out.println(vmPolicy.getPolicyName());
-            if(vmPolicy instanceof VmAllocationPolicyCombinedMostFullFirst){
-                vmPolicy.setPolicyName("CombinedMostFullFirst");
-            } else if(vmPolicy instanceof VmMELAllocationPolicyCombinedLeastFullFirst){
-                vmPolicy.setPolicyName("CombinedLeastFullFirst");
-            }
-            // Why to use maxHostHandler!
-            PowerUtilizationMaxHostInterface maxHostHandler = (PowerUtilizationMaxHostInterface)vmPolicy;
-            datacenter = new CloudDatacenter(name, characteristics, vmPolicy, storageList, 0, sdnController);
-            
-            sdnController.setDatacenter(datacenter);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return datacenter;
-    }
-
-    protected SDNController createCloudSDNController(ControllerEntity controllerEntity){
-        String sdnName = controllerEntity.getName();
-		var sdnRoutingPolicy = SDNRoutingPolicyGeneratorFacade.generateFacade(controllerEntity.getRoutingPolicy());
-		var sdnMapReducePolicy = SDNTrafficPolicyGeneratorFacade.generateFacade(controllerEntity.getTrafficPolicy());
-        SDNController sdnController = new CloudSDNController(controllerEntity.getName(),sdnMapReducePolicy, sdnRoutingPolicy);
-        sdnController.setName(sdnName);
-        return sdnController;
-    }
-
-    private List<Vm> createVMs(List<VMEntity> vmEntites) {
-        //Creates a container to store VMs. This list is passed to the broker later
-        List<Vm> vmList = new ArrayList<Vm>();
-        
-        for(VMEntity vmEntity : vmEntites){
-            //VM Parameters
-            int pesNumber = vmEntity.getPes(); //number of cpus
-            int mips = (int) vmEntity.getMips();
-            int ram = vmEntity.getRam(); //vm memory (MB)
-            long size = (long) vmEntity.getStorage(); //image size (MB)
-            long bw = vmEntity.getBw();            
-
-            String vmm = "Xen"; //VMM name
-
-            //create VMs
-            Vm vm = new Vm(vmId, this.broker.getId(), mips, pesNumber, ram, bw, size, vmm, new CloudletSchedulerTimeShared());            
-            vm.setVmName(vmEntity.getName());
-            vmList.add(vm);   
-            vmId++;
-            }
-        return vmList;
-    }
-    
-    
-  /*
-   * 
-   * Build SD-WAN network  
-   * 
-   */    
-
-    private SDNController buildWan(List<WanEntity> wanEntity, List<Switch> datacenterGateways) {
-        for(WanEntity wan : wanEntity){
-            // Assumption: every datacentre only has one controller            
-        	sdWanController = createWanController(wan.getControllers());
-        	sdWanController.initSdWANTopology(wan.getSwitches(), wan.getLinks(),datacenterGateways);
-        }               
-        return sdWanController;
-    }
-    
-    private void setWanControllerToDatacenters(SDNController wanController, List<OsmoticDatacenter> datacentres) {
-        for (OsmoticDatacenter datacenter: datacentres) {
-            SDNController controller = datacenter.getSdnController();
-            controller.setWanController(wanController);
-        }
-    }
- 
-    protected SDNController createWanController(ControllerEntity controllerEntity){
-        String sdnName = controllerEntity.getName();
-		var sdnRoutingPolicy = SDNRoutingPolicyGeneratorFacade.generateFacade(controllerEntity.getRoutingPolicy());
-		var sdnMapReducePolicy = SDNTrafficPolicyGeneratorFacade.generateFacade(controllerEntity.getTrafficPolicy());
-        SDNController sdnController = new SDWANController(controllerEntity.getName(),sdnMapReducePolicy, sdnRoutingPolicy);
-        sdnController.setName(sdnName);
-        return sdnController;
-    }
-    
-  /*
-   * 
-   * Build Edge Datacenters 
-   * 
-   */
-
-    private List<EdgeDataCenter> buildEdgeDatacentres(List<EdgeDataCenterEntity> edgeDatacenerEntites) {
-        List<EdgeDataCenter> edgeDC = new ArrayList<EdgeDataCenter>();
-
-    	for(EdgeDataCenterEntity edgeDCEntity : edgeDatacenerEntites){    		    
-			List<EdgeDeviceEntity> hostListEntities = edgeDCEntity.getHosts();
-			List<EdgeDevice> hostList = new ArrayList<EdgeDevice>();
-			try {
-				for (EdgeDeviceEntity hostEntity : hostListEntities) {
-					VmAllcationPolicyEntity vmSchedulerEntity = edgeDCEntity.getVmAllocationPolicy();
-					String vmSchedulerClassName = vmSchedulerEntity.getClassName();												
-					LinkedList<Pe> peList = new LinkedList<Pe>();
-					int peId=0;
-					for(int i= 0; i < hostEntity.getPes(); i++) {
-						peList.add(new Pe(peId++,new PeProvisionerSimple(hostEntity.getMips())));
-					}
-					
-					RamProvisioner ramProvisioner = new RamProvisionerSimple(hostEntity.getRamSize());
-					BwProvisioner bwProvisioner = new BwProvisionerSimple(hostEntity.getBwSize());
-					VmScheduler vmScheduler = new VmSchedulerTimeSharedEnergy(peList);						
-	
-					EdgeDevice edgeDevice = new EdgeDevice(hostId, hostEntity.getName(), ramProvisioner, bwProvisioner,
-							hostEntity.getStorage(), peList, vmScheduler);
-							
-					hostList.add(edgeDevice);
-					hostId++;
-				}
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-	
-			EdgeDatacenterCharacteristicsEntity characteristicsEntity = edgeDCEntity.getCharacteristics();
-			String architecture = characteristicsEntity.getArchitecture();
-			String os = characteristicsEntity.getOs();
-			String vmm = characteristicsEntity.getVmm();
-			double timeZone = characteristicsEntity.getTimeZone();
-			double costPerMem = characteristicsEntity.getCostPerMem();
-			double cost = characteristicsEntity.getCost();
-	
-			double costPerStorage = characteristicsEntity.getCostPerStorage();
-			double costPerBw = characteristicsEntity.getCostPerBw();
-			LinkedList<Storage> storageList = new LinkedList<Storage>();
-			
-			
-					
-			DatacenterCharacteristics characteristics = new DatacenterCharacteristics(architecture, os, vmm,
-					hostList, timeZone, cost, costPerMem, costPerStorage, costPerBw);	
-	
-			VmAllcationPolicyEntity vmAllcationPolicyEntity = edgeDCEntity.getVmAllocationPolicy();
-			String className = vmAllcationPolicyEntity.getClassName();
-	
-			// 6. Finally, we need to create a PowerDatacenter object.
-			EdgeDataCenter datacenter = null;
-			VmAllocationPolicy vmAllocationPolicy = null; 
-			try {
-				switch(className){
-					case "VmAllocationPolicyCombinedLeastFullFirst":
-					vmAllocationPolicy = new VmMELAllocationPolicyCombinedLeastFullFirst();
-				break;
-			}
-				datacenter = new EdgeDataCenter(edgeDCEntity.getName(), characteristics, vmAllocationPolicy, storageList,
-						edgeDCEntity.getSchedulingInterval());// , switchesList);
-				datacenter.setDcType(edgeDCEntity.getType());
-	
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-	
-			for(ControllerEntity controller : edgeDCEntity.getControllers()){
-				SDNController edgeSDNController = creatEdgeSDNController(controller);
-				datacenter.setSdnController(edgeSDNController);
-				edgeSDNController.setDatacenter(datacenter);
-			}
-			System.out.println("Edge SDN cotroller has been created");
-			datacenter.initEdgeTopology(hostList, edgeDCEntity.getSwitches(),edgeDCEntity.getLinks());			
-			datacenter.feedSDNWithTopology(datacenter.getSdnController());
-			
-			datacenter.setGateway(datacenter.getSdnController().getGateway());
-			
-			List<MEL> MELList = createMEL(edgeDCEntity.getMELEntities(), datacenter.getId(), this.broker);
-			datacenter.setVmList(MELList);
-			
-			for(MEL mel : MELList){
-				datacenter.mapVmNameToID(mel.getId(), mel.getVmName());
-			}
-			
-			this.broker.mapVmNameToId(datacenter.getVmNameToIdList());
-			datacenter.getVmAllocationPolicy().setUpVmTopology(hostList);
-			datacenter.getSdnController().addVmsToSDNhosts(MELList);
-			
-			List<IoTDevice> devices = createIoTDevice(edgeDCEntity.getIoTDevices(), edgeDCEntity.getName());
-			this.broker.setIoTDevices(devices);
-			edgeDC.add(datacenter);
-    	}		
-		return edgeDC;
-	}
-    
-    protected SDNController creatEdgeSDNController(ControllerEntity controllerEntity){
-        String sdnName = controllerEntity.getName();
-		var sdnRoutingPolicy = SDNRoutingPolicyGeneratorFacade.generateFacade(controllerEntity.getRoutingPolicy());
-		var sdnMapReducePolicy = SDNTrafficPolicyGeneratorFacade.generateFacade(controllerEntity.getTrafficPolicy());
-        SDNController sdnController = new EdgeSDNController(controllerEntity.getName(),sdnMapReducePolicy, sdnRoutingPolicy);
-        sdnController.setName(sdnName);
-        return sdnController;
-    }
-    
-	private List<MEL> createMEL(List<MELEntities> melEntities, int edgeDatacenterId, OsmoticBroker broker) {
-		List<MEL> vms = new ArrayList<>();
-		for (MELEntities melEntity : melEntities) {
-
-			String cloudletSchedulerClassName = melEntity.getCloudletSchedulerClassName();
-			CloudletScheduler cloudletScheduler;
-			try {				
-
-				cloudletScheduler = (CloudletScheduler) Class.forName(cloudletSchedulerClassName).newInstance();
-				float datasizeShrinkFactor = melEntity.getDatasizeShrinkFactor();				
-				MEL microELement = new MEL(edgeDatacenterId, vmId, broker.getId(), melEntity.getMips(),
-						melEntity.getPesNumber(), melEntity.getRam(), melEntity.getBw(),
-						melEntity.getVmm(), cloudletScheduler, datasizeShrinkFactor);				
-				microELement.setVmName(melEntity.getName());
-				vms.add(microELement);
-				vmId++;
-			} catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-				e.printStackTrace();
-			}
-
+			this.broker.mapVmNameToId(loc_datacentre.getVmNameToIdList());
+			loc_datacentre.setVmList(vmList);
+			loc_datacentre.setDCAndAddVMsToSDNHosts();
+			loc_datacentre.getVmAllocationPolicy().setUpVmTopology(loc_datacentre.getHosts());
+			return loc_datacentre;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
 		}
-		return vms;
 	}
-		
-	private List<IoTDevice> createIoTDevice(List<IotDeviceEntity>  iotDeviceEntity, String associatedEdge) {
-		List<IoTDevice> devices = new ArrayList<>();
-		for(IotDeviceEntity iotDevice : iotDeviceEntity){
-			String ioTClassName = iotDevice.getIoTClassName();
-			NetworkModelEntity networkModelEntity = iotDevice.getNetworkModelEntity();
-			// xmpp, mqtt, coap, amqp
-			EdgeNetworkInfo networkModel = this.SetEdgeNetworkModel(networkModelEntity);
-			try {
-				Class<?> clazz = Class.forName(ioTClassName);
-				if (!IoTDevice.class.isAssignableFrom(clazz)) {
-					System.out.println("this class is not correct type of ioT Device");
-					return null;
-				}
-				Constructor<?> constructor = clazz.getConstructor(EdgeNetworkInfo.class, String.class, double.class);
-	
-					IoTDevice newInstance = (IoTDevice) constructor.newInstance(networkModel, iotDevice.getName(), iotDevice.getBw());		
-					newInstance.getBattery().setMaxCapacity(iotDevice.getMax_battery_capacity());
 
-					if (iotDevice.getInitial_battery_capacity()==0.0){
-						newInstance.getBattery().setCurrentCapacity(iotDevice.getMax_battery_capacity());
-					} else {
-						newInstance.getBattery().setCurrentCapacity(iotDevice.getInitial_battery_capacity());
-					}
-					newInstance.getBattery().setBatterySensingRate(iotDevice.getBattery_sensing_rate());
-					newInstance.getBattery().setBatterySendingRate(iotDevice.getBattery_sending_rate());
+	private EdgeDataCenter buildEdgeDatacenter(EdgeDataCenterEntity edgeDCEntity) {
+		if (edgeDCEntity.getControllers().size() > 1)
+			throw new RuntimeException("Expected size 1 for "+edgeDCEntity.getControllers().size());
 
-					newInstance.setAssociatedEdge(associatedEdge);
-					newInstance.getBattery().setResPowered(iotDevice.isRes_powered());
-					newInstance.getBattery().setPeakSolarPower(iotDevice.getSolar_peak_power());
-					newInstance.getBattery().setBatteryVoltage(iotDevice.getBattery_voltage());
+		//			List<EdgeDeviceEntity> hostListEntities = edgeDCEntity.getHosts();
+		var hostList = edgeDCEntity.getHosts()
+				.stream()
+				.map(x -> new EdgeDevice(hostId, x))
+				.collect(Collectors.toList());
 
-					newInstance.getBattery().setMaxChargingCurrent(iotDevice.getMax_charging_current());
+		LinkedList<Storage> storageList = new LinkedList<>();
 
-					Mobility location = new Mobility(iotDevice.getMobilityEntity().getLocation());
-					location.movable = iotDevice.getMobilityEntity().isMovable();
-					if (iotDevice.getMobilityEntity().isMovable()) {
-						location.range = new MovingRange(iotDevice.getMobilityEntity().getRange().beginX,
-								iotDevice.getMobilityEntity().getRange().endX);
-						location.signalRange = iotDevice.getMobilityEntity().getSignalRange();
-						location.velocity = iotDevice.getMobilityEntity().getVelocity();
-					}
-					newInstance.setMobility(location);
-	
-					devices.add(newInstance);						
-	
-			} catch (ClassCastException e) {
-				e.printStackTrace();
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-		return devices;
+		// 6. Finally, we need to create a PowerDatacenter object.
+		EdgeDataCenter datacenter = new EdgeDataCenter(edgeDCEntity,
+				hostList,
+				storageList,
+				edgeDCEntity.getSchedulingInterval());
+
+
+		System.out.println("Edge SDN cotroller has been created");
+
+		var MELList = edgeDCEntity.getMELEntities()
+				.stream()
+				.map(x -> {
+					var mel = new MEL(datacenter.getId(),
+							vmId, x, broker);
+					datacenter.mapVmNameToID(mel.getId(), mel.getVmName());
+					return mel;
+				})
+				.collect(Collectors.toList());
+		datacenter.setVmList(MELList);
+
+		this.broker.mapVmNameToId(datacenter.getVmNameToIdList());
+		datacenter.getVmAllocationPolicy().setUpVmTopology(hostList);
+		datacenter.getSdnController().addVmsToSDNhosts(MELList);
+		var associatedEdge = edgeDCEntity.getName();
+		edgeDCEntity.getIoTDevices()
+				.forEach(x -> {
+					IoTDevice newInstance = IoTGeneratorFactory.generateFacade(x.getIoTClassName(),
+							this.SetEdgeNetworkModel(x.getNetworkModelEntity()),
+							x);
+					if ((associatedEdge != null) && (!associatedEdge.isEmpty()))
+						newInstance.setAssociatedEdge(associatedEdge);
+					broker.addIoTDevice(newInstance);
+				});
+
+		return datacenter;
 	}
 
 	private EdgeNetworkInfo SetEdgeNetworkModel(NetworkModelEntity networkModelEntity) {
@@ -472,28 +207,20 @@ public class OsmosisTopologyBuilder {
 		communicationProtocolName = communicationProtocolName.toLowerCase();
 		IoTProtocol communicationProtocol = null;
 		switch (communicationProtocolName) {
-		case "xmpp":
-			communicationProtocol = new XMPPProtocol();
-			break;
-		case "mqtt":
-			communicationProtocol = new MQTTProtocol();
-			break;
-		case "coap":
-			communicationProtocol = new CoAPProtocol();
-			break;
-		case "amqp":
-			communicationProtocol = new AMQPProtocol();
-			break;
-		default:
-			System.out.println("have not supported protocol " + communicationProtocol + " yet!");
-			return null;
+			case "xmpp" -> communicationProtocol = new XMPPProtocol();
+			case "mqtt" -> communicationProtocol = new MQTTProtocol();
+			case "coap" -> communicationProtocol = new CoAPProtocol();
+			case "amqp" -> communicationProtocol = new AMQPProtocol();
+			default -> {
+				System.out.println("have not supported protocol " + communicationProtocol + " yet!");
+				return null;
+			}
 		}
 		String networkTypeName = networkModelEntity.getNetworkType();
 		networkTypeName = networkTypeName.toLowerCase();
 	
 		EdgeNetwork edgeNetwork = new EdgeNetwork(networkTypeName);
-		EdgeNetworkInfo networkModel = new EdgeNetworkInfo(edgeNetwork, communicationProtocol);		
-		return networkModel;
+		return new EdgeNetworkInfo(edgeNetwork, communicationProtocol);
 	}
 	
 	private void initLog(ConfiguationEntity conf) {

@@ -14,11 +14,14 @@ package org.cloudbus.cloudsim.edge.core.edge;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.cloudbus.cloudsim.CloudletScheduler;
+import org.cloudbus.cloudsim.CloudletSchedulerTimeShared;
 import org.cloudbus.cloudsim.Vm;
 import org.cloudbus.cloudsim.edge.core.edge.MEL;
 import org.cloudbus.osmosis.core.Flow;
+import org.cloudbus.osmosis.core.OsmoticBroker;
 
 /**
  * 
@@ -32,12 +35,38 @@ public class MEL extends Vm {
 	
 	private int edgeDatacenterId;	
 	private double currentBw;
+	private static final int SIZE = 2048;
 
 	public MEL(int edgeDatacenterId, int id, int userId, double mips, int numberOfPes, int ram, long bw, String vmm,
-			CloudletScheduler cloudletScheduler,float shrinkingFactor) {
-		super(id, userId, mips, numberOfPes, ram, bw, 2048,vmm, cloudletScheduler);
+			   CloudletScheduler cloudletScheduler) {
+		super(id, userId, mips, numberOfPes, ram, bw, SIZE, vmm, cloudletScheduler);
 		this.edgeDatacenterId = edgeDatacenterId;		
-	}		
+	}
+
+	public static CloudletScheduler initCloudletSchedulerFromClassName(String name) {
+		try {
+			return (CloudletScheduler) Class.forName(name).newInstance();
+		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	public MEL(int edgeDatacenterId,
+			   AtomicInteger vmId,
+			   ConfiguationEntity.MELEntities melEntity,
+			  OsmoticBroker broker) {
+		this(edgeDatacenterId,
+				vmId.getAndIncrement(),
+				broker.getId(),
+				melEntity.getMips(),
+				melEntity.getPesNumber(),
+				melEntity.getRam(),
+				melEntity.getBw(),
+				melEntity.getVmm(),
+				initCloudletSchedulerFromClassName(melEntity.getCloudletSchedulerClassName()));
+		setVmName(melEntity.getName());
+	}
 	
 	public int getEdgeDatacenterId() {
 		return edgeDatacenterId;

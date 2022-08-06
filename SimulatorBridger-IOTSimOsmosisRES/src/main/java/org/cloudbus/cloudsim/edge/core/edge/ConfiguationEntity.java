@@ -81,7 +81,7 @@ public class ConfiguationEntity {
 	    private String vmAllocationPolicy;	    	   	    
 	    private List<HostEntity> hosts;
 	    private List<VMEntity> VMs;
-	    private List<ControllerEntity> controllers;
+	    private List<ControllerEntity> controllers; // only one, what a waste!
 	    private List<SwitchEntity> switches;
 	    private List<LinkEntity> links;
 	}
@@ -133,9 +133,9 @@ public class ConfiguationEntity {
 	
 	@Data
 	public class ControllerEntity{
-	    private String name;
-	    private String trafficPolicy;
-	    private String routingPolicy;
+	    public String name;
+	    public String trafficPolicy;
+	    public String routingPolicy;
 	}
 	
 	@Data

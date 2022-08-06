@@ -7,10 +7,15 @@
 
 package org.cloudbus.cloudsim;
 
+import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity;
+import org.cloudbus.osmosis.core.OsmosisTopologyBuilder;
+import org.cloudbus.osmosis.core.OsmoticBroker;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Vm represents a VM: it runs inside a Host, sharing hostList with other VMs.
@@ -126,7 +131,7 @@ public class Vm {
 
 	/**
 	 * Creates a new VMCharacteristics object.
-	 * 
+	 * shrinkingFactor
 	 * @param id
 	 *            unique ID of the VM
 	 * @param userId
@@ -178,6 +183,21 @@ public class Vm {
 		setCurrentAllocatedMips(null);
 		setCurrentAllocatedRam(0);
 		setCurrentAllocatedSize(0);
+	}
+
+	public Vm(ConfiguationEntity.VMEntity parameters,
+			  OsmoticBroker broker,
+			  AtomicInteger idGenerator) {
+		this(idGenerator.getAndIncrement(),
+				broker.getId(),
+				(int) parameters.getMips(),
+				parameters.getPes(),
+				parameters.getRam(),
+				parameters.getBw(),
+				parameters.getStorage(),
+				"Xen",
+				new CloudletSchedulerTimeShared());
+		setVmName(parameters.getName());
 	}
 
 	public Vm(int id, int userId, double mips2, int numberOfPes, int ram,

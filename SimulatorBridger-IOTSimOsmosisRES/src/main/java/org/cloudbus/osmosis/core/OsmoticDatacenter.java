@@ -67,7 +67,7 @@ public abstract class OsmoticDatacenter extends Datacenter{
 		
 	public OsmoticDatacenter(String name, DatacenterCharacteristics characteristics,
 							 VmAllocationPolicy vmAllocationPolicy, List<Storage> storageList, double schedulingInterval)
-			throws Exception {
+		 {
 		super(name, characteristics, vmAllocationPolicy, storageList, schedulingInterval);
 
 		//Osmosis Agents
@@ -100,6 +100,10 @@ public abstract class OsmoticDatacenter extends Datacenter{
 	
 	public void feedSDNWithTopology(SDNController controller){
 		controller.setTopology(topology, hosts, sdnhosts, switches);
+	}
+
+	public void feedSDNWithTopology(){
+		this.sdnController.setTopology(topology, hosts, sdnhosts, switches);
 	}
 	
 	@Override
@@ -151,4 +155,5 @@ public abstract class OsmoticDatacenter extends Datacenter{
 	public void setSdnhosts(List<SDNHost> sdnhosts) {
 		this.sdnhosts = sdnhosts;
 	}
+
 }

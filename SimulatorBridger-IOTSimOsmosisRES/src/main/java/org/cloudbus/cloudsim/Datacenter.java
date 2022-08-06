@@ -82,26 +82,15 @@ public class Datacenter extends SimEntity {
 	 */
 	public Datacenter(String name, DatacenterCharacteristics characteristics, VmAllocationPolicy vmAllocationPolicy,
 			List<Storage> storageList, double schedulingInterval)
-			throws Exception {
+			 {
 		super(name);
 
 		setCharacteristics(characteristics);
 		setVmAllocationPolicy(vmAllocationPolicy);
 		setLastProcessTime(0.0);
 		setStorageList(storageList);
-		setVmList(new ArrayList<Vm>());
+		setVmList(new ArrayList<>());
 		setSchedulingInterval(schedulingInterval);
-
-
-//		for (Host host : getCharacteristics().getHostList()) {
-//			host.setDatacenter(this);
-//		}
-
-		// If this resource doesn't have any PEs then no useful at all
-//		if (getCharacteristics().getNumberOfPes() == 0) {
-//			throw new Exception(
-//					super.getName() + " : Error - this entity has no PEs. Therefore, can't process any Cloudlets.");
-//		}
 
 		// stores id of this class
 		getCharacteristics().setId(super.getId());
@@ -138,26 +127,26 @@ public class Datacenter extends SimEntity {
 		switch (ev.getTag()) {
 		// Resource characteristics inquiry
 		case CloudSimTags.RESOURCE_CHARACTERISTICS:
-			srcId = ((Integer) ev.getData()).intValue();
+			srcId = (Integer) ev.getData();
 			sendNow(srcId, ev.getTag(), getCharacteristics());
 
 			break;
 
 		// Resource dynamic info inquiry
 		case CloudSimTags.RESOURCE_DYNAMICS:
-			srcId = ((Integer) ev.getData()).intValue();
+			srcId = (Integer) ev.getData();
 			sendNow(srcId, ev.getTag(), 0);
 
 			break;
 
 		case CloudSimTags.RESOURCE_NUM_PE:
-			srcId = ((Integer) ev.getData()).intValue();
+			srcId = (Integer) ev.getData();
 			int numPE = getCharacteristics().getNumberOfPes();
 			sendNow(srcId, ev.getTag(), numPE);
 			break;
 
 		case CloudSimTags.RESOURCE_NUM_FREE_PE:
-			srcId = ((Integer) ev.getData()).intValue();
+			srcId = (Integer) ev.getData();
 			int freePesNumber = getCharacteristics().getNumberOfFreePes();
 			sendNow(srcId, ev.getTag(), freePesNumber);
 			break;
