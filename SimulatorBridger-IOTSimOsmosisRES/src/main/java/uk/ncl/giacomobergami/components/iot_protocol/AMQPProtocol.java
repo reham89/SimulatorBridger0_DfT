@@ -1,7 +1,5 @@
-package org.cloudbus.cloudsim.edge.iot.protocol;
+package uk.ncl.giacomobergami.components.iot_protocol;
 
-
-import org.cloudbus.cloudsim.edge.iot.protocol.IoTProtocol;
 
 public class AMQPProtocol extends IoTProtocol {
 	public static final float BATTERY_DRAINAGE_RATE=1.0f;

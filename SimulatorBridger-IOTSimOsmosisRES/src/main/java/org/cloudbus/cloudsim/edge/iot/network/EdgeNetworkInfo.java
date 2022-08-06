@@ -11,7 +11,7 @@
 
 package org.cloudbus.cloudsim.edge.iot.network;
 
-import org.cloudbus.cloudsim.edge.iot.protocol.IoTProtocol;
+import uk.ncl.giacomobergami.components.iot_protocol.IoTProtocol;
 
 /**
  * 

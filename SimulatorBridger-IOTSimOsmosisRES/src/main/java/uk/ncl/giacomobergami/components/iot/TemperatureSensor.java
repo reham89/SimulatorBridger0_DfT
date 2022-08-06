@@ -9,11 +9,10 @@
  * 
  */
 
-package org.cloudbus.cloudsim.edge.iot;
+package uk.ncl.giacomobergami.components.iot;
 
 import org.cloudbus.cloudsim.core.SimEvent;
 import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity;
-import org.cloudbus.cloudsim.edge.iot.IoTDevice;
 import org.cloudbus.cloudsim.edge.iot.network.EdgeNetworkInfo;
 
 /**
@@ -26,9 +25,8 @@ import org.cloudbus.cloudsim.edge.iot.network.EdgeNetworkInfo;
 
 public class TemperatureSensor extends IoTDevice {
 
-	public TemperatureSensor(EdgeNetworkInfo networkModel,
-							 ConfiguationEntity.IotDeviceEntity onta) {
-		super(networkModel, onta);
+	public TemperatureSensor(ConfiguationEntity.IotDeviceEntity onta) {
+		super( onta);
 	}
 
 	@Override

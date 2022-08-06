@@ -9,11 +9,10 @@
  * 
  */
 
-package org.cloudbus.cloudsim.edge.iot;
+package uk.ncl.giacomobergami.components.iot;
 
 import org.cloudbus.cloudsim.core.SimEvent;
 import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity;
-import org.cloudbus.cloudsim.edge.iot.IoTDevice;
 import org.cloudbus.cloudsim.edge.iot.network.EdgeNetworkInfo;
 
 /**
@@ -24,12 +23,14 @@ import org.cloudbus.cloudsim.edge.iot.network.EdgeNetworkInfo;
  * 
 **/
 
-public class CarSensor extends IoTDevice {
+public class LightSensor extends IoTDevice {
 
-	public CarSensor(EdgeNetworkInfo networkModel,
-					 ConfiguationEntity.IotDeviceEntity onta) {
-		super(networkModel, onta);
+
+	
+	public LightSensor(ConfiguationEntity.IotDeviceEntity onta) {
+		super( onta);
 	}
+
 	@Override
 	public boolean updateBatteryBySensing() {
 		battery.setCurrentCapacity(battery.getCurrentCapacity() - battery.getBatterySensingRate());

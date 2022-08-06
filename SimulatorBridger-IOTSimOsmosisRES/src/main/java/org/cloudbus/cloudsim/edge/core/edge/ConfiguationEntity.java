@@ -216,7 +216,6 @@ public class ConfiguationEntity {
 	
 	@Data
 	public static class EdgeLetEntity {
-
 		int cloudletId;
 		long cloudletLength;
 		int pesNumber;
@@ -225,7 +224,6 @@ public class ConfiguationEntity {
 		String utilizationModelCpu;
 		String utilizationModelRam;
 		String utilizationModelBw;
-
 	}
 
 	@Data
@@ -255,15 +253,20 @@ public class ConfiguationEntity {
 	public static class MovingRangeEntity {
 		public int beginX;
 		public int endX;
+		public int beginY;
+		public int endY;
 
 		public MovingRangeEntity() {
 			super();
 		}
 
-		public MovingRangeEntity(int beginX, int endX) {
+		public MovingRangeEntity(int beginX, int endX, int beginY, int endY) {
 			super();
 			this.beginX = beginX;
 			this.endX = endX;
+			this.beginY = beginY;
+			this.endY = endY;
+
 		}
 	}
 

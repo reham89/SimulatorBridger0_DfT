@@ -1,6 +1,6 @@
 package org.cloudbus.agent;
 
-import org.cloudbus.cloudsim.edge.iot.IoTDevice;
+import uk.ncl.giacomobergami.components.iot.IoTDevice;
 
 public class DeviceAgent extends AbstractAgent{
     private IoTDevice ioTDevice;

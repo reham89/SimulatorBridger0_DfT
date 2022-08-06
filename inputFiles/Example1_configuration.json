@@ -150,7 +150,7 @@
 				"max_battery_capacity":100.0,
 				"battery_sensing_rate":0.001,
 				"battery_sending_rate":0.001,
-				"ioTClassName":"org.cloudbus.cloudsim.edge.iot.TemperatureSensor",		
+				"ioTClassName":"uk.ncl.giacomobergami.components.iot.TemperatureSensor",		
 				 "mobilityEntity":{
 					"movable":false,
 					"location":{
@@ -160,7 +160,7 @@
 					}
 				 },
 				 "networkModelEntity":{
-					"communicationProtocol":"xmpp",
+					"communicationProtocol":"uk.ncl.giacomobergami.components.iot_protocol.XMPPProtocol",
 					"networkType":"wifi"
 				 }
 			  },
@@ -170,7 +170,7 @@
 				"max_battery_capacity":100.0,
 				"battery_sensing_rate":0.001,
 				"battery_sending_rate":0.001,
-				"ioTClassName":"org.cloudbus.cloudsim.edge.iot.TemperatureSensor",		
+				"ioTClassName":"uk.ncl.giacomobergami.components.iot.TemperatureSensor",		
 				 "mobilityEntity":{
 					"movable":false,
 					"location":{
@@ -180,7 +180,7 @@
 					}
 				 },
 				 "networkModelEntity":{
-					"communicationProtocol":"xmpp",
+					"communicationProtocol":"uk.ncl.giacomobergami.components.iot_protocol.XMPPProtocol",
 					"networkType":"wifi"
 				 }
 			  },
@@ -190,7 +190,7 @@
 				"max_battery_capacity":100.0,
 				"battery_sensing_rate":0.001,
 				"battery_sending_rate":0.001,
-				"ioTClassName":"org.cloudbus.cloudsim.edge.iot.TemperatureSensor",		
+				"ioTClassName":"uk.ncl.giacomobergami.components.iot.TemperatureSensor",		
 				 "mobilityEntity":{
 					"movable":false,
 					"location":{
@@ -200,7 +200,7 @@
 					}
 				 },
 				 "networkModelEntity":{
-					"communicationProtocol":"xmpp",
+					"communicationProtocol":"uk.ncl.giacomobergami.components.iot_protocol.XMPPProtocol",
 					"networkType":"wifi"
 				 }
 			  },
@@ -210,7 +210,7 @@
 				"max_battery_capacity":100.0,
 				"battery_sensing_rate":0.001,
 				"battery_sending_rate":0.001,
-				"ioTClassName":"org.cloudbus.cloudsim.edge.iot.TemperatureSensor",		
+				"ioTClassName":"uk.ncl.giacomobergami.components.iot.TemperatureSensor",		
 				 "mobilityEntity":{
 					"movable":false,
 					"location":{
@@ -220,7 +220,7 @@
 					}
 				 },
 				 "networkModelEntity":{
-					"communicationProtocol":"xmpp",
+					"communicationProtocol":"uk.ncl.giacomobergami.components.iot_protocol.XMPPProtocol",
 					"networkType":"wifi"
 				 }
 			  },
@@ -230,7 +230,7 @@
 				"max_battery_capacity":100.0,
 				"battery_sensing_rate":0.001,
 				"battery_sending_rate":0.001,
-				"ioTClassName":"org.cloudbus.cloudsim.edge.iot.TemperatureSensor",		
+				"ioTClassName":"uk.ncl.giacomobergami.components.iot.TemperatureSensor",		
 				 "mobilityEntity":{
 					"movable":false,
 					"location":{
@@ -240,7 +240,7 @@
 					}
 				 },
 				 "networkModelEntity":{
-					"communicationProtocol":"xmpp",
+					"communicationProtocol":"uk.ncl.giacomobergami.components.iot_protocol.XMPPProtocol",
 					"networkType":"wifi"
 				 }
 			  },
@@ -250,7 +250,7 @@
 				"max_battery_capacity":100.0,
 				"battery_sensing_rate":0.001,
 				"battery_sending_rate":0.001,
-				"ioTClassName":"org.cloudbus.cloudsim.edge.iot.TemperatureSensor",		
+				"ioTClassName":"uk.ncl.giacomobergami.components.iot.TemperatureSensor",		
 				 "mobilityEntity":{
 					"movable":false,
 					"location":{
@@ -260,7 +260,7 @@
 					}
 				 },
 				 "networkModelEntity":{
-					"communicationProtocol":"xmpp",
+					"communicationProtocol":"uk.ncl.giacomobergami.components.iot_protocol.XMPPProtocol",
 					"networkType":"wifi"
 				 }
 			  },
@@ -270,7 +270,7 @@
 				"max_battery_capacity":100.0,
 				"battery_sensing_rate":0.001,
 				"battery_sending_rate":0.001,
-				"ioTClassName":"org.cloudbus.cloudsim.edge.iot.TemperatureSensor",		
+				"ioTClassName":"uk.ncl.giacomobergami.components.iot.TemperatureSensor",		
 				 "mobilityEntity":{
 					"movable":false,
 					"location":{
@@ -280,7 +280,7 @@
 					}
 				 },
 				 "networkModelEntity":{
-					"communicationProtocol":"xmpp",
+					"communicationProtocol":"uk.ncl.giacomobergami.components.iot_protocol.XMPPProtocol",
 					"networkType":"wifi"
 				 }
 			  },
@@ -290,7 +290,7 @@
 				"max_battery_capacity":100.0,
 				"battery_sensing_rate":0.001,
 				"battery_sending_rate":0.001,
-				"ioTClassName":"org.cloudbus.cloudsim.edge.iot.TemperatureSensor",		
+				"ioTClassName":"uk.ncl.giacomobergami.components.iot.TemperatureSensor",		
 				 "mobilityEntity":{
 					"movable":false,
 					"location":{
@@ -300,7 +300,7 @@
 					}
 				 },
 				 "networkModelEntity":{
-					"communicationProtocol":"xmpp",
+					"communicationProtocol":"uk.ncl.giacomobergami.components.iot_protocol.XMPPProtocol",
 					"networkType":"wifi"
 				 }
 			  },
@@ -310,7 +310,7 @@
 				"max_battery_capacity":100.0,
 				"battery_sensing_rate":0.001,
 				"battery_sending_rate":0.001,
-				"ioTClassName":"org.cloudbus.cloudsim.edge.iot.TemperatureSensor",		
+				"ioTClassName":"uk.ncl.giacomobergami.components.iot.TemperatureSensor",		
 				 "mobilityEntity":{
 					"movable":false,
 					"location":{
@@ -320,7 +320,7 @@
 					}
 				 },
 				 "networkModelEntity":{
-					"communicationProtocol":"xmpp",
+					"communicationProtocol":"uk.ncl.giacomobergami.components.iot_protocol.XMPPProtocol",
 					"networkType":"wifi"
 				 }
 			  },
@@ -330,7 +330,7 @@
 				"max_battery_capacity":100.0,
 				"battery_sensing_rate":0.001,
 				"battery_sending_rate":0.001,
-				"ioTClassName":"org.cloudbus.cloudsim.edge.iot.TemperatureSensor",		
+				"ioTClassName":"uk.ncl.giacomobergami.components.iot.TemperatureSensor",		
 				 "mobilityEntity":{
 					"movable":false,
 					"location":{
@@ -340,7 +340,7 @@
 					}
 				 },
 				 "networkModelEntity":{
-					"communicationProtocol":"xmpp",
+					"communicationProtocol":"uk.ncl.giacomobergami.components.iot_protocol.XMPPProtocol",
 					"networkType":"wifi"
 				 }
 			  }

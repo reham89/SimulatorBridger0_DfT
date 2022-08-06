@@ -9,11 +9,10 @@
  * 
  */
 
-package org.cloudbus.cloudsim.edge.iot;
+package uk.ncl.giacomobergami.components.iot;
 
 import org.cloudbus.cloudsim.core.SimEvent;
 import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity;
-import org.cloudbus.cloudsim.edge.iot.IoTDevice;
 import org.cloudbus.cloudsim.edge.iot.network.EdgeNetworkInfo;
 
 /**
@@ -24,13 +23,10 @@ import org.cloudbus.cloudsim.edge.iot.network.EdgeNetworkInfo;
  * 
 **/
 
-public class LightSensor extends IoTDevice {
+public class VoiceSensor extends IoTDevice {
 
-
-	
-	public LightSensor(EdgeNetworkInfo networkModel,
-					   ConfiguationEntity.IotDeviceEntity onta) {
-		super(networkModel, onta);
+	public VoiceSensor(ConfiguationEntity.IotDeviceEntity onta) {
+		super( onta);
 	}
 
 	@Override
@@ -62,4 +58,5 @@ public class LightSensor extends IoTDevice {
 	@Override
 	public void shutdownEntity() {
 	}
+	
 }

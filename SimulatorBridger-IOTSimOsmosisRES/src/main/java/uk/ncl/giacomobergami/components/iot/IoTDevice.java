@@ -9,7 +9,7 @@
  * 
  */
 
-package org.cloudbus.cloudsim.edge.iot;
+package uk.ncl.giacomobergami.components.iot;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,10 +23,12 @@ import org.cloudbus.cloudsim.core.predicates.Predicate;
 import org.cloudbus.cloudsim.edge.core.edge.Battery;
 import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity;
 import org.cloudbus.cloudsim.edge.core.edge.Mobility;
+import org.cloudbus.cloudsim.edge.iot.network.EdgeNetwork;
 import org.cloudbus.cloudsim.edge.iot.network.EdgeNetworkInfo;
 import org.cloudbus.cloudsim.edge.utils.LogUtil;
 import org.cloudbus.osmosis.core.*;
 import org.cloudbus.osmosis.core.policies.MovingPolicy;
+import uk.ncl.giacomobergami.components.iot_protocol.IoTProtocolGeneratorFactory;
 
 /**
  * 
@@ -59,11 +61,13 @@ public abstract class IoTDevice extends SimEntity {
 
 	private List<Flow> flowList = new ArrayList<>(); 
 	
-	public IoTDevice(EdgeNetworkInfo networkModel,
-					 ConfiguationEntity.IotDeviceEntity onta) {
+	public IoTDevice(ConfiguationEntity.IotDeviceEntity onta) {
 		super(onta.getName());
-		this.battery = new Battery();	
-		this.networkModel = networkModel;
+		this.battery = new Battery();
+		this.networkModel =
+				new EdgeNetworkInfo(new EdgeNetwork(
+						onta.getNetworkModelEntity().getNetworkType()), IoTProtocolGeneratorFactory.generateFacade(
+						onta.getNetworkModelEntity().getCommunicationProtocol()));
 		this.enabled = true;
 		this.bw = onta.getBw();
 		
@@ -86,6 +90,7 @@ public abstract class IoTDevice extends SimEntity {
 
 		// Mobility Setting
 		this.mobility = new Mobility(onta.getMobilityEntity());
+
 	}
 	
 	@Override

@@ -26,10 +26,8 @@ import org.cloudbus.cloudsim.core.MainEventManager;
 import org.cloudbus.cloudsim.core.CloudSimTags;
 import org.cloudbus.cloudsim.core.SimEvent;
 import org.cloudbus.cloudsim.edge.core.edge.EdgeLet;
-import org.cloudbus.cloudsim.edge.iot.IoTDevice;
+import uk.ncl.giacomobergami.components.iot.IoTDevice;
 import uk.ncl.giacomobergami.components.mel_routing.MELRoutingPolicy;
-
-import static org.cloudbus.osmosis.core.OsmoticTags.MOVING;
 
 /**
  * 

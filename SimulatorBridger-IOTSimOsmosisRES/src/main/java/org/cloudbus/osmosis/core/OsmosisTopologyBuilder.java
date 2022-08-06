@@ -11,42 +11,30 @@
 
 package org.cloudbus.osmosis.core;
 
-
-import org.cloudbus.cloudsim.*;
+import org.cloudbus.cloudsim.DatacenterCharacteristics;
+import org.cloudbus.cloudsim.Host;
+import org.cloudbus.cloudsim.Storage;
+import org.cloudbus.cloudsim.Vm;
 import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity;
+import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity.CloudDataCenterEntity;
+import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity.EdgeDataCenterEntity;
+import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity.LogEntity;
 import org.cloudbus.cloudsim.edge.core.edge.EdgeDataCenter;
 import org.cloudbus.cloudsim.edge.core.edge.EdgeDevice;
 import org.cloudbus.cloudsim.edge.core.edge.MEL;
-import org.cloudbus.cloudsim.edge.core.edge.Mobility;
-import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity.CloudDataCenterEntity;
-import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity.ControllerEntity;
-import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity.EdgeDataCenterEntity;
-import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity.EdgeDatacenterCharacteristicsEntity;
-import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity.IotDeviceEntity;
-import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity.LogEntity;
-import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity.NetworkModelEntity;
-import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity.WanEntity;
-import org.cloudbus.cloudsim.edge.core.edge.Mobility.MovingRange;
-import org.cloudbus.cloudsim.edge.iot.IoTDevice;
-import org.cloudbus.cloudsim.edge.iot.network.EdgeNetwork;
-import org.cloudbus.cloudsim.edge.iot.network.EdgeNetworkInfo;
-import org.cloudbus.cloudsim.edge.iot.protocol.AMQPProtocol;
-import org.cloudbus.cloudsim.edge.iot.protocol.CoAPProtocol;
-import org.cloudbus.cloudsim.edge.iot.protocol.IoTProtocol;
-import org.cloudbus.cloudsim.edge.iot.protocol.MQTTProtocol;
-import org.cloudbus.cloudsim.edge.iot.protocol.XMPPProtocol;
 import org.cloudbus.cloudsim.edge.utils.LogUtil;
 import org.cloudbus.cloudsim.edge.utils.LogUtil.Level;
 import org.cloudbus.cloudsim.sdn.Switch;
 import org.cloudbus.cloudsim.sdn.example.policies.VmAllocationPolicyCombinedMostFullFirst;
-import uk.ncl.giacomobergami.components.IoTGeneratorFactory;
-import uk.ncl.giacomobergami.components.sdn_routing.SDNRoutingPolicyGeneratorFacade;
-import uk.ncl.giacomobergami.components.sdn_traffic.SDNTrafficPolicyGeneratorFacade;
 import org.cloudbus.osmosis.core.policies.VmMELAllocationPolicyCombinedLeastFullFirst;
+import uk.ncl.giacomobergami.components.iot.IoTDevice;
+import uk.ncl.giacomobergami.components.iot.IoTGeneratorFactory;
 
 import java.io.File;
-import java.lang.reflect.Constructor;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -157,7 +145,6 @@ public class OsmosisTopologyBuilder {
 		if (edgeDCEntity.getControllers().size() > 1)
 			throw new RuntimeException("Expected size 1 for "+edgeDCEntity.getControllers().size());
 
-		//			List<EdgeDeviceEntity> hostListEntities = edgeDCEntity.getHosts();
 		var hostList = edgeDCEntity.getHosts()
 				.stream()
 				.map(x -> new EdgeDevice(hostId, x))
@@ -170,8 +157,6 @@ public class OsmosisTopologyBuilder {
 				hostList,
 				storageList,
 				edgeDCEntity.getSchedulingInterval());
-
-
 		System.out.println("Edge SDN cotroller has been created");
 
 		var MELList = edgeDCEntity.getMELEntities()
@@ -185,42 +170,19 @@ public class OsmosisTopologyBuilder {
 				.collect(Collectors.toList());
 		datacenter.setVmList(MELList);
 
-		this.broker.mapVmNameToId(datacenter.getVmNameToIdList());
+		broker.mapVmNameToId(datacenter.getVmNameToIdList());
 		datacenter.getVmAllocationPolicy().setUpVmTopology(hostList);
 		datacenter.getSdnController().addVmsToSDNhosts(MELList);
 		var associatedEdge = edgeDCEntity.getName();
 		edgeDCEntity.getIoTDevices()
 				.forEach(x -> {
-					IoTDevice newInstance = IoTGeneratorFactory.generateFacade(x.getIoTClassName(),
-							this.SetEdgeNetworkModel(x.getNetworkModelEntity()),
-							x);
+					IoTDevice newInstance = IoTGeneratorFactory.generateFacade(x);
 					if ((associatedEdge != null) && (!associatedEdge.isEmpty()))
 						newInstance.setAssociatedEdge(associatedEdge);
 					broker.addIoTDevice(newInstance);
 				});
 
 		return datacenter;
-	}
-
-	private EdgeNetworkInfo SetEdgeNetworkModel(NetworkModelEntity networkModelEntity) {
-		String communicationProtocolName = networkModelEntity.getCommunicationProtocol();
-		communicationProtocolName = communicationProtocolName.toLowerCase();
-		IoTProtocol communicationProtocol = null;
-		switch (communicationProtocolName) {
-			case "xmpp" -> communicationProtocol = new XMPPProtocol();
-			case "mqtt" -> communicationProtocol = new MQTTProtocol();
-			case "coap" -> communicationProtocol = new CoAPProtocol();
-			case "amqp" -> communicationProtocol = new AMQPProtocol();
-			default -> {
-				System.out.println("have not supported protocol " + communicationProtocol + " yet!");
-				return null;
-			}
-		}
-		String networkTypeName = networkModelEntity.getNetworkType();
-		networkTypeName = networkTypeName.toLowerCase();
-	
-		EdgeNetwork edgeNetwork = new EdgeNetwork(networkTypeName);
-		return new EdgeNetworkInfo(edgeNetwork, communicationProtocol);
 	}
 	
 	private void initLog(ConfiguationEntity conf) {

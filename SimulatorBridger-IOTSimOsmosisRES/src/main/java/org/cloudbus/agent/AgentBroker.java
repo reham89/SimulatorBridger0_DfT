@@ -1,6 +1,6 @@
 package org.cloudbus.agent;
 
-import org.cloudbus.cloudsim.edge.iot.IoTDevice;
+import uk.ncl.giacomobergami.components.iot.IoTDevice;
 import org.cloudbus.osmosis.core.OsmoticDatacenter;
 import org.cloudbus.res.EnergyController;
 import org.cloudbus.res.config.AppConfig;

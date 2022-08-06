@@ -25,7 +25,8 @@ public class EdgeNetwork {
 
 	public EdgeNetwork(String networkType){
 		this.networkType = networkType;
-		setEdgeNetworkType(networkType);
+		speed = 100;
+//		setEdgeNetworkType(networkType);
 	}
 	
 	public String getNetworkType() {
@@ -36,28 +37,28 @@ public class EdgeNetwork {
 		this.networkType = networkType;
 	}
 	
-	private void setEdgeNetworkType(String networkType){		
-		switch (networkType) {
-		case "wifi":
-			speed = 100; // Mbps
-			break;
-		case "wlan":
-			speed = 100; // Mbps
-			break;
-		case "4g":
-			speed = 100; // Mbps
-			break;
-		case "3g":
-			speed = 100; // Mbps
-			break;
-		case "bluetooth":
-			speed = 100; // Mbps
-			break;
-		case "lan":
-			speed = 100; // Mbps
-			break;				
-		}
-	}
+//	private void setEdgeNetworkType(String networkType){
+//		switch (networkType) {
+//		case "wifi":
+//			speed = 100; // Mbps
+//			break;
+//		case "wlan":
+//			speed = 100; // Mbps
+//			break;
+//		case "4g":
+//			speed = 100; // Mbps
+//			break;
+//		case "3g":
+//			speed = 100; // Mbps
+//			break;
+//		case "bluetooth":
+//			speed = 100; // Mbps
+//			break;
+//		case "lan":
+//			speed = 100; // Mbps
+//			break;
+//		}
+//	}
 		
 	public double getSpeedRate(){
 		return this.speed;

@@ -1,6 +1,4 @@
-package org.cloudbus.cloudsim.edge.iot.protocol;
-
-import org.cloudbus.cloudsim.edge.iot.protocol.IoTProtocol;
+package uk.ncl.giacomobergami.components.iot_protocol;
 
 public class CoAPProtocol extends IoTProtocol {
 

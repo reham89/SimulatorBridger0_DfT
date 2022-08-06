@@ -12,31 +12,35 @@ public class Mobility {
 	public Mobility(Location location) {
 		super();
 		this.location = new Location(location.x,location.y,location.z);
-
 	}
 
     public Mobility(ConfiguationEntity.MobilityEntity moto) {
 		this(moto.getLocation());
 		movable = moto.isMovable();
 		if (moto.isMovable()) {
-			range = new MovingRange(moto.getRange().beginX, moto.getRange().endX);
+			range = new MovingRange(moto.getRange().beginX,
+									moto.getRange().endX,
+					moto.getRange().beginY,
+					moto.getRange().endY);
 			signalRange = moto.getSignalRange();
 			velocity = moto.getVelocity();
 		}
     }
 
     public static class MovingRange{
-		public int beginX;
-		public int endX;
+		public int beginX, beginY;
+		public int endX, endY;
 
 		public MovingRange() {
 			super();
 		}
 
-		public MovingRange(int beginX, int endX) {
+		public MovingRange(int beginX, int endX, int beginY, int endY) {
 			super();
 			this.beginX = beginX;
 			this.endX = endX;
+			this.beginY = beginY;
+			this.endY = endY;
 		}
 
 	}
