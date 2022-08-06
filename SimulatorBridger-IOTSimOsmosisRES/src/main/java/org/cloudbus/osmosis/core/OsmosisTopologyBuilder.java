@@ -27,8 +27,11 @@ import org.cloudbus.cloudsim.edge.utils.LogUtil.Level;
 import org.cloudbus.cloudsim.sdn.Switch;
 import org.cloudbus.cloudsim.sdn.example.policies.VmAllocationPolicyCombinedMostFullFirst;
 import org.cloudbus.osmosis.core.policies.VmMELAllocationPolicyCombinedLeastFullFirst;
+import org.cloudbus.res.model.pvgis.input.Fields;
 import uk.ncl.giacomobergami.components.iot.IoTDevice;
+import uk.ncl.giacomobergami.components.iot.IoTDeviceConfiguration;
 import uk.ncl.giacomobergami.components.iot.IoTGeneratorFactory;
+import uk.ncl.giacomobergami.utils.data.CSVMediator;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -174,6 +177,13 @@ public class OsmosisTopologyBuilder {
 		datacenter.getVmAllocationPolicy().setUpVmTopology(hostList);
 		datacenter.getSdnController().addVmsToSDNhosts(MELList);
 		var associatedEdge = edgeDCEntity.getName();
+
+
+				new CSVMediator<IoTDeviceConfiguration>(IoTDeviceConfiguration.class)
+						.writeAll(new File("customer.csv").getAbsoluteFile(),
+								edgeDCEntity.getIoTDevices().stream().map(IoTDeviceConfiguration::fromLegacy).collect(Collectors.toList()));
+
+
 		edgeDCEntity.getIoTDevices()
 				.forEach(x -> {
 					IoTDevice newInstance = IoTGeneratorFactory.generateFacade(x);

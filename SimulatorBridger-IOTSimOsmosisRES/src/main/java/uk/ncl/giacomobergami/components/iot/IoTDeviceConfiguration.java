@@ -41,6 +41,56 @@ public class IoTDeviceConfiguration {
     public String utilizationModelBw;
 
 
+    public static IoTDeviceConfiguration fromLegacy(ConfiguationEntity.IotDeviceEntity legacy) {
+        IoTDeviceConfiguration result = new IoTDeviceConfiguration();
+        result.ioTClassName = legacy.ioTClassName;
+        result.setName(legacy.getName());
+        result.setData_frequency(legacy.getData_frequency());
+        result.setDataGenerationTime(legacy.getDataGenerationTime());
+        result.setComplexityOfDataPackage(legacy.getComplexityOfDataPackage());
+        result.setDataSize(legacy.getDataSize());
+        result.setMax_battery_capacity(legacy.getMax_battery_capacity());
+        result.setInitial_battery_capacity(legacy.getInitial_battery_capacity());
+        result.setBattery_sensing_rate(legacy.getBattery_sensing_rate());
+        result.setBattery_sending_rate(legacy.getBattery_sending_rate());
+        result.setBattery_voltage(legacy.getBattery_voltage());
+        result.setRes_powered(legacy.isRes_powered());
+        result.setSolar_peak_power(legacy.getSolar_peak_power());
+        result.setMax_charging_current(legacy.getMax_charging_current());
+        result.setProcessingAbility(legacy.getProcessingAbility());
+        result.setBw(legacy.getBw());
+        var ele = legacy.getDataTemplate();
+        if (ele != null) {
+            result.setCloudletId(ele.getCloudletId());
+            result.setCloudletLength(ele.getCloudletLength());
+            result.setCloudletFileSize(ele.getCloudletFileSize());
+            result.setPesNumber(ele.getPesNumber());
+            result.setCloudletOutputSize(ele.getCloudletOutputSize());
+            result.setUtilizationModelBw(ele.getUtilizationModelBw());
+            result.setUtilizationModelCpu(ele.getUtilizationModelCpu());
+            result.setUtilizationModelRam(ele.getUtilizationModelRam());
+        }
+        var nme = legacy.getNetworkModelEntity();
+        if (nme != null) {
+            result.setCommunicationProtocol(nme.getCommunicationProtocol());
+            result.setNetworkType(nme.getNetworkType());
+        }
+        var mobility = legacy.getMobilityEntity();
+        if (mobility != null) {
+            result.setMovable(mobility.isMovable());
+            result.setSignalRange(mobility.getSignalRange());
+            result.setVelocity(mobility.getVelocity());
+            var inner = mobility.getRange();
+            if (inner != null) {
+                result.beginX = inner.beginX;
+                result.beginY = inner.beginY;
+                result.endX = inner.endX;
+                result.endY = inner.endY;
+            }
+        }
+        return result;
+    }
+
     /**
      * This representation enables a more versatile tabular representation of the same data,
      * without requiring to adhere to a fixed nested data structure. In fact, nested data
