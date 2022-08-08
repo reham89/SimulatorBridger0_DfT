@@ -60,6 +60,9 @@ public class GlobalConfigurationSettings {
         public String controllercontroller_routingPolicy;
         public String switches_file;
 
+        @JsonIgnore
+        public List<uk.ncl.giacomobergami.components.networking.Switch> switches;
+
         public String getController_name() {
             return controller_name;
         }
@@ -102,6 +105,48 @@ public class GlobalConfigurationSettings {
     @JsonIgnore
     public volatile SDWANController sdWanController;
 
+    @JsonIgnore
+    public List<SubNetworkConfiguration> actualEdgeDataCenters;
+
+    @JsonIgnore
+    public List<SubNetworkConfiguration> actualCloudDataCenters;
+
+    @JsonIgnore
+    public List<IoTDeviceTabularConfiguration> iotDevices;
+
+    @JsonIgnore
+    Map<String, Collection<LegacyConfiguration.LinkEntity>> global_network_links;
+
+    public GlobalConfigurationSettings(List<SubNetworkConfiguration> actualEdgeDataCenters,
+                                       List<SubNetworkConfiguration> actualCloudDataCenters,
+                                       List<IoTDeviceTabularConfiguration> iotDevices,
+                                       List<TopologyLink> global_network_links,
+                                       List<uk.ncl.giacomobergami.components.networking.Switch> sdwan_switches,
+                                       String sdwan_traffic,
+                                       String sdwan_routing,
+                                       String sdwan_controller,
+                                       double terminate,
+                                       String start) {
+        this();
+        this.actualEdgeDataCenters = actualEdgeDataCenters;
+        this.actualCloudDataCenters = actualCloudDataCenters;
+        this.iotDevices = iotDevices;
+        this.global_network_links = TopologyLink.asNetworkedLinks(global_network_links);
+        logLevel = "debug";
+        OsmesisBroker = "OsmesisBroker";
+        saveLogToFile = true;
+        logFilePath = "log.txt";
+        append = true;
+        trace_flag = false;
+        sdwan = new SDWAN();
+        sdwan.controllercontroller_trafficPolicy = sdwan_traffic;
+        sdwan.controllercontroller_routingPolicy = sdwan_routing;
+        sdwan.controller_name = sdwan_controller;
+        sdwan.switches = sdwan_switches;
+        terminate_simulation_at = terminate;
+        simulationStartTime = start;
+    }
+
     public OsmoticBroker newBroker() {
         if (conf == null)
             throw new RuntimeException("ERROR: the settins are not properly initialized!");
@@ -130,7 +175,7 @@ public class GlobalConfigurationSettings {
                 var hosts = cloud.getHosts().stream().map(Host::new).collect(Collectors.toList());
                 var vms_or_mels = cloud.getVMs().stream().map(VM::new).collect(Collectors.toList());
                 var switches = cloud.getSwitches().stream().map(uk.ncl.giacomobergami.components.networking.Switch::new).collect(Collectors.toList());
-                var dataForFolder = new SubFolderForNetwork(hosts, vms_or_mels, switches, new DataCenterWithController(cloud));
+                var dataForFolder = new SubNetworkConfiguration(hosts, vms_or_mels, switches, new DataCenterWithController(cloud));
                 dataForFolder.serializeToFolder(folder);
                 for (var legacyLink : cloud.getLinks()) {
                     writer.write(new TopologyLink(network, legacyLink));
@@ -147,7 +192,7 @@ public class GlobalConfigurationSettings {
                 var hosts = edge.getHosts().stream().map(Host::new).collect(Collectors.toList());
                 var vms_or_mels = edge.getMELEntities().stream().map(VM::new).collect(Collectors.toList());
                 var switches = edge.getSwitches().stream().map(uk.ncl.giacomobergami.components.networking.Switch::new).collect(Collectors.toList());
-                var dataForFolder = new SubFolderForNetwork(hosts, vms_or_mels, switches, new DataCenterWithController(edge));
+                var dataForFolder = new SubNetworkConfiguration(hosts, vms_or_mels, switches, new DataCenterWithController(edge));
                 dataForFolder.serializeToFolder(folder);
                 for (var legacyLink : edge.getLinks()) {
                     writer.write(new TopologyLink(network, legacyLink));
@@ -200,7 +245,6 @@ public class GlobalConfigurationSettings {
         YAML.serialize(this, new File("iot_sim_osmosis_res.yaml").getAbsoluteFile());
     }
 
-    @Deprecated
     public GlobalConfigurationSettings() {
         conf = new SimulatorSettings();
     }
@@ -230,31 +274,31 @@ public class GlobalConfigurationSettings {
         }
     }
 
-    public List<IoTDevice> getIoTDevices(OsmoticBroker broker) {
-        List<IoTDevice> ls = new ArrayList<>();
-        try (var reader = IoTDeviceTabularConfiguration.csvReader().beginCSVRead(new File(IoTSpecsFile))) {
-            while (reader.hasNext()) {
-                var curr = reader.next();
-                IoTDevice newInstance = IoTGeneratorFactory.generateFacade(curr.asLegacyConfiguration(), conf.flowId);
-                if ((curr.associatedEdge != null) && (!curr.associatedEdge.isEmpty()))
-                    newInstance.setAssociatedEdge(curr.associatedEdge);
-                broker.addIoTDevice(newInstance);
-                ls.add(newInstance);
-            }
-        } catch (Exception ignored) { }
+    public List<IoTDeviceTabularConfiguration> getIoTConfigurations() {
+        List<IoTDeviceTabularConfiguration> ls = new ArrayList<>();
+        IoTDeviceTabularConfiguration.csvReader().readAll(new File(IoTSpecsFile), ls);
         return ls;
     }
 
-    public List<LegacyConfiguration.SwitchEntity> asLegacySDWANSwitches() {
-        var switches = new ArrayList<LegacyConfiguration.SwitchEntity>();
-        try (var reader = uk.ncl.giacomobergami.components.networking.Switch.csvReader().beginCSVRead(new File(sdwan.switches_file).getAbsoluteFile())) {
-            while (reader.hasNext()) {
-                switches.add(reader.next().asLegacySwitchEntity(sdwan.controller_name));
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    public List<IoTDevice> getIoTDevices(OsmoticBroker broker, List<IoTDeviceTabularConfiguration> input) {
+        return input.stream()
+                .map(curr -> {
+                    IoTDevice newInstance = IoTGeneratorFactory.generateFacade(curr.asLegacyConfiguration(), conf.flowId);
+                    if ((curr.associatedEdge != null) && (!curr.associatedEdge.isEmpty()))
+                        newInstance.setAssociatedEdge(curr.associatedEdge);
+                    broker.addIoTDevice(newInstance);
+                    return newInstance;
+                }).collect(Collectors.toList());
+    }
+
+    public List<uk.ncl.giacomobergami.components.networking.Switch> asSDWANSwitches() {
+        var switches = new ArrayList<uk.ncl.giacomobergami.components.networking.Switch>();
+        uk.ncl.giacomobergami.components.networking.Switch.csvReader().readAll(new File(sdwan.switches_file).getAbsoluteFile(),switches);
         return switches;
+    }
+
+    public List<LegacyConfiguration.SwitchEntity> asLegacySDWANSwitches(List<uk.ncl.giacomobergami.components.networking.Switch> ls) {
+        return ls.stream().map(x -> x.asLegacySwitchEntity(sdwan.controller_name)).collect(Collectors.toList());
     }
 
     public SDWANController asSDWANControllerWithNoInitializedTopology(List<Switch> datacenterGateways) {
@@ -266,18 +310,18 @@ public class GlobalConfigurationSettings {
     }
 
     public GlobalConfigurationSettings buildTopology(OsmoticBroker broker) {
-
-        var global_network_links = readLinksFromFile();
+        if (actualEdgeDataCenters == null || actualCloudDataCenters == null || iotDevices == null ||global_network_links == null||sdwan == null || sdwan.switches == null ||
+                (actualEdgeDataCenters.isEmpty()) ||
+                actualCloudDataCenters.isEmpty() ||
+                iotDevices.isEmpty() ||
+                global_network_links.isEmpty() ||
+                sdwan.switches.isEmpty()) {
+            fillDataStructuresFromFiles();
+        }
 
         List<Switch> datacenterGateways = new ArrayList<>();
-
         // Cloud Data Centers
-        for (var x : cloudDataCenters) {
-            var reader = new SubFolderForNetwork(new File(absolute.getParentFile(), x));
-            if (x.equals("sdwan"))
-                throw new RuntimeException("A cloud data center cannot be named 'sdwan'");
-            if (!reader.conf.datacenter_name.equals(x))
-                throw new RuntimeException(x+" expected to be equal to "+ reader.conf.datacenter_name);
+        for (var reader : actualCloudDataCenters) {
             var y = reader.createCloudDatacenter(broker, conf.hostId, conf.vmId, global_network_links);
             var controller = y.getSdnController();
             datacenterGateways.add(controller.getGateway());
@@ -285,12 +329,7 @@ public class GlobalConfigurationSettings {
         }
 
         // Edge Data Centers
-        for (var x : edgeDataCenters) {
-            var reader = new SubFolderForNetwork(new File(absolute.getParentFile(), x));
-            if (x.equals("sdwan"))
-                throw new RuntimeException("An edge data center cannot be named 'sdwan'");
-            if (!reader.conf.datacenter_name.equals(x))
-                throw new RuntimeException(x+" expected to be equal to "+ reader.conf.datacenter_name);
+        for (var reader : actualEdgeDataCenters) {
             var y = reader.createEdgeDatacenter(broker, conf.hostId, conf.vmId, global_network_links);
             var controller = y.getSdnController();
             datacenterGateways.add(controller.getGateway());
@@ -298,7 +337,7 @@ public class GlobalConfigurationSettings {
         }
 
         // IoT Devices
-        var iot = getIoTDevices(broker);
+        var iot = getIoTDevices(broker, iotDevices);
 
         // Log Initialization
         initLog();
@@ -309,12 +348,38 @@ public class GlobalConfigurationSettings {
             throw new RuntimeException("In order to make the simulator work, you should have a sdwan network connecting edge and cloud sub-networks!");
         }
         sdWanController = asSDWANControllerWithNoInitializedTopology(datacenterGateways);
-        sdWanController.initSdWANTopology(asLegacySDWANSwitches(),
+        sdWanController.initSdWANTopology(asLegacySDWANSwitches(sdwan.switches),
                                           global_network_links.get("sdwan"),
                                           datacenterGateways);
         conf.osmesisDatacentres.forEach(datacenter -> datacenter.getSdnController().setWanController(sdWanController));
         sdWanController.addAllDatacenters(conf.osmesisDatacentres);
         return this;
+    }
+
+    private void fillDataStructuresFromFiles() {
+        global_network_links = readLinksFromFile();
+
+        actualCloudDataCenters = new ArrayList<>();
+        for (var x : cloudDataCenters) {
+            var reader = new SubNetworkConfiguration(new File(absolute.getParentFile(), x));
+            if (x.equals("sdwan"))
+                throw new RuntimeException("A cloud data center cannot be named 'sdwan'");
+            if (!reader.conf.datacenter_name.equals(x))
+                throw new RuntimeException(x+" expected to be equal to "+ reader.conf.datacenter_name);
+            actualCloudDataCenters.add(reader);
+        }
+
+        actualEdgeDataCenters = new ArrayList<>();
+        for (var x : edgeDataCenters) {
+            var reader = new SubNetworkConfiguration(new File(absolute.getParentFile(), x));
+            if (x.equals("sdwan"))
+                throw new RuntimeException("An edge data center cannot be named 'sdwan'");
+            if (!reader.conf.datacenter_name.equals(x))
+                throw new RuntimeException(x+" expected to be equal to "+ reader.conf.datacenter_name);
+            actualEdgeDataCenters.add(reader);
+        }
+        iotDevices = getIoTConfigurations();
+        sdwan.switches = asSDWANSwitches();
     }
 
     public String getLogLevel() {

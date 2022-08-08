@@ -21,20 +21,23 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-public class SubFolderForNetwork {
+public class SubNetworkConfiguration {
     public List<Host> hosts;
     public List<VM> vms_or_mels;
     public List<Switch> switches;
     public DataCenterWithController conf;
 
-    public SubFolderForNetwork(List<Host> hosts, List<VM> vms_or_mels, List<Switch> switches, DataCenterWithController conf) {
+    public SubNetworkConfiguration(List<Host> hosts,
+                                   List<VM> vms_or_mels,
+                                   List<Switch> switches,
+                                   DataCenterWithController conf) {
         this.hosts = hosts;
         this.vms_or_mels = vms_or_mels;
         this.switches = switches;
         this.conf = conf;
     }
 
-    public SubFolderForNetwork(File folder) {
+    public SubNetworkConfiguration(File folder) {
         hosts = new ArrayList<>();
         vms_or_mels = new ArrayList<>();
         switches = new ArrayList<>();
