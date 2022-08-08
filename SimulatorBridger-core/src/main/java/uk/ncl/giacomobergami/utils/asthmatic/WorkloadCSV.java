@@ -1,43 +1,53 @@
 package uk.ncl.giacomobergami.utils.asthmatic;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+
+@JsonPropertyOrder({"OsmesisApp","ID","DataRate_Sec","StartDataGenerationTime_Sec","StopDataGeneration_Sec","IoTDevice","IoTDeviceOutputData_Mb","MELName","OsmesisEdgelet_MI","MELOutputData_Mb","VmName","OsmesisCloudlet_MI"})
 public class WorkloadCSV {
+    @JsonProperty("OsmesisApp")
     public String OsmesisApp;                      //Different name per row
+    @JsonProperty("ID")
     public long ID;                                //Different id per row
+    @JsonProperty("DataRate_Sec")
     public double DataRate_Sec;                    // ~ Arbitrary
+    @JsonProperty("StartDataGenerationTime_Sec")
     public double StartDataGenerationTime_Sec;     //Time when the node starts connecting to the first MEL
+    @JsonProperty("StopDataGeneration_Sec")
     public double  StopDataGeneration_Sec;          //Time after the disconnection to the MEL
+    @JsonProperty("IoTDevice")
     public String  IoTDevice;                       //Source
+    @JsonProperty("IoTDeviceOutputData_Mb")
     public double IoTDeviceOutputData_Mb;          // ~ Arbitrary
+    @JsonProperty("MELName")
     public String MELName;                         //Target
+    @JsonProperty("OsmesisEdgelet_MI")
     public long OsmesisEdgelet_MI;                 // ~ Arbitrary
+    @JsonProperty("MELOutputData_Mb")
     public long MELOutputData_Mb;                  // ~ Arbitrary
+    @JsonProperty("VmName")
     public String VmName;                          // The same VM assocaited to the MEL of choice
+    @JsonProperty("OsmesisCloudlet_MI")
     public long OsmesisCloudlet_MI;                // ~ Arbitrary
 
     public String getOsmesisApp() {
         return OsmesisApp;
     }
-
     public void setOsmesisApp(String osmesisApp) {
         OsmesisApp = osmesisApp;
     }
-
     public long getID() {
         return ID;
     }
-
     public void setID(long ID) {
         this.ID = ID;
     }
-
     public double getDataRate_Sec() {
         return DataRate_Sec;
     }
-
     public void setDataRate_Sec(double dataRate_Sec) {
         DataRate_Sec = dataRate_Sec;
     }
-
     public double getStartDataGenerationTime_Sec() {
         return StartDataGenerationTime_Sec;
     }

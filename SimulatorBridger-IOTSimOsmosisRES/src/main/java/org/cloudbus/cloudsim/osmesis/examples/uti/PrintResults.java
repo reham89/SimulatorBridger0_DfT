@@ -34,10 +34,10 @@ import org.cloudbus.osmosis.core.WorkflowInfo;
 
 public class PrintResults {	
 		
-	public void printOsmesisNetwork() {
+	public void printOsmesisNetwork(List<OsmoticAppDescription> appList) {
 		
 		List<WorkflowInfo> tags = new ArrayList<>();
-		for(OsmoticAppDescription app : OsmoticAppsParser.appList){
+		for(OsmoticAppDescription app : appList){
 			for(WorkflowInfo workflowTag : OsmoticBroker.workflowTag){
 				workflowTag.getAppId();
 				if(app.getAppID() == workflowTag.getAppId()){
@@ -63,7 +63,7 @@ public class PrintResults {
 				, "SimluationTime"
 				, "appTotalRunningTmie"));
 
-		for(OsmoticAppDescription app : OsmoticAppsParser.appList){
+		for(OsmoticAppDescription app : appList){
 			for(WorkflowInfo workflowTag : OsmoticBroker.workflowTag){
 				workflowTag.getAppId();
 				if(app.getAppID() == workflowTag.getAppId()){
@@ -73,10 +73,10 @@ public class PrintResults {
 			printAppStat(app, tags);
 			tags.clear();
 		}
-		printAppWorkflowConfigration();
+		printAppWorkflowConfigration(appList);
 	}
 	
-	private void printAppWorkflowConfigration() {
+	private void printAppWorkflowConfigration(List<OsmoticAppDescription> appList) {
 		Log.printLine();				
 		Log.printLine("=========================== Osmesis Workflow Configrations ========================");
 		Log.printLine(String.format("%1s %17s %26s  %13s  %30s %13s %21s %23s %12s %21s"				
@@ -91,7 +91,7 @@ public class PrintResults {
 				, "VmName"  				   
 				, "OsmesisCloudlet_MI" 
 				));
-		for(OsmoticAppDescription app : OsmoticAppsParser.appList){
+		for(OsmoticAppDescription app : appList){
 			Log.printLine(String.format("%1s %15s %21s  %25s  %18s %22s %15s %24s %18s %14s"				
 					, app.getAppName()   				
 					, app.getDataRate()

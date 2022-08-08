@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import org.cloudbus.agent.AgentBroker;
 import org.cloudbus.agent.CentralAgent;
@@ -28,7 +29,9 @@ import org.cloudbus.cloudsim.core.CloudSimTags;
 import org.cloudbus.cloudsim.core.SimEvent;
 import org.cloudbus.cloudsim.edge.core.edge.EdgeLet;
 import uk.ncl.giacomobergami.components.iot.IoTDevice;
+import uk.ncl.giacomobergami.components.loader.GlobalConfigurationSettings;
 import uk.ncl.giacomobergami.components.mel_routing.MELRoutingPolicy;
+import uk.ncl.giacomobergami.utils.asthmatic.WorkloadCSV;
 
 /**
  * 
@@ -321,6 +324,11 @@ public class OsmoticBroker extends DatacenterBroker {
 
 	public void submitOsmesisApps(List<OsmoticAppDescription> appList) {
 		this.appList = appList;		
+	}
+
+	public List<OsmoticAppDescription> submitWorkloadCSVApps(List<WorkloadCSV> appList) {
+		this.appList = appList.stream().map(GlobalConfigurationSettings::asLegacyApp).collect(Collectors.toList());
+		return this.appList;
 	}
 
 	public int getiotDeviceIdByName(String melName){

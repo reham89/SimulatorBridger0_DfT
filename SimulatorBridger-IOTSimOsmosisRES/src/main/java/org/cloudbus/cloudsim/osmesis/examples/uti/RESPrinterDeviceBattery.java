@@ -36,7 +36,7 @@ public class RESPrinterDeviceBattery {
         statistics = new HashMap<>();
     }
 
-    public void postMortemAnalysis(Map<String, EnergyController> energyControllers, String time_s, boolean sources_details, int print_step) {
+    public void postMortemAnalysis(Map<String, EnergyController> energyControllers, String time_s, boolean sources_details, int print_step, List<OsmoticAppDescription> appList) {
         RESannual.clear();
         RESaverage_power.clear();
         RESutilization.clear();
@@ -74,7 +74,7 @@ public class RESPrinterDeviceBattery {
 
         //collect all osmotic flows
         List<WorkflowInfo> tags = new ArrayList<>();
-        for (OsmoticAppDescription app : OsmoticAppsParser.appList) {
+        for (OsmoticAppDescription app : appList) {
             for (WorkflowInfo workflowTag : OsmoticBroker.workflowTag) {
                 workflowTag.getAppId();
                 if (app.getAppID() == workflowTag.getAppId()) {

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.cloudbus.cloudsim.edge.core.edge.LegacyConfiguration;
 import org.cloudbus.cloudsim.edge.utils.LogUtil;
 import org.cloudbus.cloudsim.sdn.Switch;
+import org.cloudbus.osmosis.core.OsmoticAppDescription;
 import org.cloudbus.osmosis.core.OsmoticBroker;
 import org.cloudbus.osmosis.core.SDWANController;
 import uk.ncl.giacomobergami.components.iot.IoTDevice;
@@ -14,6 +15,8 @@ import uk.ncl.giacomobergami.components.networking.Host;
 import uk.ncl.giacomobergami.components.networking.TopologyLink;
 import uk.ncl.giacomobergami.components.networking.VM;
 import uk.ncl.giacomobergami.components.simulator.OsmoticConfiguration;
+import uk.ncl.giacomobergami.utils.asthmatic.WorkloadCSV;
+import uk.ncl.giacomobergami.utils.data.CSVMediator;
 import uk.ncl.giacomobergami.utils.data.YAML;
 
 import java.io.File;
@@ -117,11 +120,15 @@ public class GlobalConfigurationSettings {
     @JsonIgnore
     Map<String, Collection<LegacyConfiguration.LinkEntity>> global_network_links;
 
+    @JsonIgnore
+    public List<WorkloadCSV> apps;
+
     public GlobalConfigurationSettings(List<SubNetworkConfiguration> actualEdgeDataCenters,
                                        List<SubNetworkConfiguration> actualCloudDataCenters,
                                        List<IoTDeviceTabularConfiguration> iotDevices,
                                        List<TopologyLink> global_network_links,
                                        List<uk.ncl.giacomobergami.components.networking.Switch> sdwan_switches,
+                                       List<WorkloadCSV> apps,
                                        String sdwan_traffic,
                                        String sdwan_routing,
                                        String sdwan_controller,
@@ -133,6 +140,7 @@ public class GlobalConfigurationSettings {
         this.iotDevices = iotDevices;
         this.global_network_links = TopologyLink.asNetworkedLinks(global_network_links);
         logLevel = "debug";
+        this.apps = apps;
         OsmesisBroker = "OsmesisBroker";
         saveLogToFile = true;
         logFilePath = "log.txt";
@@ -145,6 +153,11 @@ public class GlobalConfigurationSettings {
         sdwan.switches = sdwan_switches;
         terminate_simulation_at = terminate;
         simulationStartTime = start;
+    }
+
+    public static OsmoticAppDescription asLegacyApp(WorkloadCSV novel) {
+        return new OsmoticAppDescription(novel.OsmesisApp, (int)novel.ID, novel.DataRate_Sec, novel.StopDataGeneration_Sec,
+                novel.IoTDevice,(long)novel.IoTDeviceOutputData_Mb, novel.MELName, novel.getOsmesisEdgelet_MI(), novel.MELOutputData_Mb, novel.VmName, novel.getOsmesisCloudlet_MI(), novel.getStartDataGenerationTime_Sec());
     }
 
     public OsmoticBroker newBroker() {
@@ -310,12 +323,12 @@ public class GlobalConfigurationSettings {
     }
 
     public GlobalConfigurationSettings buildTopology(OsmoticBroker broker) {
-        if (actualEdgeDataCenters == null || actualCloudDataCenters == null || iotDevices == null ||global_network_links == null||sdwan == null || sdwan.switches == null ||
+        if (actualEdgeDataCenters == null || actualCloudDataCenters == null || iotDevices == null ||global_network_links == null||sdwan == null || sdwan.switches == null || apps == null ||
                 (actualEdgeDataCenters.isEmpty()) ||
                 actualCloudDataCenters.isEmpty() ||
                 iotDevices.isEmpty() ||
                 global_network_links.isEmpty() ||
-                sdwan.switches.isEmpty()) {
+                sdwan.switches.isEmpty() || apps.isEmpty()) {
             fillDataStructuresFromFiles();
         }
 
@@ -380,6 +393,9 @@ public class GlobalConfigurationSettings {
         }
         iotDevices = getIoTConfigurations();
         sdwan.switches = asSDWANSwitches();
+
+        apps = new ArrayList<>();
+        new CSVMediator<>(WorkloadCSV.class).readAll(new File(apps_file), apps);
     }
 
     public String getLogLevel() {

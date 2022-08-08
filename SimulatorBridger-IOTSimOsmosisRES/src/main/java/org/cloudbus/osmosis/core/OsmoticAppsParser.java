@@ -18,7 +18,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Queue;
 
 /**
@@ -30,9 +29,9 @@ import java.util.Queue;
 **/
 
 public class OsmoticAppsParser {
-	public static List<OsmoticAppDescription> appList = new ArrayList<>();
-	public static void startParsingCSVAppFile(String appFileName){
-			
+//	private static List<OsmoticAppDescription> appList = new ArrayList<>();
+	public static ArrayList<OsmoticAppDescription> legacyAppParser(String appFileName){
+		ArrayList<OsmoticAppDescription> appList = new ArrayList<>();
 			BufferedReader br = null;
 			try {
 				br = new BufferedReader(new FileReader(appFileName));
@@ -93,6 +92,7 @@ public class OsmoticAppsParser {
 				br.close();
 			} catch (IOException e) {
 				e.printStackTrace();
-			}			
+			}
+			return appList;
 	}
 }

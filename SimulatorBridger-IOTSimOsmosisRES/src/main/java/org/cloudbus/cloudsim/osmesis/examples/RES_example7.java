@@ -112,7 +112,7 @@ public class RES_example7 {
 
         OsmosisOrchestrator maestro = new OsmosisOrchestrator();
 
-        OsmoticAppsParser.startParsingCSVAppFile(osmesisAppFile);
+        OsmoticAppsParser.legacyAppParser(osmesisAppFile);
         List<SDNController> controllers = new ArrayList<>();
         for(OsmoticDatacenter osmesisDC : topologyBuilder.getOsmesisDatacentres()){
             osmesisBroker.submitVmList(osmesisDC.getVmList(), osmesisDC.getId());

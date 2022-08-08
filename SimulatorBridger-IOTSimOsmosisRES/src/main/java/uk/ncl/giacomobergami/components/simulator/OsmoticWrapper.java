@@ -43,6 +43,7 @@ public class OsmoticWrapper {
     private boolean started;
     private boolean finished;
     private double runTime;
+    List<OsmoticAppDescription> appList;
 
 
 
@@ -72,7 +73,7 @@ public class OsmoticWrapper {
     public void stop() {
         if (started) {
             MainEventManager.novel_stop();
-            OsmoticAppsParser.appList.clear();
+//            OsmoticAppsParser.appList.clear();
             OsmoticBroker.workflowTag.clear();
             osmesisBroker = null;
             topologyBuilder = null;
@@ -130,7 +131,7 @@ public class OsmoticWrapper {
 
 
         OsmosisOrchestrator conductor = new OsmosisOrchestrator();
-        OsmoticAppsParser.startParsingCSVAppFile(conf.osmesisAppFile);
+        appList = OsmoticAppsParser.legacyAppParser(conf.osmesisAppFile);
 
         List<SDNController> controllers = new ArrayList<>();
         for(OsmoticDatacenter osmesisDC : topologyBuilder.getOsmesisDatacentres()){
@@ -140,7 +141,7 @@ public class OsmoticWrapper {
         }
         controllers.add(topologyBuilder.getSdWanController());
         conductor.setSdnControllers(controllers);
-        osmesisBroker.submitOsmesisApps(OsmoticAppsParser.appList);
+        osmesisBroker.submitOsmesisApps(appList);
         osmesisBroker.setDatacenters(topologyBuilder.getOsmesisDatacentres());
 
         init = true;
@@ -223,7 +224,7 @@ public class OsmoticWrapper {
         if (finished) {
             LogUtil.simulationFinished();
             PrintResults pr = new PrintResults();
-            pr.printOsmesisNetwork();
+            pr.printOsmesisNetwork(appList);
 
             Log.printLine();
 
@@ -243,7 +244,7 @@ public class OsmoticWrapper {
 
             if (energyControllers != null) {
                 RESPrinter res_printer = new RESPrinter();
-                res_printer.postMortemAnalysis(energyControllers, conf.simulationStartTime, true,1);
+                res_printer.postMortemAnalysis(energyControllers, conf.simulationStartTime, true,1, appList);
             }
             //res_printer.postMortemAnalysis(energyControllers,simulationStartTime, false, 36);
             //res_printer.postMortemAnalysis(energyControllers,"20160901:0000", false, 36);
@@ -256,7 +257,7 @@ public class OsmoticWrapper {
         if (finished) {
             LogUtil.simulationFinished();
             PrintResults pr = new PrintResults();
-            pr.printOsmesisNetwork();
+            pr.printOsmesisNetwork(appList);
 
             Log.printLine();
 
@@ -276,7 +277,7 @@ public class OsmoticWrapper {
 
             if (energyControllers != null) {
                 RESPrinter res_printer = new RESPrinter();
-                res_printer.postMortemAnalysis(energyControllers, conf.simulationStartTime, true,1);
+                res_printer.postMortemAnalysis(energyControllers, conf.simulationStartTime, true,1, appList);
             }
             //res_printer.postMortemAnalysis(energyControllers,simulationStartTime, false, 36);
             //res_printer.postMortemAnalysis(energyControllers,"20160901:0000", false, 36);
@@ -313,9 +314,7 @@ public class OsmoticWrapper {
 
         conf.buildTopology(osmesisBroker);
 
-
         OsmosisOrchestrator conductor = new OsmosisOrchestrator();
-        OsmoticAppsParser.startParsingCSVAppFile(conf.apps_file);
 
         List<SDNController> controllers = new ArrayList<>();
         for(OsmoticDatacenter osmesisDC : conf.conf.osmesisDatacentres){
@@ -325,7 +324,7 @@ public class OsmoticWrapper {
         }
         controllers.add(conf.sdWanController);
         conductor.setSdnControllers(controllers);
-        osmesisBroker.submitOsmesisApps(OsmoticAppsParser.appList);
+        appList = osmesisBroker.submitWorkloadCSVApps(conf.apps);
         osmesisBroker.setDatacenters(conf.conf.osmesisDatacentres);
 
         init = true;

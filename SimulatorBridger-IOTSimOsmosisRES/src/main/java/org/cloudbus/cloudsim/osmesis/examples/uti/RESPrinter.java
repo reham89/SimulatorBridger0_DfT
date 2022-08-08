@@ -11,10 +11,7 @@ import org.cloudbus.res.model.RenewableEnergySource;
 
 import java.text.DecimalFormat;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class RESPrinter {
     Map<String, Double> RESannual;
@@ -36,7 +33,7 @@ public class RESPrinter {
         statistics = new HashMap<>();
     }
 
-    public void postMortemAnalysis(Map<String, EnergyController> energyControllers, String time_s, boolean sources_details, int print_step) {
+    public void postMortemAnalysis(Map<String, EnergyController> energyControllers, String time_s, boolean sources_details, int print_step, Collection<OsmoticAppDescription> appList) {
         RESannual.clear();
         RESaverage_power.clear();
         RESutilization.clear();
@@ -74,7 +71,7 @@ public class RESPrinter {
 
         //collect all osmotic flows
         List<WorkflowInfo> tags = new ArrayList<>();
-        for (OsmoticAppDescription app : OsmoticAppsParser.appList) {
+        for (OsmoticAppDescription app : appList) {
             for (WorkflowInfo workflowTag : OsmoticBroker.workflowTag) {
                 workflowTag.getAppId();
                 if (app.getAppID() == workflowTag.getAppId()) {
