@@ -1,9 +1,0 @@
-name,type,iops
-edge1_gateway,gateway,1000000000
-core1,core,1000000000
-core2,core,1000000000
-edge1,edge,1000000000
-edge2,edge,1000000000
-edge3,edge,1000000000
-edge4,edge,1000000000
-edge5,edge,1000000000

@@ -25,6 +25,16 @@ public class VM {
 
     public VM() {}
 
+    public VM(String name, long bw, double mips, int ram, int pes, String cloudletPolicy, int storage) {
+        this.name = name;
+        this.bw = bw;
+        this.mips = mips;
+        this.ram = ram;
+        this.pes = pes;
+        this.cloudletPolicy = cloudletPolicy;
+        this.storage = storage;
+    }
+
     public VM(LegacyConfiguration.MELEntities x) {
         name = x.getName();
         bw = x.getBw();

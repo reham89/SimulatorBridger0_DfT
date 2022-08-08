@@ -15,6 +15,15 @@ public class Host {
     public long storage;
     public int mips;
 
+    public Host(String name, int pes, int ram, int bw, long storage, int mips) {
+        this.name = name;
+        this.pes = pes;
+        this.ram = ram;
+        this.bw = bw;
+        this.storage = storage;
+        this.mips = mips;
+    }
+
     public Host() {}
     public Host(LegacyConfiguration.EdgeDeviceEntity x) {
         mips = x.getMips();

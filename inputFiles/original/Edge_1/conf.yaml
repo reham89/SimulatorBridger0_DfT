@@ -1,5 +1,5 @@
 ---
-scheduling_interval: 0.0
+scheduling_interval: 1.0
 datacenter_name: "Edge_1"
 datacenter_type: "edge"
 datacenter_vmAllocationPolicy: "uk.ncl.giacomobergami.components.allocation_policy.VmAllocationPolicyCombinedLeastFullFirst"

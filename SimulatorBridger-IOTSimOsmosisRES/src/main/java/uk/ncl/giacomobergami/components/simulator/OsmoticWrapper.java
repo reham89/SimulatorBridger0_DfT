@@ -311,11 +311,9 @@ public class OsmoticWrapper {
         osmesisBroker = conf.newBroker(); // TODO: new OsmoticBroker(conf.OsmesisBroker, edgeLetId);
         MELRoutingPolicy melSwitchPolicy = MELRoutingPolicyGeneratorFacade.generateFacade(conf.mel_switch_policy);
         osmesisBroker.setMelRouting(melSwitchPolicy);
-
         conf.buildTopology(osmesisBroker);
 
         OsmosisOrchestrator conductor = new OsmosisOrchestrator();
-
         List<SDNController> controllers = new ArrayList<>();
         for(OsmoticDatacenter osmesisDC : conf.conf.osmesisDatacentres){
             osmesisBroker.submitVmList(osmesisDC.getVmList(), osmesisDC.getId());

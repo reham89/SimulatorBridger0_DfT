@@ -42,6 +42,7 @@ public class OsmoticRunner {
         if (args.length >= 1) {
             configuration = args[0];
         }
-        current(configuration);
+//        current(configuration);
+        legacyOrchestrate("osmotic.json");
     }
 }

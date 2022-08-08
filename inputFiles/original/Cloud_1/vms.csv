@@ -1,3 +1,0 @@
-bw,cloudletPolicy,mips,name,pes,ram,storage
-1000,"uk.ncl.giacomobergami.components.cloudlet_scheduler.CloudletSchedulerTimeShared",250.0,VM_1,2,512,10000
-1000,"uk.ncl.giacomobergami.components.cloudlet_scheduler.CloudletSchedulerTimeShared",250.0,VM_2,2,512,10000

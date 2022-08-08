@@ -23,6 +23,12 @@ public class Switch {
         return result;
     }
 
+    public Switch(String type, String name, Long iops) {
+        this.type = type;
+        this.name = name;
+        this.iops = iops;
+    }
+
     public Switch() {}
 
     public Switch(LegacyConfiguration.SwitchEntity x) {

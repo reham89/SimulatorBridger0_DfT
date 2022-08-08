@@ -57,6 +57,8 @@ public abstract class SimEntity implements Cloneable {
 		MainEventManager.addEntity(this);
 	}
 
+
+
 	/**
 	 * Get the name of this entity.
 	 * 

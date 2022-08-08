@@ -19,6 +19,13 @@ public class TopologyLink {
 
     public TopologyLink() {}
 
+    public TopologyLink(String network, String source, String destination, long bandwidth) {
+        this.network = network;
+        this.source = source;
+        this.destination = destination;
+        this.bandwidth = bandwidth;
+    }
+
     public TopologyLink(String network, LegacyConfiguration.LinkEntity onta) {
         this.network = network;
         this.source = onta.getSource();

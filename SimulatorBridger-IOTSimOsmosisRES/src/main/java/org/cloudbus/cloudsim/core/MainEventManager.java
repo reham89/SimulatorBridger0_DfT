@@ -466,7 +466,7 @@ public class MainEventManager {
 	public static List<SimEntity> getEntityList() {
 		// create a new list to prevent the user from changing
 		// the list of entities used by Simulation
-		List<SimEntity> list = new LinkedList<SimEntity>();
+		List<SimEntity> list = new LinkedList<>();
 		list.addAll(entities);
 		return list;
 	}

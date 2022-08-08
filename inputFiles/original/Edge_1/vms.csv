@@ -1,4 +1,0 @@
-bw,cloudletPolicy,mips,name,pes,ram,storage
-100,"uk.ncl.giacomobergami.components.cloudlet_scheduler.CloudletSchedulerTimeShared",250.0,MEL_1.1,1,10000,2147483647
-100,"uk.ncl.giacomobergami.components.cloudlet_scheduler.CloudletSchedulerTimeShared",250.0,MEL_1.2,1,10000,2147483647
-100,"uk.ncl.giacomobergami.components.cloudlet_scheduler.CloudletSchedulerTimeShared",250.0,MEL_2,1,10000,2147483647

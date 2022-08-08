@@ -28,6 +28,7 @@
         <module>SimulatorBridger-IOTSimOsmosisRES</module>
         <module>SimulatorBridger-core</module>
         <module>SumoOsmosisBridger</module>
+        <module>SimulatorBridger-network_runner</module>
     </modules>
 
     <properties>

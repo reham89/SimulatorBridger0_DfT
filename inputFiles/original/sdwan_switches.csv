@@ -1,7 +1,0 @@
-name,type,iops
-sdwan_router_1,gateway,1000000000
-sdwan_router_2,gateway,1000000000
-sdwan_router_3,gateway,1000000000
-sdwan_router_4,gateway,1000000000
-sdwan_router_5,gateway,1000000000
-sdwan_router_6,gateway,1000000000
