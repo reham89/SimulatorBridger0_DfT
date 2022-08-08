@@ -28,7 +28,6 @@ import org.cloudbus.cloudsim.edge.core.edge.LegacyConfiguration.HostEntity;
 import org.cloudbus.cloudsim.edge.core.edge.LegacyConfiguration.LinkEntity;
 import org.cloudbus.cloudsim.edge.core.edge.LegacyConfiguration.SwitchEntity;
 import org.cloudbus.cloudsim.sdn.SDNHost;
-import uk.ncl.giacomobergami.components.loader.SubFolderReader;
 
 /**
  * 

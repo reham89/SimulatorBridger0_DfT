@@ -23,6 +23,14 @@ public class Switch {
         return result;
     }
 
+    public Switch() {}
+
+    public Switch(LegacyConfiguration.SwitchEntity x) {
+        type = x.getType();
+        name = x.getName();
+        iops = x.getIops();
+    }
+
 
     private static CSVMediator<Switch> readerWriter = null;
     public static CSVMediator<Switch> csvReader() {

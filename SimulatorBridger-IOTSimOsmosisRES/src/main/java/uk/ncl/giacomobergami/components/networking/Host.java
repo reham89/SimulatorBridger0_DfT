@@ -15,6 +15,25 @@ public class Host {
     public long storage;
     public int mips;
 
+    public Host() {}
+    public Host(LegacyConfiguration.EdgeDeviceEntity x) {
+        mips = x.getMips();
+        storage = x.getStorage();
+        bw = x.getBwSize();
+        ram = x.getRamSize();
+        pes = x.getPes();
+        name = x.getName();
+    }
+
+    public Host(LegacyConfiguration.HostEntity x) {
+        mips = (int)x.getMips();
+        storage = x.getStorage();
+        bw = (int)x.getBw();
+        ram = x.getRam();
+        pes = (int)x.getPes();
+        name = x.getName();
+    }
+
     public LegacyConfiguration.EdgeDeviceEntity asLegacyEdgeDeviceEntity() {
         var result = new LegacyConfiguration.EdgeDeviceEntity();
         result.setMips(mips);

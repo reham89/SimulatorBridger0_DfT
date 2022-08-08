@@ -21,13 +21,20 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-public class SubFolderReader {
+public class SubFolderForNetwork {
     public List<Host> hosts;
     public List<VM> vms_or_mels;
     public List<Switch> switches;
     public DataCenterWithController conf;
 
-    public SubFolderReader(File folder) {
+    public SubFolderForNetwork(List<Host> hosts, List<VM> vms_or_mels, List<Switch> switches, DataCenterWithController conf) {
+        this.hosts = hosts;
+        this.vms_or_mels = vms_or_mels;
+        this.switches = switches;
+        this.conf = conf;
+    }
+
+    public SubFolderForNetwork(File folder) {
         hosts = new ArrayList<>();
         vms_or_mels = new ArrayList<>();
         switches = new ArrayList<>();
@@ -129,4 +136,10 @@ public class SubFolderReader {
         return datacenter;
     }
 
+    public void serializeToFolder(File folder) {
+        Host.csvReader().writeAll(new File(folder, "hosts.csv").getAbsoluteFile(), hosts);
+        VM.csvReader().writeAll(new File(folder, "vms.csv").getAbsoluteFile(), vms_or_mels);
+        Switch.csvReader().writeAll(new File(folder, "switches.csv").getAbsoluteFile(), switches);
+        YAML.serialize(conf, new File(folder, "conf.yaml").getAbsoluteFile());
+    }
 }

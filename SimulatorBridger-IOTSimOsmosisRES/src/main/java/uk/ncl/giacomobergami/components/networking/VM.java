@@ -23,6 +23,28 @@ public class VM {
         return readerWriter;
     }
 
+    public VM() {}
+
+    public VM(LegacyConfiguration.MELEntities x) {
+        name = x.getName();
+        bw = x.getBw();
+        mips = x.getMips();
+        ram = x.getRam();
+        pes = x.getPesNumber();
+        cloudletPolicy = x.getCloudletSchedulerClassName();
+        storage = Integer.MAX_VALUE;
+    }
+
+    public VM(LegacyConfiguration.VMEntity x) {
+        name = x.getName();
+        bw = x.getBw();
+        mips = x.getMips();
+        ram = x.getRam();
+        pes = x.getPes();
+        cloudletPolicy = x.getCloudletPolicy();
+        storage = (int)x.getStorage();
+    }
+
     public LegacyConfiguration.MELEntities asLegacyMELEntity() {
         var result = new LegacyConfiguration.MELEntities();
         result.setName(name);

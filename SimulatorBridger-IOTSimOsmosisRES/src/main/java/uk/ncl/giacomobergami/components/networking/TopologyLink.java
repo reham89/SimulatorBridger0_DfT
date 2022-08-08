@@ -17,10 +17,18 @@ public class TopologyLink {
     public String destination;
     public long bandwidth;
 
+    public TopologyLink() {}
+
+    public TopologyLink(String network, LegacyConfiguration.LinkEntity onta) {
+        this.network = network;
+        this.source = onta.getSource();
+        this.destination = onta.getDestination();
+        this.bandwidth = onta.getBw();
+    }
+
     public String leftProjection() {
         return network;
     }
-
 
     private static CSVMediator<TopologyLink> readerWriter = null;
     public static CSVMediator<TopologyLink> csvReader() {

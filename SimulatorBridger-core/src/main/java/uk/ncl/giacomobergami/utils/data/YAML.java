@@ -17,5 +17,17 @@ public class YAML {
             e.printStackTrace();
             return Optional.empty();
         }
+
+    }
+    public static <T> boolean serialize(T object, File f) {
+        var mapper = new ObjectMapper(new YAMLFactory());
+        mapper.findAndRegisterModules();
+        try {
+            mapper.writeValue(f, object);
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 }

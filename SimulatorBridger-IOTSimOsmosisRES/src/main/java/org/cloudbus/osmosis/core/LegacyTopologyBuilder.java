@@ -29,6 +29,7 @@ import uk.ncl.giacomobergami.components.allocation_policy.VmAllocationPolicyGene
 import uk.ncl.giacomobergami.components.iot.IoTDevice;
 import uk.ncl.giacomobergami.components.iot.IoTDeviceTabularConfiguration;
 import uk.ncl.giacomobergami.components.iot.IoTGeneratorFactory;
+import uk.ncl.giacomobergami.components.loader.GlobalConfigurationSettings;
 import uk.ncl.giacomobergami.utils.data.CSVMediator;
 
 import java.io.File;
@@ -78,6 +79,8 @@ public class LegacyTopologyBuilder {
 	}
 
     public LegacyTopologyBuilder buildTopology(LegacyConfiguration topologyEntity) {
+		new GlobalConfigurationSettings().fromLegacyConfiguration(topologyEntity);
+
 		List<Switch> datacenterGateways = new ArrayList<>();
 		for (var x : topologyEntity.getCloudDatacenter()) {
 			var y = createCloudDatacenter(x);

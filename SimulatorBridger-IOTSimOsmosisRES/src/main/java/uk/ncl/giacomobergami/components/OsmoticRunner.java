@@ -1,13 +1,12 @@
 package uk.ncl.giacomobergami.components;
 
+import uk.ncl.giacomobergami.components.loader.GlobalConfigurationSettings;
 import uk.ncl.giacomobergami.components.simulator.OsmoticConfiguration;
 import uk.ncl.giacomobergami.components.simulator.OsmoticWrapper;
 import uk.ncl.giacomobergami.utils.data.JSON;
-import uk.ncl.giacomobergami.utils.data.YAML;
 
 import java.io.File;
 import java.util.List;
-import java.util.Optional;
 
 public class OsmoticRunner {
     private static OsmoticWrapper obj;
@@ -19,7 +18,7 @@ public class OsmoticRunner {
         return obj;
     }
 
-    public static void orchestrate(String configuration) {
+    public static void legacyOrchestrate(String configuration) {
         List<OsmoticConfiguration> ls = JSON.stringToArray(new File(configuration), OsmoticConfiguration[].class);
         if (ls.isEmpty()) return;
         OsmoticWrapper conv = generateFacade();
@@ -27,14 +26,22 @@ public class OsmoticRunner {
             conv.runConfiguration(y);
         }
         conv.stop();
-        conv.log();
+        conv.legacy_log();
+    }
+
+    public static void current(String configuration) {
+        var conf = GlobalConfigurationSettings.readFromFile(new File(configuration));
+        var conv = new OsmoticWrapper(conf.asPreviousOsmoticConfiguration());
+        conv.runConfiguration(conf);
+        conv.stop();
+        conv.log(conf);
     }
 
     public static void main(String[] args) {
-        String configuration = "osmotic.json";
+        String configuration = "/home/giacomo/IdeaProjects/SimulatorBridger/inputFiles/original/iot_sim_osmosis_res.yaml";
         if (args.length >= 1) {
             configuration = args[0];
         }
-        orchestrate(configuration);
+        current(configuration);
     }
 }

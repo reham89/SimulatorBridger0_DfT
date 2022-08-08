@@ -16,6 +16,7 @@ import org.cloudbus.osmosis.core.*;
 import org.cloudbus.res.EnergyController;
 import org.cloudbus.res.config.AppConfig;
 import org.cloudbus.res.dataproviders.res.RESResponse;
+import uk.ncl.giacomobergami.components.loader.GlobalConfigurationSettings;
 import uk.ncl.giacomobergami.components.mel_routing.MELRoutingPolicy;
 import uk.ncl.giacomobergami.components.mel_routing.MELRoutingPolicyGeneratorFacade;
 
@@ -218,7 +219,7 @@ public class OsmoticWrapper {
         finished = true;
     }
 
-    public void log() {
+    public void legacy_log() {
         if (finished) {
             LogUtil.simulationFinished();
             PrintResults pr = new PrintResults();
@@ -251,4 +252,83 @@ public class OsmoticWrapper {
     }
 
 
+    public void log(GlobalConfigurationSettings conf) {
+        if (finished) {
+            LogUtil.simulationFinished();
+            PrintResults pr = new PrintResults();
+            pr.printOsmesisNetwork();
+
+            Log.printLine();
+
+            for(OsmoticDatacenter osmesisDC : conf.conf.osmesisDatacentres){
+                List<Switch> switchList = osmesisDC.getSdnController().getSwitchList();
+                LogPrinter.printEnergyConsumption(osmesisDC.getName(), osmesisDC.getSdnhosts(), switchList, runTime);
+                Log.printLine();
+            }
+
+            Log.printLine();
+            LogPrinter.printEnergyConsumption(conf.sdWanController.getName(), null, conf.sdWanController.getSwitchList(), runTime);
+            Log.printLine();
+            Log.printLine("Simulation Finished!");
+
+            Log.printLine();
+            Log.printLine("Post-mortem RES energy analysis!");
+
+            if (energyControllers != null) {
+                RESPrinter res_printer = new RESPrinter();
+                res_printer.postMortemAnalysis(energyControllers, conf.simulationStartTime, true,1);
+            }
+            //res_printer.postMortemAnalysis(energyControllers,simulationStartTime, false, 36);
+            //res_printer.postMortemAnalysis(energyControllers,"20160901:0000", false, 36);
+            Log.printLine("End of RES analysis!");
+        }
+    }
+
+    public boolean runConfiguration(GlobalConfigurationSettings conf) {
+        stop();
+        init = false;
+        this.conf = conf.asPreviousOsmoticConfiguration();
+        if (!init(conf)) {
+            stop();
+            return false;
+        }
+        start();
+        return true;
+    }
+
+    private boolean init(GlobalConfigurationSettings conf) {
+        stop(); // ensuring that the previous simulation was stopped
+        if (init) return init;
+        Calendar calendar = Calendar.getInstance();
+
+        // Getting configuration from json and entering classes to Agent Broker
+        if (agentBrokerageInitFails()) return init;
+
+        allocateOrClearDataStructures(calendar);
+
+
+        osmesisBroker = conf.newBroker(); // TODO: new OsmoticBroker(conf.OsmesisBroker, edgeLetId);
+        MELRoutingPolicy melSwitchPolicy = MELRoutingPolicyGeneratorFacade.generateFacade(conf.mel_switch_policy);
+        osmesisBroker.setMelRouting(melSwitchPolicy);
+
+        conf.buildTopology(osmesisBroker);
+
+
+        OsmosisOrchestrator conductor = new OsmosisOrchestrator();
+        OsmoticAppsParser.startParsingCSVAppFile(conf.apps_file);
+
+        List<SDNController> controllers = new ArrayList<>();
+        for(OsmoticDatacenter osmesisDC : conf.conf.osmesisDatacentres){
+            osmesisBroker.submitVmList(osmesisDC.getVmList(), osmesisDC.getId());
+            controllers.add(osmesisDC.getSdnController());
+            osmesisDC.getSdnController().setWanOorchestrator(conductor);
+        }
+        controllers.add(conf.sdWanController);
+        conductor.setSdnControllers(controllers);
+        osmesisBroker.submitOsmesisApps(OsmoticAppsParser.appList);
+        osmesisBroker.setDatacenters(conf.conf.osmesisDatacentres);
+
+        init = true;
+        return init;
+    }
 }
