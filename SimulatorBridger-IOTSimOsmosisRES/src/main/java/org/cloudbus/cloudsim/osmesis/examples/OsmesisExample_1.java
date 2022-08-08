@@ -12,16 +12,13 @@
 package org.cloudbus.cloudsim.osmesis.examples;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
 import org.cloudbus.cloudsim.Log;
 import org.cloudbus.cloudsim.core.MainEventManager;
-import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity;
+import org.cloudbus.cloudsim.edge.core.edge.LegacyConfiguration;
 import org.cloudbus.cloudsim.edge.utils.LogUtil;
 import org.cloudbus.cloudsim.osmesis.examples.uti.LogPrinter;
 import org.cloudbus.cloudsim.osmesis.examples.uti.PrintResults;
@@ -29,7 +26,7 @@ import org.cloudbus.cloudsim.sdn.Switch;
 import org.cloudbus.osmosis.core.EdgeSDNController;
 import org.cloudbus.osmosis.core.OsmoticBroker;
 import org.cloudbus.osmosis.core.OsmoticDatacenter;
-import org.cloudbus.osmosis.core.OsmosisTopologyBuilder;
+import org.cloudbus.osmosis.core.LegacyTopologyBuilder;
 import org.cloudbus.osmosis.core.OsmosisOrchestrator;
 import org.cloudbus.osmosis.core.SDNController;
 
@@ -48,7 +45,7 @@ public class OsmesisExample_1 {
 	public static final String configurationFile = "inputFiles/Example1_configuration.json";
 	public static final String osmesisAppFile =  "inputFiles/Example1_Worload.csv";
 //	public static final String RES_CONFIG_FILE =  "inputFiles/Example_RES_config.json";
-    OsmosisTopologyBuilder topologyBuilder;
+    LegacyTopologyBuilder topologyBuilder;
 	OsmoticBroker osmesisBroker;
 	EdgeSDNController edgeSDNController;
 
@@ -65,10 +62,10 @@ public class OsmesisExample_1 {
 
 		// Initialize the CloudSim library
 		MainEventManager.init(num_user, calendar, trace_flag);
-		osmesisBroker  = new OsmoticBroker("OsmesisBroker");
+		osmesisBroker  = LegacyTopologyBuilder.newBroker();
 		osmesisBroker.setMelRouting(MELRoutingPolicyGeneratorFacade.generateFacade(null));
-		topologyBuilder = new OsmosisTopologyBuilder(osmesisBroker);
-		ConfiguationEntity config = buildTopologyFromFile(configurationFile);
+		topologyBuilder = new LegacyTopologyBuilder(osmesisBroker);
+		LegacyConfiguration config = buildTopologyFromFile(configurationFile);
 		//
         if(config !=  null) {
         	topologyBuilder.buildTopology(config);
@@ -109,9 +106,9 @@ public class OsmesisExample_1 {
 
 	}
 
-	private ConfiguationEntity buildTopologyFromFile(String filePath) throws Exception {
+	private LegacyConfiguration buildTopologyFromFile(String filePath) throws Exception {
         System.out.println("Creating topology from file " + filePath);
-        ConfiguationEntity conf  = null;
+        LegacyConfiguration conf  = null;
 		conf = topologyBuilder.buildTopology(new File(filePath));
 
         System.out.println("Topology built:");

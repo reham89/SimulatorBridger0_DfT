@@ -13,7 +13,6 @@ package org.cloudbus.cloudsim.edge.core.edge;
 
 
 
-import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -21,9 +20,8 @@ import java.util.stream.IntStream;
 
 import org.cloudbus.cloudsim.Host;
 import org.cloudbus.cloudsim.Pe;
-import org.cloudbus.cloudsim.VmScheduler;
 import org.cloudbus.cloudsim.provisioners.*;
-import org.cloudbus.cloudsim.sdn.example.policies.VmSchedulerTimeSharedEnergy;
+import uk.ncl.giacomobergami.components.allocation_policy.VmSchedulerTimeSharedEnergy;
 
 /**
  * 
@@ -47,7 +45,7 @@ public class EdgeDevice extends Host {
 		this.enabled = true;
 	}
 
-	public static List<Pe> generatePEList( ConfiguationEntity.EdgeDeviceEntity hostEntity) {
+	public static List<Pe> generatePEList( LegacyConfiguration.EdgeDeviceEntity hostEntity) {
 		return IntStream.range(0, hostEntity.getPes())
 				.mapToObj(i -> new Pe(i, new PeProvisionerSimple(hostEntity.getMips())))
 				.collect(Collectors.toList());
@@ -58,7 +56,7 @@ public class EdgeDevice extends Host {
 //		}
 	}
 
-    public EdgeDevice(AtomicInteger idGen, ConfiguationEntity.EdgeDeviceEntity hostEntity) {
+    public EdgeDevice(AtomicInteger idGen, LegacyConfiguration.EdgeDeviceEntity hostEntity) {
         this(idGen.getAndIncrement(),
 				hostEntity.getName(),
 				new RamProvisionerSimple(hostEntity.getRamSize()),

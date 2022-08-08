@@ -6,7 +6,10 @@
  * Copyright (c) 2009-2012, The University of Melbourne, Australia
  */
 
-package org.cloudbus.cloudsim;
+package uk.ncl.giacomobergami.components.cloudlet_scheduler;
+
+import org.cloudbus.cloudsim.Cloudlet;
+import org.cloudbus.cloudsim.ResCloudlet;
 
 import java.util.ArrayList;
 import java.util.List;

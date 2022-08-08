@@ -12,8 +12,9 @@
 package uk.ncl.giacomobergami.components.iot;
 
 import org.cloudbus.cloudsim.core.SimEvent;
-import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity;
-import org.cloudbus.cloudsim.edge.iot.network.EdgeNetworkInfo;
+import org.cloudbus.cloudsim.edge.core.edge.LegacyConfiguration;
+
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 
@@ -27,8 +28,8 @@ public class LightSensor extends IoTDevice {
 
 
 	
-	public LightSensor(ConfiguationEntity.IotDeviceEntity onta) {
-		super( onta);
+	public LightSensor(LegacyConfiguration.IotDeviceEntity onta, AtomicInteger flowid) {
+		super( onta, flowid);
 	}
 
 	@Override

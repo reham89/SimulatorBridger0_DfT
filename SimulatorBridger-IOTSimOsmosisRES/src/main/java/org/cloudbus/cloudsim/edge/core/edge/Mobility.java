@@ -14,7 +14,7 @@ public class Mobility {
 		this.location = new Location(location.x,location.y,location.z);
 	}
 
-    public Mobility(ConfiguationEntity.MobilityEntity moto) {
+    public Mobility(LegacyConfiguration.MobilityEntity moto) {
 		this(moto.getLocation());
 		movable = moto.isMovable();
 		if (moto.isMovable()) {

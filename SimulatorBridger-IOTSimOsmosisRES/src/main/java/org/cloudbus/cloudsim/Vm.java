@@ -7,12 +7,12 @@
 
 package org.cloudbus.cloudsim;
 
-import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity;
-import org.cloudbus.osmosis.core.OsmosisTopologyBuilder;
+import org.cloudbus.cloudsim.edge.core.edge.LegacyConfiguration;
 import org.cloudbus.osmosis.core.OsmoticBroker;
+import uk.ncl.giacomobergami.components.cloudlet_scheduler.CloudletScheduler;
+import uk.ncl.giacomobergami.components.cloudlet_scheduler.CloudletSchedulerGeneratorFactory;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -185,7 +185,7 @@ public class Vm {
 		setCurrentAllocatedSize(0);
 	}
 
-	public Vm(ConfiguationEntity.VMEntity parameters,
+	public Vm(LegacyConfiguration.VMEntity parameters,
 			  OsmoticBroker broker,
 			  AtomicInteger idGenerator) {
 		this(idGenerator.getAndIncrement(),
@@ -196,7 +196,7 @@ public class Vm {
 				parameters.getBw(),
 				parameters.getStorage(),
 				"Xen",
-				new CloudletSchedulerTimeShared());
+				CloudletSchedulerGeneratorFactory.generateFacade(parameters.getCloudletPolicy()));
 		setVmName(parameters.getName());
 	}
 

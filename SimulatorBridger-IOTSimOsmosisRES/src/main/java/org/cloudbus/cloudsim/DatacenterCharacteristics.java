@@ -11,7 +11,7 @@ package org.cloudbus.cloudsim;
 import java.util.List;
 
 import org.cloudbus.cloudsim.core.MainEventManager;
-import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity;
+import org.cloudbus.cloudsim.edge.core.edge.LegacyConfiguration;
 import org.cloudbus.cloudsim.edge.core.edge.EdgeDevice;
 import org.cloudbus.cloudsim.lists.HostList;
 import org.cloudbus.cloudsim.lists.PeList;
@@ -137,7 +137,7 @@ public class DatacenterCharacteristics {
 	}
 
 	public DatacenterCharacteristics(List<EdgeDevice> hostList,
-									 ConfiguationEntity.EdgeDatacenterCharacteristicsEntity characteristicsEntity) {
+									 LegacyConfiguration.EdgeDatacenterCharacteristicsEntity characteristicsEntity) {
 //		String architecture = characteristicsEntity.getArchitecture();
 //		String os = characteristicsEntity.getOs();
 //		String vmm = characteristicsEntity.getVmm();

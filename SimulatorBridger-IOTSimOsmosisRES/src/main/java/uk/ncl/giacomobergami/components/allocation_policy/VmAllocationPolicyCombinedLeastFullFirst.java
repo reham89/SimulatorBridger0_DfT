@@ -6,25 +6,25 @@
  * Copyright (c) 2015, The University of Melbourne, Australia
  */
 
-package org.cloudbus.cloudsim.sdn.example.policies;
-
-import java.util.List;
+package uk.ncl.giacomobergami.components.allocation_policy;
 
 import org.cloudbus.cloudsim.Host;
 import org.cloudbus.cloudsim.Vm;
+import uk.ncl.giacomobergami.components.allocation_policy.VmAllocationPolicyCombinedMostFullFirst;
 
 /**
- * VM Allocation Policy - Only compute power, MFF.
+ * VM Allocation Policy - BW and Compute combined, LFF.
  * When select a host to create a new VM, this policy chooses 
- * the most full host in terms of compute power (MIPS) only.   
+ * the least full host in terms of both compute power and network bandwidth.   
  *  
  * @author Jungmin Son
  * @since CloudSimSDN 1.0
  */
-public class VmAllocationPolicyMipsMostFullFirst extends VmAllocationPolicyCombinedMostFullFirst{
+public class VmAllocationPolicyCombinedLeastFullFirst extends VmAllocationPolicyCombinedMostFullFirst {
 
-	public VmAllocationPolicyMipsMostFullFirst(List<? extends Host> list) {
-		super(list);
+	public VmAllocationPolicyCombinedLeastFullFirst() {
+		super();
+		this.setPolicyName("VmAllocationPolicyCombinedLeastFullFirst");
 	}
 
 	/**
@@ -52,29 +52,41 @@ public class VmAllocationPolicyMipsMostFullFirst extends VmAllocationPolicyCombi
 		
 		double[] freeResources = new double[numHosts];
 		for (int i = 0; i < numHosts; i++) {
-			double mipsFreePercent = (double)getFreeMips().get(i) / this.hostTotalMips; 
+			double mipsFreePercent = (double)getFreeMips().get(i) / hostTotalMips; 
+			double bwFreePercent = (double)getFreeBw().get(i) / hostTotalBw;
 			
-			freeResources[i] = mipsFreePercent;
+			freeResources[i] = convertWeightedMetric(mipsFreePercent, bwFreePercent);
 		}
 
-		for(int tries = 0; result == false && tries < numHosts; tries++) {// we still trying until we find a host or until we try all of them
-			double lessFree = Double.POSITIVE_INFINITY;
+		for(int tries = 0; tries < numHosts; tries++) {// we still trying until we find a host or until we try all of them
+			double moreFree = Double.NEGATIVE_INFINITY;
 			int idx = -1;
 
 			// we want the host with less pes in use
 			for (int i = 0; i < numHosts; i++) {
-				if (freeResources[i] < lessFree) {
-					lessFree = freeResources[i];
+				if (freeResources[i] > moreFree) {
+					moreFree = freeResources[i];
 					idx = i;
 				}
 			}
-			freeResources[idx] = Double.POSITIVE_INFINITY;
-			Host host = getHostList().get(idx);
 			
+			if(idx==-1) {
+				System.err.println("Cannot assign the VM to any host:"+tries+"/"+numHosts);
+				return false;
+			}
+			
+			freeResources[idx] = Double.NEGATIVE_INFINITY;
+			
+			Host host = getHostList().get(idx);
+
 			// Check whether the host can hold this VM or not.
-			if(getFreeMips().get(idx) < requiredMips ||
-					getFreeBw().get(idx) < requiredBw ||
-					getFreePes().get(idx) < requiredPes) {
+			if( getFreeMips().get(idx) < requiredMips) {
+				//System.err.println("not enough MIPS");
+				//Cannot host the VM
+				continue;
+			}
+			if( getFreeBw().get(idx) < requiredBw) {
+				//System.err.println("not enough BW");
 				//Cannot host the VM
 				continue;
 			}
@@ -91,11 +103,12 @@ public class VmAllocationPolicyMipsMostFullFirst extends VmAllocationPolicyCombi
 
 				getUsedBw().put(vm.getUid(), (long) requiredBw);
 				getFreeBw().set(idx,  (long) (getFreeBw().get(idx) - requiredBw));
-
 				break;
-			}
+			} 
 		}
-		
+		if(!result) {
+			System.err.println("Cannot assign the VM to any host:"+"/"+numHosts);
+		}
 		logMaxNumHostsUsed();
 		return result;
 	}

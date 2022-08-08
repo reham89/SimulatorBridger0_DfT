@@ -10,7 +10,7 @@ package org.cloudbus.cloudsim.network.datacenter;
 
 import java.util.ArrayList;
 
-import org.cloudbus.cloudsim.CloudletScheduler;
+import uk.ncl.giacomobergami.components.cloudlet_scheduler.CloudletScheduler;
 import org.cloudbus.cloudsim.Vm;
 
 /**

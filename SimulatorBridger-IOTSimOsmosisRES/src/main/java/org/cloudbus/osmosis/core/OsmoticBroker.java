@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.cloudbus.agent.AgentBroker;
 import org.cloudbus.agent.CentralAgent;
@@ -48,12 +49,17 @@ public class OsmoticBroker extends DatacenterBroker {
 	public Map<String, Integer> iotVmIdByName = new HashMap<>();
 	public static List<WorkflowInfo> workflowTag = new ArrayList<>();
 	public List<OsmoticDatacenter> datacenters = new ArrayList<>();
+	private final AtomicInteger edgeLetId;
 
 	//private Map<String, Integer> roundRobinMelMap = new HashMap<>();
 
 	public CentralAgent osmoticCentralAgent;
-	public OsmoticBroker(String name) {
+	private AtomicInteger flowId;
+
+	public OsmoticBroker(String name, AtomicInteger edgeLetId, AtomicInteger flowId) {
 		super(name);
+		this.edgeLetId = edgeLetId;
+		this.flowId = flowId;
 		this.appList = new ArrayList<>();		
 		brokerID = this.getId();
 	}
@@ -187,10 +193,10 @@ public class OsmoticBroker extends DatacenterBroker {
 	private EdgeLet generateEdgeLet(long length) {				
 		long fileSize = 30;
 		long outputSize = 1;		
-		EdgeLet edgeLet = new EdgeLet(OsmosisTopologyBuilder.edgeLetId, length, 1, fileSize, outputSize, new UtilizationModelFull(), new UtilizationModelFull(),
+		EdgeLet edgeLet = new EdgeLet(edgeLetId.getAndIncrement(), length, 1, fileSize, outputSize, new UtilizationModelFull(), new UtilizationModelFull(),
 				new UtilizationModelFull());			
 		edgeLet.setUserId(this.getId());
-		OsmosisTopologyBuilder.edgeLetId++;
+//		LegacyTopologyBuilder.edgeLetId++;
 		return edgeLet;
 	}	
 
@@ -220,7 +226,7 @@ public class OsmoticBroker extends DatacenterBroker {
 		OsmoticAppDescription app = getAppById(osmesisAppId);
 		int sourceId = edgeLet.getVmId(); // MEL or VM  			
 		int destId = this.getVmIdByName(app.getVmName()); // MEL or VM
-		int id = OsmosisTopologyBuilder.flowId ;
+		int id = flowId.getAndIncrement();
 		int melDataceneter = this.getDatacenterIdByVmId(sourceId);		
 		Flow flow  = new Flow(app.getMELName(), app.getVmName(), sourceId , destId, id, null);									
 		flow.setAppName(app.getAppName());
@@ -229,7 +235,7 @@ public class OsmoticBroker extends DatacenterBroker {
 		flow.setOsmesisAppId(osmesisAppId);				
 		flow.setWorkflowTag(edgeLet.getWorkflowTag());
 		flow.getWorkflowTag().setEdgeToCloudFlow(flow);		
-		OsmosisTopologyBuilder.flowId++;
+//		LegacyTopologyBuilder.flowId++;
 		sendNow(melDataceneter, OsmoticTags.BUILD_ROUTE, flow);
 	}	
 

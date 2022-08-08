@@ -6,7 +6,7 @@ import org.cloudbus.agent.config.AgentConfigProvider;
 import org.cloudbus.agent.config.TopologyLink;
 import org.cloudbus.cloudsim.Log;
 import org.cloudbus.cloudsim.core.MainEventManager;
-import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity;
+import org.cloudbus.cloudsim.edge.core.edge.LegacyConfiguration;
 import org.cloudbus.cloudsim.edge.utils.LogUtil;
 import org.cloudbus.cloudsim.osmesis.examples.uti.LogPrinter;
 import org.cloudbus.cloudsim.osmesis.examples.uti.PrintResults;
@@ -21,7 +21,6 @@ import uk.ncl.giacomobergami.components.mel_routing.MELRoutingPolicyGeneratorFac
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -35,7 +34,7 @@ import java.util.stream.Collectors;
  */
 public class OsmoticWrapper {
     private OsmoticConfiguration conf;
-    OsmosisTopologyBuilder topologyBuilder;
+    LegacyTopologyBuilder topologyBuilder;
     OsmoticBroker osmesisBroker;
     AgentBroker agentBroker;
     Map<String, EnergyController> energyControllers;
@@ -43,6 +42,8 @@ public class OsmoticWrapper {
     private boolean started;
     private boolean finished;
     private double runTime;
+
+
 
     public OsmoticWrapper() {
         this(null);
@@ -106,15 +107,15 @@ public class OsmoticWrapper {
 
         allocateOrClearDataStructures(calendar);
 
-        osmesisBroker = new OsmoticBroker(conf.OsmesisBroker);
+        osmesisBroker = LegacyTopologyBuilder.newBroker(); // TODO: new OsmoticBroker(conf.OsmesisBroker, edgeLetId);
         MELRoutingPolicy melSwitchPolicy = MELRoutingPolicyGeneratorFacade.generateFacade(conf.mel_switch_policy);
         osmesisBroker.setMelRouting(melSwitchPolicy);
 
-        topologyBuilder = new OsmosisTopologyBuilder(osmesisBroker);
+        topologyBuilder = new LegacyTopologyBuilder(osmesisBroker);
         {
             var confFile = fileExists(conf.configurationFile);
             if (confFile != null) {
-                ConfiguationEntity config = ConfiguationEntity.fromFile(confFile);
+                LegacyConfiguration config = LegacyConfiguration.fromFile(confFile);
                 if(config !=  null) {
                     try {
                         topologyBuilder.buildTopology(config);

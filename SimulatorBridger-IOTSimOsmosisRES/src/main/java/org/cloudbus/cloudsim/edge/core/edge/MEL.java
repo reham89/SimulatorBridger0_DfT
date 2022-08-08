@@ -16,12 +16,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.cloudbus.cloudsim.CloudletScheduler;
-import org.cloudbus.cloudsim.CloudletSchedulerTimeShared;
+import uk.ncl.giacomobergami.components.cloudlet_scheduler.CloudletScheduler;
 import org.cloudbus.cloudsim.Vm;
-import org.cloudbus.cloudsim.edge.core.edge.MEL;
 import org.cloudbus.osmosis.core.Flow;
 import org.cloudbus.osmosis.core.OsmoticBroker;
+import uk.ncl.giacomobergami.components.cloudlet_scheduler.CloudletSchedulerGeneratorFactory;
 
 /**
  * 
@@ -43,18 +42,18 @@ public class MEL extends Vm {
 		this.edgeDatacenterId = edgeDatacenterId;		
 	}
 
-	public static CloudletScheduler initCloudletSchedulerFromClassName(String name) {
-		try {
-			return (CloudletScheduler) Class.forName(name).newInstance();
-		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-			e.printStackTrace();
-			return null;
-		}
-	}
+//	public static CloudletScheduler initCloudletSchedulerFromClassName(String name) {
+//		try {
+//			return (CloudletScheduler) Class.forName(name).newInstance();
+//		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+//			e.printStackTrace();
+//			return null;
+//		}
+//	}
 
 	public MEL(int edgeDatacenterId,
 			   AtomicInteger vmId,
-			   ConfiguationEntity.MELEntities melEntity,
+			   LegacyConfiguration.MELEntities melEntity,
 			  OsmoticBroker broker) {
 		this(edgeDatacenterId,
 				vmId.getAndIncrement(),
@@ -64,7 +63,7 @@ public class MEL extends Vm {
 				melEntity.getRam(),
 				melEntity.getBw(),
 				melEntity.getVmm(),
-				initCloudletSchedulerFromClassName(melEntity.getCloudletSchedulerClassName()));
+				CloudletSchedulerGeneratorFactory.generateFacade(melEntity.getCloudletSchedulerClassName()));
 		setVmName(melEntity.getName());
 	}
 	

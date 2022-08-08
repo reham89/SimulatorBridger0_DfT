@@ -13,16 +13,12 @@
 package org.cloudbus.osmosis.core;
 
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Hashtable;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.cloudbus.cloudsim.Vm;
-import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity;
-import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity.LinkEntity;
-import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity.SwitchEntity;
+import org.cloudbus.cloudsim.edge.core.edge.LegacyConfiguration;
+import org.cloudbus.cloudsim.edge.core.edge.LegacyConfiguration.LinkEntity;
+import org.cloudbus.cloudsim.edge.core.edge.LegacyConfiguration.SwitchEntity;
 import org.cloudbus.cloudsim.sdn.Link;
 import org.cloudbus.cloudsim.sdn.NetworkNIC;
 import org.cloudbus.cloudsim.sdn.Switch;
@@ -45,14 +41,19 @@ public class SDWANController extends SDNController {
 	private Map<OsmoticDatacenter, List<Integer>> datacenterVmList;
 	protected Topology topology;
 
-	public SDWANController(ConfiguationEntity.WanEntity controllerEntity, List<Switch> datacenterGateways) {
+	public SDWANController(LegacyConfiguration.WanEntity controllerEntity, List<Switch> datacenterGateways) {
 		this(controllerEntity.getControllers().getName(),
 				SDNTrafficPolicyGeneratorFacade.generateFacade(controllerEntity.getControllers().getTrafficPolicy()),
 				SDNRoutingPolicyGeneratorFacade.generateFacade(controllerEntity.getControllers().getRoutingPolicy()));
 		setName(controllerEntity.getControllers().getName());
 		initSdWANTopology(controllerEntity.getSwitches(),
-						  controllerEntity.getLinks(),
+				(Collection<LinkEntity>)controllerEntity.getLinks(),
 				          datacenterGateways);
+	}
+
+	public SDWANController(String name, String traffic, String routing, List<Switch> datacenterGateways) {
+		this(name, SDNTrafficPolicyGeneratorFacade.generateFacade(traffic), SDNRoutingPolicyGeneratorFacade.generateFacade(routing));
+		setName(name);
 	}
 	
 	public SDWANController(String name, SDNTrafficSchedulingPolicy sdnPolicy, SDNRoutingPolicy sdnRouting){
@@ -61,9 +62,7 @@ public class SDWANController extends SDNController {
 	}
 
 	public void addAllDatacenters(List<OsmoticDatacenter> osmesisDatacentres) {
-		this.osmesisDatacentres = new ArrayList<>();		
 		this.osmesisDatacentres = osmesisDatacentres;
-		
 		this.datacenterVmList = new HashMap<>();
 		for(OsmoticDatacenter dc : this.osmesisDatacentres){
 			List<Integer> list = new ArrayList<>();
@@ -142,11 +141,13 @@ public class SDWANController extends SDNController {
 		return true;			
 	}
 
-	public void initSdWANTopology(List<SwitchEntity> switchEntites, List<LinkEntity> linkEntites,  List<Switch> datacenterGateway) {
+	public void initSdWANTopology(List<SwitchEntity> switchEntites,
+								  Collection<LinkEntity> linkEntites,
+								  List<Switch> datacenterGateway) {
 		topology  = new Topology();		 		 
-		switches= new ArrayList<Switch>();
+		switches= new ArrayList<>();
 		 
-		Hashtable<String,Integer> nameIdTable = new Hashtable<String, Integer>();
+		Hashtable<String,Integer> nameIdTable = new Hashtable<>();
 					    		    		   	
 		for(SwitchEntity switchEntity : switchEntites){							
 			long iops = switchEntity.getIops();

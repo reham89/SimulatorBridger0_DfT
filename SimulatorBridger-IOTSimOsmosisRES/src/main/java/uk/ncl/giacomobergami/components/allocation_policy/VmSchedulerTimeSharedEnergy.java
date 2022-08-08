@@ -6,7 +6,7 @@
  * Copyright (c) 2015, The University of Melbourne, Australia
  */
 
-package org.cloudbus.cloudsim.sdn.example.policies;
+package uk.ncl.giacomobergami.components.allocation_policy;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -23,13 +23,13 @@ import org.cloudbus.cloudsim.DatacenterCharacteristics;
 import org.cloudbus.cloudsim.Host;
 import org.cloudbus.cloudsim.Pe;
 import org.cloudbus.cloudsim.Storage;
-import org.cloudbus.cloudsim.VmAllocationPolicy;
+import uk.ncl.giacomobergami.components.allocation_policy.VmAllocationPolicy;
 import org.cloudbus.cloudsim.VmScheduler;
 import org.cloudbus.cloudsim.core.SimEvent;
 import org.cloudbus.cloudsim.edge.core.edge.EdgeDevice;
-import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity.HostEntity;
-import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity.LinkEntity;
-import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity.SwitchEntity;
+import org.cloudbus.cloudsim.edge.core.edge.LegacyConfiguration.HostEntity;
+import org.cloudbus.cloudsim.edge.core.edge.LegacyConfiguration.LinkEntity;
+import org.cloudbus.cloudsim.edge.core.edge.LegacyConfiguration.SwitchEntity;
 import org.cloudbus.cloudsim.provisioners.BwProvisioner;
 import org.cloudbus.cloudsim.provisioners.BwProvisionerSimple;
 import org.cloudbus.cloudsim.provisioners.PeProvisionerSimple;
@@ -37,7 +37,7 @@ import org.cloudbus.cloudsim.provisioners.RamProvisioner;
 import org.cloudbus.cloudsim.provisioners.RamProvisionerSimple;
 import org.cloudbus.cloudsim.sdn.SDNHost;
 import org.cloudbus.cloudsim.sdn.Switch;
-import org.cloudbus.cloudsim.sdn.example.policies.VmSchedulerTimeSharedEnergy;
+import uk.ncl.giacomobergami.components.allocation_policy.VmSchedulerTimeSharedEnergy;
 
 /**
  * 
@@ -58,8 +58,6 @@ public abstract class OsmoticDatacenter extends Datacenter{
 	protected List<Host> hosts = new ArrayList<>();	
 	protected List<SDNHost> sdnhosts;
 	protected List<Switch> switches;
-	public static int cloudletsNumers = 0;
-	int lastProcessTime; 	
 
 	public abstract void initCloudTopology(List<HostEntity> hostEntites, List<SwitchEntity> switchEntites, List<LinkEntity> linkEntites);
 

@@ -42,7 +42,7 @@ public class PowerVmAllocationPolicySimple extends PowerVmAllocationPolicyAbstra
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.cloudbus.cloudsim.VmAllocationPolicy#optimizeAllocation(java.util.List)
+	 * @see uk.ncl.giacomobergami.components.allocation_policy.VmAllocationPolicy#optimizeAllocation(java.util.List)
 	 */
 	@Override
 	public List<Map<String, Object>> optimizeAllocation(List<? extends Vm> vmList) {

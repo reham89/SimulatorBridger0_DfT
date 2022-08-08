@@ -20,26 +20,23 @@ package org.cloudbus.cloudsim.edge.core.edge;
  * 
 **/
 
-import java.util.ArrayList;
-import java.util.Hashtable;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Stream;
 
 import org.cloudbus.agent.AgentBroker;
 import org.cloudbus.cloudsim.DatacenterCharacteristics;
 import org.cloudbus.cloudsim.Storage;
 import org.cloudbus.cloudsim.Vm;
-import org.cloudbus.cloudsim.VmAllocationPolicy;
+import uk.ncl.giacomobergami.components.allocation_policy.VmAllocationPolicy;
 import org.cloudbus.cloudsim.core.MainEventManager;
 import org.cloudbus.cloudsim.core.SimEvent;
 import org.cloudbus.cloudsim.core.predicates.PredicateType;
-import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity.HostEntity;
-import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity.LinkEntity;
-import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity.SwitchEntity;
+import org.cloudbus.cloudsim.edge.core.edge.LegacyConfiguration.HostEntity;
+import org.cloudbus.cloudsim.edge.core.edge.LegacyConfiguration.LinkEntity;
+import org.cloudbus.cloudsim.edge.core.edge.LegacyConfiguration.SwitchEntity;
 import org.cloudbus.osmosis.core.*;
 import org.cloudbus.cloudsim.sdn.SDNHost;
-import org.cloudbus.cloudsim.sdn.Switch;
-import org.cloudbus.osmosis.core.policies.VmMELAllocationPolicyCombinedLeastFullFirst;
+import uk.ncl.giacomobergami.components.allocation_policy.VmAllocationPolicyGeneratorFactory;
 
 
 public class EdgeDataCenter extends OsmoticDatacenter {
@@ -58,21 +55,20 @@ public class EdgeDataCenter extends OsmoticDatacenter {
 		AgentBroker.getInstance().createDCAgent(name, this);
 	}
 
-	public EdgeDataCenter(ConfiguationEntity.EdgeDataCenterEntity edgeDCEntity,
+	public EdgeDataCenter(LegacyConfiguration.EdgeDataCenterEntity edgeDCEntity,
 						  DatacenterCharacteristics characteristics,
 						  LinkedList<Storage> storageList,
 						  double schedulingInterval) {
 		this(edgeDCEntity.getName(),
 				characteristics,
-				(edgeDCEntity.getVmAllocationPolicy().getClassName().equals("VmAllocationPolicyCombinedLeastFullFirst")) ?
-						new VmMELAllocationPolicyCombinedLeastFullFirst() : null,
+				VmAllocationPolicyGeneratorFactory.generateFacade(edgeDCEntity.getVmAllocationPolicy().getClassName()),
 				storageList,
 				schedulingInterval
 				);
 		setDcType(edgeDCEntity.getType());
 	}
 
-	public EdgeDataCenter(ConfiguationEntity.EdgeDataCenterEntity edgeDCEntity,
+	public EdgeDataCenter(LegacyConfiguration.EdgeDataCenterEntity edgeDCEntity,
 						  List<EdgeDevice> hostList,
 						  LinkedList<Storage> storageList,
 						  double schedulingInterval) {
@@ -237,44 +233,43 @@ public class EdgeDataCenter extends OsmoticDatacenter {
 	public void initEdgeTopology(List<EdgeDevice> devices, List<SwitchEntity> switchEntites, List<LinkEntity> linkEntites){
 		this.hosts.addAll(devices); 
 		topology  = new Topology();		 
-		sdnhosts = new ArrayList<SDNHost>();
-		switches= new ArrayList<Switch>();
-		
-		Hashtable<String,Integer> nameIdTable = new Hashtable<String, Integer>();
+		sdnhosts = new ArrayList<>();
+		switches= new ArrayList<>();
+		Hashtable<String,Integer> nameIdTable = new Hashtable<>();
 					    		    		    
 		for(EdgeDevice device : devices){
-												
 			String hostName = device.getDeviceName();					
 			SDNHost sdnHost = new SDNHost(device, hostName);
 			nameIdTable.put(hostName, sdnHost.getAddress());											
 			this.topology.addNode(sdnHost);		
 			this.sdnhosts.add(sdnHost);			
 		}
-	
-		for(SwitchEntity switchEntity : switchEntites){							
-			long iops = switchEntity.getIops();
-			String switchName = switchEntity.getName();
-			String swType = switchEntity.getType();
-			Switch sw = null;
-			sw = new Switch(switchName,swType, iops);					
-			if(sw != null) {
-				nameIdTable.put(switchName, sw.getAddress());
-				this.topology.addNode(sw);
-				this.switches.add(sw);
-			}
+
+		switchEntites.forEach(x -> x.initializeSwitch(nameIdTable, topology, switches));
+		linkEntites.forEach(x -> x.initializeLink(nameIdTable, topology));
+	}
+
+	public void initEdgeTopology(List<EdgeDevice> devices,
+								 Stream<SwitchEntity> switchEntites,
+								 Collection<LinkEntity> linkEntites){
+		this.hosts.addAll(devices);
+		topology  = new Topology();
+		sdnhosts = new ArrayList<>();
+		switches= new ArrayList<>();
+		Hashtable<String,Integer> nameIdTable = new Hashtable<>();
+
+		for(EdgeDevice device : devices){
+			String hostName = device.getDeviceName();
+			SDNHost sdnHost = new SDNHost(device, hostName);
+			nameIdTable.put(hostName, sdnHost.getAddress());
+			this.topology.addNode(sdnHost);
+			this.sdnhosts.add(sdnHost);
 		}
-			
-		for(LinkEntity linkEntity : linkEntites){									
-				String src = linkEntity.getSource();  
-				String dst = linkEntity.getDestination();				
-				long bw = linkEntity.getBw();
-				int srcAddress = nameIdTable.get(src);
-				if(dst.equals("")){
-					System.out.println("Null!");			
-				}
-				int dstAddress = nameIdTable.get(dst);
-				topology.addLink(srcAddress, dstAddress, bw);
-		}
+
+		switchEntites.forEach(x -> x.initializeSwitch(nameIdTable, topology, switches));
+		linkEntites.forEach(x -> x.initializeLink(nameIdTable, topology));
+		getSdnController().setTopology(topology, hosts, sdnhosts, switches);
+		setGateway(getSdnController().getGateway());
 	}
 
 }

@@ -5,13 +5,16 @@
  * Copyright (c) 2009-2012, The University of Melbourne, Australia
  */
 
-package org.cloudbus.cloudsim;
+package uk.ncl.giacomobergami.components.cloudlet_scheduler;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.cloudbus.cloudsim.Cloudlet;
+import org.cloudbus.cloudsim.Consts;
+import org.cloudbus.cloudsim.ResCloudlet;
 import org.cloudbus.cloudsim.core.MainEventManager;
 
 /**
@@ -52,7 +55,7 @@ public class CloudletSchedulerDynamicWorkload extends CloudletSchedulerTimeShare
 		setMips(mips);
 		setNumberOfPes(numberOfPes);
 		setTotalMips(getNumberOfPes() * getMips());
-		setUnderAllocatedMips(new HashMap<String, Double>());
+		setUnderAllocatedMips(new HashMap<>());
 		setCachePreviousTime(-1);
 	}
 

@@ -145,4 +145,14 @@ public class Topology {
     public SDNController getWanController() { 
     	return wanController;  
     }
+
+    public void removeLink(int srcAddress, int dstAddress) {
+		NetworkNIC fromNode = nodesTable.get(srcAddress);
+		NetworkNIC toNode = nodesTable.get(dstAddress);
+		var ls = nTnlinks.remove(fromNode, toNode);
+		nodeLinkLists.removeAll(ls);
+		nodeLinks.get(fromNode).removeAll(ls);
+		nodeLinks.get(toNode).removeAll(ls);
+		links.remove(srcAddress, dstAddress);
+	}
 }

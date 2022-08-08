@@ -18,7 +18,7 @@ import org.cloudbus.agent.config.AgentConfigProvider;
 import org.cloudbus.agent.config.TopologyLink;
 import org.cloudbus.cloudsim.Log;
 import org.cloudbus.cloudsim.core.MainEventManager;
-import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity;
+import org.cloudbus.cloudsim.edge.core.edge.LegacyConfiguration;
 import org.cloudbus.cloudsim.edge.utils.LogUtil;
 import org.cloudbus.cloudsim.osmesis.examples.uti.LogPrinter;
 import org.cloudbus.cloudsim.osmesis.examples.uti.PrintResults;
@@ -31,8 +31,6 @@ import org.cloudbus.res.dataproviders.res.RESResponse;
 import uk.ncl.giacomobergami.components.mel_routing.MELRoutingPolicyGeneratorFacade;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -54,7 +52,7 @@ public class RES_example6 {
     public static final String RES_CONFIG_FILE =  "inputFiles/res/RES_example6_energy_config.json";
     public static final String AGENT_CONFIG_FILE="inputFiles/agent/RES_example6_agent_config.json";
 
-    OsmosisTopologyBuilder topologyBuilder;
+    LegacyTopologyBuilder topologyBuilder;
     OsmoticBroker osmesisBroker;
     EdgeSDNController edgeSDNController;
 
@@ -104,11 +102,11 @@ public class RES_example6 {
 
         // Initialize the CloudSim library
         MainEventManager.init(num_user, calendar, trace_flag);
-        osmesisBroker  = new OsmoticBroker("OsmesisBroker");
+        osmesisBroker  = new OsmoticBroker("OsmesisBroker", edgeLetId);
         osmesisBroker.setMelRouting(MELRoutingPolicyGeneratorFacade.generateFacade(null));
-        topologyBuilder = new OsmosisTopologyBuilder(osmesisBroker);
+        topologyBuilder = new LegacyTopologyBuilder(osmesisBroker);
 
-        ConfiguationEntity config = buildTopologyFromFile(configurationFile);
+        LegacyConfiguration config = buildTopologyFromFile(configurationFile);
         //
         if(config !=  null) {
             topologyBuilder.buildTopology(config);
@@ -164,9 +162,9 @@ public class RES_example6 {
                 .collect(Collectors.toMap(EnergyController::getEdgeDatacenterId, Function.identity()));
     }
 
-    private ConfiguationEntity buildTopologyFromFile(String filePath) {
+    private LegacyConfiguration buildTopologyFromFile(String filePath) {
         System.out.println("Creating topology from file " + filePath);
-        ConfiguationEntity conf  = null;
+        LegacyConfiguration conf  = null;
         try {
             conf = topologyBuilder.buildTopology(new File(filePath));
         } catch (Exception e) {

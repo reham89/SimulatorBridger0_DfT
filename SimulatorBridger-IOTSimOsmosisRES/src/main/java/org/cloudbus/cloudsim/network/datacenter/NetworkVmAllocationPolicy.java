@@ -16,7 +16,7 @@ import java.util.Map;
 import org.cloudbus.cloudsim.Host;
 import org.cloudbus.cloudsim.Log;
 import org.cloudbus.cloudsim.Vm;
-import org.cloudbus.cloudsim.VmAllocationPolicy;
+import uk.ncl.giacomobergami.components.allocation_policy.VmAllocationPolicy;
 import org.cloudbus.cloudsim.core.MainEventManager;
 
 /**
@@ -253,7 +253,7 @@ public class NetworkVmAllocationPolicy extends VmAllocationPolicy {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.cloudbus.cloudsim.VmAllocationPolicy#allocateHostForVm(org.cloudbus.cloudsim.Vm,
+	 * @see uk.ncl.giacomobergami.components.allocation_policy.VmAllocationPolicy#allocateHostForVm(org.cloudbus.cloudsim.Vm,
 	 * org.cloudbus.cloudsim.Host)
 	 */
 	@Override

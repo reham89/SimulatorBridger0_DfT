@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.cloudbus.cloudsim.Cloudlet;
-import org.cloudbus.cloudsim.CloudletScheduler;
+import uk.ncl.giacomobergami.components.cloudlet_scheduler.CloudletScheduler;
 import org.cloudbus.cloudsim.ResCloudlet;
 import org.cloudbus.cloudsim.core.MainEventManager;
 import org.cloudbus.cloudsim.core.CloudSimTags;
@@ -635,7 +635,7 @@ public class NetworkCloudletSpaceSharedScheduler extends CloudletScheduler {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.cloudbus.cloudsim.CloudletScheduler#getCurrentRequestedMips()
+	 * @see uk.ncl.giacomobergami.components.cloudlet_scheduler.CloudletScheduler#getCurrentRequestedMips()
 	 */
 	@Override
 	public List<Double> getCurrentRequestedMips() {
@@ -650,7 +650,7 @@ public class NetworkCloudletSpaceSharedScheduler extends CloudletScheduler {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.cloudbus.cloudsim.CloudletScheduler# getTotalCurrentAvailableMipsForCloudlet
+	 * @see uk.ncl.giacomobergami.components.cloudlet_scheduler.CloudletScheduler# getTotalCurrentAvailableMipsForCloudlet
 	 * (org.cloudbus.cloudsim.ResCloudlet, java.util.List)
 	 */
 	@Override
@@ -670,7 +670,7 @@ public class NetworkCloudletSpaceSharedScheduler extends CloudletScheduler {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.cloudbus.cloudsim.CloudletScheduler# getTotalCurrentAllocatedMipsForCloudlet
+	 * @see uk.ncl.giacomobergami.components.cloudlet_scheduler.CloudletScheduler# getTotalCurrentAllocatedMipsForCloudlet
 	 * (org.cloudbus.cloudsim.ResCloudlet, double)
 	 */
 	@Override
@@ -680,7 +680,7 @@ public class NetworkCloudletSpaceSharedScheduler extends CloudletScheduler {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.cloudbus.cloudsim.CloudletScheduler# getTotalCurrentRequestedMipsForCloudlet
+	 * @see uk.ncl.giacomobergami.components.cloudlet_scheduler.CloudletScheduler# getTotalCurrentRequestedMipsForCloudlet
 	 * (org.cloudbus.cloudsim.ResCloudlet, double)
 	 */
 	@Override

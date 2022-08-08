@@ -12,8 +12,9 @@
 package uk.ncl.giacomobergami.components.iot;
 
 import org.cloudbus.cloudsim.core.SimEvent;
-import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity;
-import org.cloudbus.cloudsim.edge.iot.network.EdgeNetworkInfo;
+import org.cloudbus.cloudsim.edge.core.edge.LegacyConfiguration;
+
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 
@@ -25,8 +26,8 @@ import org.cloudbus.cloudsim.edge.iot.network.EdgeNetworkInfo;
 
 public class VoiceSensor extends IoTDevice {
 
-	public VoiceSensor(ConfiguationEntity.IotDeviceEntity onta) {
-		super( onta);
+	public VoiceSensor(LegacyConfiguration.IotDeviceEntity onta, AtomicInteger flowid) {
+		super( onta, flowid);
 	}
 
 	@Override

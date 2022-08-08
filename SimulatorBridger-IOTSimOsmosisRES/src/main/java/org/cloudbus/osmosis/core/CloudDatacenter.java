@@ -11,25 +11,24 @@
 
 package org.cloudbus.osmosis.core;
 
-import java.util.ArrayList;
-import java.util.Hashtable;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Stream;
 
 import org.cloudbus.cloudsim.DatacenterCharacteristics;
 import org.cloudbus.cloudsim.Host;
 import org.cloudbus.cloudsim.Storage;
 import org.cloudbus.cloudsim.Vm;
-import org.cloudbus.cloudsim.VmAllocationPolicy;
+import uk.ncl.giacomobergami.components.allocation_policy.VmAllocationPolicy;
 import org.cloudbus.cloudsim.core.MainEventManager;
 import org.cloudbus.cloudsim.core.SimEvent;
-import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity;
+import org.cloudbus.cloudsim.edge.core.edge.LegacyConfiguration;
 import org.cloudbus.cloudsim.edge.core.edge.EdgeDevice;
-import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity.HostEntity;
-import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity.LinkEntity;
-import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity.SwitchEntity;
+import org.cloudbus.cloudsim.edge.core.edge.LegacyConfiguration.HostEntity;
+import org.cloudbus.cloudsim.edge.core.edge.LegacyConfiguration.LinkEntity;
+import org.cloudbus.cloudsim.edge.core.edge.LegacyConfiguration.SwitchEntity;
 import org.cloudbus.cloudsim.sdn.SDNHost;
-import org.cloudbus.cloudsim.sdn.Switch;
+import uk.ncl.giacomobergami.components.loader.SubFolderReader;
 
 /**
  * 
@@ -41,27 +40,35 @@ import org.cloudbus.cloudsim.sdn.Switch;
 
 public class CloudDatacenter extends OsmoticDatacenter {
 
-		public static int cloudletsNumers = 0;
-		int lastProcessTime;	
-
-		public CloudDatacenter(ConfiguationEntity.CloudDataCenterEntity dataCenterEntity,
-							   DatacenterCharacteristics characteristics,
-							   VmAllocationPolicy vmAllocationPolicy,
-							   List<Storage> storageList,
-							   double schedulingInterval,
-							   SDNController sdnController) {
+	public CloudDatacenter(LegacyConfiguration.CloudDataCenterEntity dataCenterEntity,
+						   DatacenterCharacteristics characteristics,
+						   VmAllocationPolicy vmAllocationPolicy,
+						   List<Storage> storageList,
+						   double schedulingInterval,
+						   SDNController sdnController,
+						   AtomicInteger hostId) {
 			super(dataCenterEntity.getName(), characteristics, vmAllocationPolicy, storageList, schedulingInterval);
 			this.sdnController = sdnController;
 			this.sdnController.setDatacenter(this);
 			initCloudTopology(dataCenterEntity.getHosts(),
 					dataCenterEntity.getSwitches(),
-					dataCenterEntity.getLinks());
+					dataCenterEntity.getLinks(),
+					hostId);
 			feedSDNWithTopology();
 			setGateway(getSdnController().getGateway());
 			setDcType(dataCenterEntity.getType());
 		}
 
-		public void addVm(Vm vm){
+	public CloudDatacenter(String name,
+						   DatacenterCharacteristics characteristics,
+						   VmAllocationPolicy generateFacade,
+						   LinkedList<Storage> storageList, double scheduling_interval, SDNController sdnController) {
+		super(name, characteristics, generateFacade, storageList, scheduling_interval);
+		this.sdnController = sdnController;
+		this.sdnController.setDatacenter(this);
+	}
+
+	public void addVm(Vm vm){
 			getVmList().add(vm);
 			if (vm.isBeingInstantiated()) vm.setBeingInstantiated(false);
 			vm.updateVmProcessing(MainEventManager.clock(), getVmAllocationPolicy().getHost(vm).getVmScheduler().getAllocatedMipsForVm(vm));
@@ -88,10 +95,38 @@ public class CloudDatacenter extends OsmoticDatacenter {
 					", name=" + this.getName() +
 					'}';
 		}
-		
+
+
+	public void initCloudTopology(Stream<HostEntity> hostEntites,
+								  Stream<SwitchEntity> switchEntites,
+								  Collection<LinkEntity> linkEntites,
+								  AtomicInteger hostId) {
+		topology  = new Topology();
+		sdnhosts = new ArrayList<>();
+		switches= new ArrayList<>();
+		Hashtable<String,Integer> nameIdTable = new Hashtable<>();
+		hostEntites.forEach(hostEntity -> {
+			long pes =  hostEntity.getPes();
+			long mips = hostEntity.getMips();
+			int ram = hostEntity.getRam();
+			long storage = hostEntity.getStorage();
+			long bw = hostEntity.getBw();
+			String hostName = hostEntity.getName();
+			Host host = createHost(hostId.getAndIncrement(), ram, bw, storage, pes, mips);
+			host.setDatacenter(this);
+			SDNHost sdnHost = new SDNHost(host, hostName);
+			nameIdTable.put(hostName, sdnHost.getAddress());
+			this.topology.addNode(sdnHost);
+			this.hosts.add(host);
+			this.sdnhosts.add(sdnHost);
+		});
+		switchEntites.forEach(x -> x.initializeSwitch(nameIdTable, topology, switches));
+		linkEntites.forEach(x -> x.initializeLink(nameIdTable, topology));
+	}
 	public void initCloudTopology(List<HostEntity> hostEntites,
 								  List<SwitchEntity> switchEntites,
-								  List<LinkEntity> linkEntites) {
+								  List<LinkEntity> linkEntites,
+								  AtomicInteger hostId) {
 		 topology  = new Topology();		 
 		 sdnhosts = new ArrayList<>();
 		 switches= new ArrayList<>();
@@ -104,47 +139,27 @@ public class CloudDatacenter extends OsmoticDatacenter {
 			long storage = hostEntity.getStorage();					
 			long bw = hostEntity.getBw(); 																				
 			String hostName = hostEntity.getName();					
-			Host host = createHost(OsmosisTopologyBuilder.hostId.getAndIncrement(), ram, bw, storage, pes, mips);
+			Host host = createHost(hostId.getAndIncrement(), ram, bw, storage, pes, mips);
 			host.setDatacenter(this);
 			SDNHost sdnHost = new SDNHost(host, hostName);
-			nameIdTable.put(hostName, sdnHost.getAddress());					
-//			OsmosisTopologyBuilder.hostId++;
+			nameIdTable.put(hostName, sdnHost.getAddress());
 			this.topology.addNode(sdnHost);
 			this.hosts.add(host);
 			this.sdnhosts.add(sdnHost);			
 		}
-	
-		for(SwitchEntity switchEntity : switchEntites){							
-			long iops = switchEntity.getIops();
-			String switchName = switchEntity.getName();
-			String switchType = switchEntity.getType();
-			Switch sw = null;
-			sw = new Switch(switchName, switchType, iops);					
-			if(sw != null) {
-				nameIdTable.put(switchName, sw.getAddress());
-				this.topology.addNode(sw);
-				this.switches.add(sw);
-			}
-		}
-			
-		for(LinkEntity linkEntity : linkEntites){									
-				String src = linkEntity.getSource();  
-				String dst = linkEntity.getDestination();				
-				long bw = linkEntity.getBw();
-				int srcAddress = nameIdTable.get(src);
-				if(dst.equals("")){
-					System.out.println("Null!");			
-				}
-				int dstAddress = nameIdTable.get(dst);
-				topology.addLink(srcAddress, dstAddress, bw);
-		}
+
+		switchEntites.forEach(x -> x.initializeSwitch(nameIdTable, topology, switches));
+		linkEntites.forEach(x -> x.initializeLink(nameIdTable, topology));
+	}
+
+	@Override
+	public void initCloudTopology(List<HostEntity> hostEntites, List<SwitchEntity> switchEntites, List<LinkEntity> linkEntites) {
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
 	public void initEdgeTopology(List<EdgeDevice> devices, List<SwitchEntity> switchEntites,
 			List<LinkEntity> linkEntites) {
-		// TODO Auto-generated method stub
-		
 	}
 
 

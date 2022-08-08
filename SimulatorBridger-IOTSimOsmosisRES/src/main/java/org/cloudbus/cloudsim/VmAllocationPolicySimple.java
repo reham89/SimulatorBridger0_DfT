@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.cloudbus.cloudsim.core.MainEventManager;
+import uk.ncl.giacomobergami.components.allocation_policy.VmAllocationPolicy;
 
 /**
  * VmAllocationPolicySimple is an VmAllocationPolicy that chooses, as the host for a VM, the host
@@ -216,7 +217,7 @@ public class VmAllocationPolicySimple extends VmAllocationPolicy {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.cloudbus.cloudsim.VmAllocationPolicy#allocateHostForVm(org.cloudbus.cloudsim.Vm,
+	 * @see uk.ncl.giacomobergami.components.allocation_policy.VmAllocationPolicy#allocateHostForVm(org.cloudbus.cloudsim.Vm,
 	 * org.cloudbus.cloudsim.Host)
 	 */
 	@Override

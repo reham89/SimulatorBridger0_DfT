@@ -13,14 +13,15 @@
 package org.cloudbus.cloudsim.edge.core.edge;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 import com.google.gson.Gson;
 import org.cloudbus.cloudsim.edge.core.edge.Mobility.Location;
 import lombok.Data;
+import org.cloudbus.cloudsim.sdn.Switch;
+import org.cloudbus.osmosis.core.Topology;
 
 /**
  * 
@@ -31,15 +32,15 @@ import lombok.Data;
 **/
 
 @Data
-public class ConfiguationEntity {
+public class LegacyConfiguration {
 	private LogEntity logEntity;
 	private boolean trace_flag;
 
 	private final static Gson gson = new Gson();
 
-	public static ConfiguationEntity fromFile(File path) {
+	public static LegacyConfiguration fromFile(File path) {
 		try (FileReader jsonFileReader = new FileReader(path)){
-			return gson.fromJson(jsonFileReader, ConfiguationEntity.class);
+			return gson.fromJson(jsonFileReader, LegacyConfiguration.class);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;
@@ -62,27 +63,31 @@ public class ConfiguationEntity {
 	public static class EdgeDataCenterEntity {
 		private String name;
 		private String type;
-		private double schedulingInterval;		
 		private VmAllcationPolicyEntity vmAllocationPolicy;
+
+		private double schedulingInterval;
 		private EdgeDatacenterCharacteristicsEntity characteristics;
-		private List<EdgeDeviceEntity> hosts;		
-		private List<MELEntities> MELEntities;		
-		private List<ControllerEntity> controllers;
-		private List<SwitchEntity> switches;		
-		private List<LinkEntity> links;
+
 		private List<IotDeviceEntity> ioTDevices;
-		private List<WirelessConnections> IoT_MEL_Wireless_Connections;
+
+		private List<EdgeDeviceEntity> hosts;
+		private List<MELEntities> MELEntities;
+		private List<ControllerEntity> controllers;
+		private List<SwitchEntity> switches;
+		private List<LinkEntity> links;
 	}
 
 	@Data
 	public static class CloudDataCenterEntity {
 	    private String name;		
 		private String type;
-	    private String vmAllocationPolicy;	    	   	    
-	    private List<HostEntity> hosts;
+	    private String vmAllocationPolicy;
+
+		private List<HostEntity> hosts;
 	    private List<VMEntity> VMs;
 	    private List<ControllerEntity> controllers; // only one, what a waste!
 	    private List<SwitchEntity> switches;
+
 	    private List<LinkEntity> links;
 	}
 	
@@ -139,7 +144,7 @@ public class ConfiguationEntity {
 	}
 	
 	@Data
-	public class SwitchEntity{
+	public static class SwitchEntity{
 	    private String type;  // enum
 	    private String name;
 	    private String controller;
@@ -148,13 +153,35 @@ public class ConfiguationEntity {
 	    public boolean isGateway(){
 	        return this.type.equals("gateway");
 	    }
+
+		public void initializeSwitch(Map<String, Integer> nameIdTable, Topology topology, List<Switch> switches) {
+			long iops = getIops();
+			String switchName = getName();
+			String switchType = getType();
+			Switch sw = new Switch(switchName, switchType, iops);
+			nameIdTable.put(switchName, sw.getAddress());
+			topology.addNode(sw);
+			switches.add(sw);
+		}
 	}
 	
 	@Data
-	public class LinkEntity{
+	public static class LinkEntity{
 	    private String source;
 	    private String destination;
 	    private long bw;
+
+		public void initializeLink(Map<String, Integer> nameIdTable, Topology topology) {
+			String src = getSource();
+			String dst = getDestination();
+			long bw = getBw();
+			int srcAddress = nameIdTable.get(src);
+			if(dst.equals("")){
+				System.out.println("Null!");
+			}
+			int dstAddress = nameIdTable.get(dst);
+			topology.addLink(srcAddress, dstAddress, bw);
+		}
 	}
 	
 	@Data
@@ -206,12 +233,6 @@ public class ConfiguationEntity {
 		EdgeLetEntity dataTemplate;
 		double bw;
 
-	}
-
-	@Data
-	public static class WirelessConnections {
-		private int vmId;
-		private int assigmentIoTId; 
 	}
 	
 	@Data

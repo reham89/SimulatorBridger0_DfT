@@ -1,7 +1,7 @@
 package org.cloudbus.osmosis.core;
 
 import org.cloudbus.cloudsim.Host;
-import org.cloudbus.cloudsim.VmAllocationPolicy;
+import uk.ncl.giacomobergami.components.allocation_policy.VmAllocationPolicy;
 
 import java.util.List;
 

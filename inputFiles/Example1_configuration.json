@@ -5,7 +5,7 @@
 		"type":"edge",
 		"schedulingInterval":1.0,
 		"vmAllocationPolicy":{
-			"className":"VmAllocationPolicyCombinedLeastFullFirst"
+			"className":"uk.ncl.giacomobergami.components.allocation_policy.VmAllocationPolicyCombinedLeastFullFirst"
 		},	
 		"characteristics":{
 			"costPerMem":0.05,
@@ -19,6 +19,7 @@
 			"architecture":"x86"			
 		},				
 		"hosts":[
+
 			{		    
 				"name":"edgeDevice_1",				
 			    "pes" : 4,
@@ -52,7 +53,7 @@
 			"ram":10000,
 			"pesNumber":1,
 			"vmm":"xxx",			
-			"cloudletSchedulerClassName":"org.cloudbus.cloudsim.CloudletSchedulerTimeShared"
+			"cloudletSchedulerClassName":"uk.ncl.giacomobergami.components.cloudlet_scheduler.CloudletSchedulerTimeShared"
 		},
 			{
 				"name":"MEL_1.2",
@@ -61,7 +62,7 @@
 				"ram":10000,
 				"pesNumber":1,
 				"vmm":"xxx",
-				"cloudletSchedulerClassName":"org.cloudbus.cloudsim.CloudletSchedulerTimeShared"
+				"cloudletSchedulerClassName":"uk.ncl.giacomobergami.components.cloudlet_scheduler.CloudletSchedulerTimeShared"
 			},
 		{
 			"name":"MEL_2",					
@@ -70,7 +71,7 @@
 			"ram":10000,
 			"pesNumber":1,
 			"vmm":"xxx",			
-			"cloudletSchedulerClassName":"org.cloudbus.cloudsim.CloudletSchedulerTimeShared"			 
+			"cloudletSchedulerClassName":"uk.ncl.giacomobergami.components.cloudlet_scheduler.CloudletSchedulerTimeShared"			 
 		}		
 		],
 		"controllers": [
@@ -358,7 +359,7 @@
     {
 		"name": "Cloud_1",
 		"type":"cloud",
-		"vmAllocationPolicy": "VmAllocationPolicyCombinedLeastFullFirst",
+		"vmAllocationPolicy": "uk.ncl.giacomobergami.components.allocation_policy.VmAllocationPolicyCombinedLeastFullFirst",
 		"hosts": 
 		[
 			{
@@ -387,7 +388,7 @@
 				"ram" : 512,
 				"storage" : 10000,
 				"bw" : 1000,
-				"cloudletPolicy": "TimeShared" 
+				"cloudletPolicy": "uk.ncl.giacomobergami.components.cloudlet_scheduler.CloudletSchedulerTimeShared" 
 			},
 			{				
 				"name": "VM_2",				
@@ -396,7 +397,7 @@
 				"ram" : 512,
 				"storage" : 10000,
 				"bw" : 1000,
-				"cloudletPolicy": "TimeShared" 
+				"cloudletPolicy": "uk.ncl.giacomobergami.components.cloudlet_scheduler.CloudletSchedulerTimeShared" 
 			}
 		],
 		"controllers": 

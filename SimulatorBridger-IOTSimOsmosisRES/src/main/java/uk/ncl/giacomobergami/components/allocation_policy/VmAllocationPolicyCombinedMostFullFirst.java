@@ -5,7 +5,7 @@
  *
  * Copyright (c) 2015, The University of Melbourne, Australia
  */
-package org.cloudbus.cloudsim.sdn.example.policies;
+package uk.ncl.giacomobergami.components.allocation_policy;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -15,7 +15,6 @@ import java.util.Map;
 import org.cloudbus.cloudsim.Host;
 import org.cloudbus.cloudsim.Log;
 import org.cloudbus.cloudsim.Vm;
-import org.cloudbus.cloudsim.VmAllocationPolicy;
 import org.cloudbus.cloudsim.core.MainEventManager;
 import org.cloudbus.cloudsim.sdn.power.PowerUtilizationMaxHostInterface;
 
@@ -64,9 +63,9 @@ public class VmAllocationPolicyCombinedMostFullFirst extends VmAllocationPolicy 
 
 	public void setUpVmTopology(List<? extends Host> hostList){
 		setHostList(hostList);
-		setFreePes(new ArrayList<Integer>());
-		setFreeMips(new ArrayList<Long>());
-		setFreeBw(new ArrayList<Long>());
+		setFreePes(new ArrayList<>());
+		setFreeMips(new ArrayList<>());
+		setFreeBw(new ArrayList<>());
 		
 		for (Host host : getHostList()) {
 			getFreePes().add(host.getNumberOfPes());
@@ -82,12 +81,10 @@ public class VmAllocationPolicyCombinedMostFullFirst extends VmAllocationPolicy 
 		// this is the total CPU a host has... 
 		hostTotalPes =  getHostList().get(0).getNumberOfPes();
 
-		setVmTable(new HashMap<String, Host>());
-		setUsedPes(new HashMap<String, Integer>());
-		setUsedMips(new HashMap<String, Long>());
-		setUsedBw(new HashMap<String, Long>());
-		
-		
+		setVmTable(new HashMap<>());
+		setUsedPes(new HashMap<>());
+		setUsedMips(new HashMap<>());
+		setUsedBw(new HashMap<>());
 	}
 	
 	protected double convertWeightedMetric(double mipsPercent, double bwPercent) {
@@ -337,7 +334,7 @@ public class VmAllocationPolicyCombinedMostFullFirst extends VmAllocationPolicy 
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.cloudbus.cloudsim.VmAllocationPolicy#allocateHostForVm(org.cloudbus.cloudsim.Vm,
+	 * @see uk.ncl.giacomobergami.components.allocation_policy.VmAllocationPolicy#allocateHostForVm(org.cloudbus.cloudsim.Vm,
 	 * org.cloudbus.cloudsim.Host)
 	 */
 	@Override

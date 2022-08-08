@@ -12,6 +12,8 @@ import org.cloudbus.cloudsim.core.CloudSimTags;
 import org.cloudbus.cloudsim.core.SimEntity;
 import org.cloudbus.cloudsim.core.SimEvent;
 import org.cloudbus.osmosis.core.OsmoticBroker;
+import uk.ncl.giacomobergami.components.allocation_policy.VmAllocationPolicy;
+import uk.ncl.giacomobergami.components.cloudlet_scheduler.CloudletScheduler;
 
 import java.util.*;
 

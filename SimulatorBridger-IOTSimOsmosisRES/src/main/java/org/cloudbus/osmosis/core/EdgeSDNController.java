@@ -11,7 +11,7 @@
 
 package org.cloudbus.osmosis.core;
 
-import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity;
+import org.cloudbus.cloudsim.edge.core.edge.LegacyConfiguration;
 import org.cloudbus.cloudsim.edge.core.edge.EdgeDataCenter;
 import uk.ncl.giacomobergami.components.sdn_routing.SDNRoutingPolicyGeneratorFacade;
 import uk.ncl.giacomobergami.components.sdn_traffic.SDNTrafficPolicyGeneratorFacade;
@@ -36,7 +36,15 @@ public class EdgeSDNController extends SDNController {
 		super(name, sdnPolicy,sdnRouting);			
 	}
 
-	public EdgeSDNController(ConfiguationEntity.ControllerEntity controllerEntity, EdgeDataCenter datacenter) {
+	public EdgeSDNController(String name, String traffic, String routing, EdgeDataCenter datacenter) {
+		this(name,
+				SDNTrafficPolicyGeneratorFacade.generateFacade(traffic),
+				SDNRoutingPolicyGeneratorFacade.generateFacade(routing));
+		setName(name);
+		setDatacenter(datacenter);
+	}
+
+	public EdgeSDNController(LegacyConfiguration.ControllerEntity controllerEntity, EdgeDataCenter datacenter) {
 		this(controllerEntity.getName(),
 				SDNTrafficPolicyGeneratorFacade.generateFacade(controllerEntity.getTrafficPolicy()),
 				SDNRoutingPolicyGeneratorFacade.generateFacade(controllerEntity.getRoutingPolicy()));

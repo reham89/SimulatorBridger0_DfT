@@ -6,7 +6,10 @@
  * Copyright (c) 2009-2012, The University of Melbourne, Australia
  */
 
-package org.cloudbus.cloudsim;
+package uk.ncl.giacomobergami.components.allocation_policy;
+
+import org.cloudbus.cloudsim.Host;
+import org.cloudbus.cloudsim.Vm;
 
 import java.util.List;
 import java.util.Map;

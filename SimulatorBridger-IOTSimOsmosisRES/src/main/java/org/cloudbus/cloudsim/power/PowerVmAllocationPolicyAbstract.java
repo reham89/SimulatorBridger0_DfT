@@ -15,7 +15,7 @@ import java.util.Map;
 import org.cloudbus.cloudsim.Host;
 import org.cloudbus.cloudsim.Log;
 import org.cloudbus.cloudsim.Vm;
-import org.cloudbus.cloudsim.VmAllocationPolicy;
+import uk.ncl.giacomobergami.components.allocation_policy.VmAllocationPolicy;
 import org.cloudbus.cloudsim.core.MainEventManager;
 
 /**
@@ -48,7 +48,7 @@ public abstract class PowerVmAllocationPolicyAbstract extends VmAllocationPolicy
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.cloudbus.cloudsim.VmAllocationPolicy#allocateHostForVm(org.cloudbus.cloudsim.Vm)
+	 * @see uk.ncl.giacomobergami.components.allocation_policy.VmAllocationPolicy#allocateHostForVm(org.cloudbus.cloudsim.Vm)
 	 */
 	@Override
 	public boolean allocateHostForVm(Vm vm) {
@@ -57,7 +57,7 @@ public abstract class PowerVmAllocationPolicyAbstract extends VmAllocationPolicy
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.cloudbus.cloudsim.VmAllocationPolicy#allocateHostForVm(org.cloudbus.cloudsim.Vm,
+	 * @see uk.ncl.giacomobergami.components.allocation_policy.VmAllocationPolicy#allocateHostForVm(org.cloudbus.cloudsim.Vm,
 	 * org.cloudbus.cloudsim.Host)
 	 */
 	@Override
@@ -96,7 +96,7 @@ public abstract class PowerVmAllocationPolicyAbstract extends VmAllocationPolicy
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.cloudbus.cloudsim.VmAllocationPolicy#deallocateHostForVm(org.cloudbus.cloudsim.Vm)
+	 * @see uk.ncl.giacomobergami.components.allocation_policy.VmAllocationPolicy#deallocateHostForVm(org.cloudbus.cloudsim.Vm)
 	 */
 	@Override
 	public void deallocateHostForVm(Vm vm) {
@@ -108,7 +108,7 @@ public abstract class PowerVmAllocationPolicyAbstract extends VmAllocationPolicy
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.cloudbus.cloudsim.VmAllocationPolicy#getHost(org.cloudbus.cloudsim.Vm)
+	 * @see uk.ncl.giacomobergami.components.allocation_policy.VmAllocationPolicy#getHost(org.cloudbus.cloudsim.Vm)
 	 */
 	@Override
 	public Host getHost(Vm vm) {
@@ -117,7 +117,7 @@ public abstract class PowerVmAllocationPolicyAbstract extends VmAllocationPolicy
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.cloudbus.cloudsim.VmAllocationPolicy#getHost(int, int)
+	 * @see uk.ncl.giacomobergami.components.allocation_policy.VmAllocationPolicy#getHost(int, int)
 	 */
 	@Override
 	public Host getHost(int vmId, int userId) {

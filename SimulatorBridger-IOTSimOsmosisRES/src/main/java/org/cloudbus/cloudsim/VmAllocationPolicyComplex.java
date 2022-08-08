@@ -1,5 +1,7 @@
 package org.cloudbus.cloudsim;
 
+import uk.ncl.giacomobergami.components.allocation_policy.VmAllocationPolicy;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;

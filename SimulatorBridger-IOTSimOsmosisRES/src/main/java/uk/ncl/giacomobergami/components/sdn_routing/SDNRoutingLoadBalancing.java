@@ -40,7 +40,7 @@ import org.cloudbus.osmosis.core.SDNRoutingTable;
 public class SDNRoutingLoadBalancing extends SDNRoutingPolicy {
 	int[][] nodeGraphDistance;
 	double[][] nodeGraphBandwidth;
-	Map<NetworkNIC, Integer> nodeToInt = new HashMap<>();
+	Map<NetworkNIC, Integer> nodeToInt;
 	Map<Integer, NetworkNIC> intToNode = new HashMap<>();
 	Table<NetworkNIC, NetworkNIC, Link> selectedLink = HashBasedTable.create();
 	protected Table<Integer, Integer, List<NetworkNIC>> path =  HashBasedTable.create(); // src, and dest
@@ -48,6 +48,7 @@ public class SDNRoutingLoadBalancing extends SDNRoutingPolicy {
 
 	public SDNRoutingLoadBalancing() {
 		setPolicyName("ShortestPathMaxBw");
+		nodeToInt = new HashMap<>();
 	}
 
 	/*

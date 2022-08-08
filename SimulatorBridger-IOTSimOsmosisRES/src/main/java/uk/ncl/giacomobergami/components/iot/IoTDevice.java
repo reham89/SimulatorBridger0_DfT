@@ -11,24 +11,23 @@
 
 package uk.ncl.giacomobergami.components.iot;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.cloudbus.agent.AgentBroker;
 import org.cloudbus.agent.DeviceAgent;
 import org.cloudbus.cloudsim.core.MainEventManager;
 import org.cloudbus.cloudsim.core.SimEntity;
 import org.cloudbus.cloudsim.core.SimEvent;
-import org.cloudbus.cloudsim.core.predicates.Predicate;
 import org.cloudbus.cloudsim.edge.core.edge.Battery;
-import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity;
+import org.cloudbus.cloudsim.edge.core.edge.LegacyConfiguration;
 import org.cloudbus.cloudsim.edge.core.edge.Mobility;
 import org.cloudbus.cloudsim.edge.iot.network.EdgeNetwork;
 import org.cloudbus.cloudsim.edge.iot.network.EdgeNetworkInfo;
 import org.cloudbus.cloudsim.edge.utils.LogUtil;
 import org.cloudbus.osmosis.core.*;
-import org.cloudbus.osmosis.core.policies.MovingPolicy;
 import uk.ncl.giacomobergami.components.iot_protocol.IoTProtocolGeneratorFactory;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 
@@ -39,13 +38,11 @@ import uk.ncl.giacomobergami.components.iot_protocol.IoTProtocolGeneratorFactory
 **/
 
 public abstract class IoTDevice extends SimEntity {
-
 	public static int cloudLetId = 0;
-	private double runningTime = 0;	
-	public String sensed_data_type;
+	private double runningTime = 0;
 	protected Battery battery;
 	private EdgeNetworkInfo networkModel;	
-	private MovingPolicy movingPolicy;
+//	private MovingPolicy movingPolicy;
 	private Mobility mobility;
 	int connectingEdgeDeviceId = -1;
 	private boolean enabled;
@@ -53,6 +50,7 @@ public abstract class IoTDevice extends SimEntity {
 	public abstract boolean updateBatteryByTransmission();
 	private double bw;
 	private double usedBw;
+	private final AtomicInteger flowId;
 
 	String associatedEdge;
 
@@ -61,8 +59,9 @@ public abstract class IoTDevice extends SimEntity {
 
 	private List<Flow> flowList = new ArrayList<>(); 
 	
-	public IoTDevice(ConfiguationEntity.IotDeviceEntity onta) {
+	public IoTDevice(LegacyConfiguration.IotDeviceEntity onta, AtomicInteger flowId) {
 		super(onta.getName());
+		this.flowId = flowId;
 		this.battery = new Battery();
 		this.networkModel =
 				new EdgeNetworkInfo(new EdgeNetwork(
@@ -145,13 +144,13 @@ public abstract class IoTDevice extends SimEntity {
 		return this.battery;
 	}	
 
-	public MovingPolicy getMovingPolicy() {
-		return this.movingPolicy;
-	}
-
-	public void setMovingPolicy(MovingPolicy movingPolicy) {
-		this.movingPolicy = movingPolicy;
-	}
+//	public MovingPolicy getMovingPolicy() {
+//		return this.movingPolicy;
+//	}
+//
+//	public void setMovingPolicy(MovingPolicy movingPolicy) {
+//		this.movingPolicy = movingPolicy;
+//	}
 
 	public void setEdgeDeviceId(int id) {
 		this.connectingEdgeDeviceId = id;
@@ -188,7 +187,7 @@ public abstract class IoTDevice extends SimEntity {
 			return;
 		}
 
-		Flow flow = this.createFlow(app);	
+		Flow flow = this.createFlow(app);
 		
 		WorkflowInfo workflowTag = new WorkflowInfo();
 		workflowTag.setStartTime(MainEventManager.clock());
@@ -217,7 +216,7 @@ public abstract class IoTDevice extends SimEntity {
 		int melId = -1;
 		int datacenterId = -1;
 		datacenterId = app.getEdgeDcId();					
-		int id = OsmosisTopologyBuilder.flowId ;
+		int id = flowId.getAndIncrement() ;
 		Flow flow  = new Flow(this.getName(),app.getMELName(), this.getId(), melId, id, null);
 		//Flow flow  = new Flow(this.getName(),mel_name, this.getId(), melId, id, null);
 		flow.setOsmesisAppId(app.getAppID());
@@ -226,7 +225,7 @@ public abstract class IoTDevice extends SimEntity {
 		flow.setSubmitTime(MainEventManager.clock());
 		flow.setDatacenterId(datacenterId);
 		flow.setOsmesisEdgeletSize(app.getOsmesisEdgeletSize());
-		OsmosisTopologyBuilder.flowId++;
+//		LegacyTopologyBuilder.flowId++;
 		flowList.add(flow);
 		
 		return flow;

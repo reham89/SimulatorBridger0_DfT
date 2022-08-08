@@ -1,9 +1,17 @@
 package uk.ncl.giacomobergami.components.iot;
 
-import org.cloudbus.cloudsim.edge.core.edge.ConfiguationEntity;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import org.cloudbus.cloudsim.edge.core.edge.LegacyConfiguration;
 import org.cloudbus.cloudsim.edge.core.edge.Mobility;
+import uk.ncl.giacomobergami.components.networking.Host;
+import uk.ncl.giacomobergami.utils.data.CSVMediator;
 
-public class IoTDeviceConfiguration {
+@JsonPropertyOrder({"name", "ioTClassName", "bw", "pesNumber", "movable", "hasMovingRange", "beginX", "beginY", "z", "endX", "endY", "velocity", "totalMovingDistance", "signalRange",
+        "initial_battery_capacity", "battery_voltage", "max_battery_capacity", "battery_sensing_rate", "max_charging_current",
+        "battery_sending_rate", "res_powered", "solar_peak_power"
+        ,"communicationProtocol", "networkType", "data_frequency", "dataGenerationTime", "complexityOfDataPackage", "dataSize", "processingAbility",
+"cloudletId", "cloudletLength", "cloudletFileSize", "cloudletOutputSize", "utilizationModelCpu", "utilizationModelRam", "utilizationModelBw", "associatedEdge"})
+public class IoTDeviceTabularConfiguration {
     public String name;
     public double bw;
     public double max_battery_capacity;
@@ -11,6 +19,7 @@ public class IoTDeviceConfiguration {
     public double battery_sending_rate;
     public String ioTClassName;
     public boolean movable;
+    public boolean hasMovingRange;
     public double z;
     public double velocity;
     public int beginX;
@@ -39,10 +48,23 @@ public class IoTDeviceConfiguration {
     public String utilizationModelCpu;
     public String utilizationModelRam;
     public String utilizationModelBw;
+    public String associatedEdge;
 
 
-    public static IoTDeviceConfiguration fromLegacy(ConfiguationEntity.IotDeviceEntity legacy) {
-        IoTDeviceConfiguration result = new IoTDeviceConfiguration();
+    private static CSVMediator<IoTDeviceTabularConfiguration> readerWriter = null;
+    public static CSVMediator<IoTDeviceTabularConfiguration> csvReader() {
+        if (readerWriter == null)
+            readerWriter = new CSVMediator<>(IoTDeviceTabularConfiguration.class);
+        return readerWriter;
+    }
+
+    /**
+     * Conversion from the original representation to the current CSV-based one
+     * @param legacy
+     * @return
+     */
+    public static IoTDeviceTabularConfiguration fromLegacy(LegacyConfiguration.IotDeviceEntity legacy) {
+        IoTDeviceTabularConfiguration result = new IoTDeviceTabularConfiguration();
         result.ioTClassName = legacy.ioTClassName;
         result.setName(legacy.getName());
         result.setData_frequency(legacy.getData_frequency());
@@ -86,6 +108,9 @@ public class IoTDeviceConfiguration {
                 result.beginY = inner.beginY;
                 result.endX = inner.endX;
                 result.endY = inner.endY;
+                result.hasMovingRange = true;
+            } else {
+                result.hasMovingRange = false;
             }
         }
         return result;
@@ -97,13 +122,13 @@ public class IoTDeviceConfiguration {
      * is the same as unnested!
      * @return
      */
-    public ConfiguationEntity.IotDeviceEntity asLegacyConfiguration() {
-        ConfiguationEntity.IotDeviceEntity result = new ConfiguationEntity.IotDeviceEntity();
+    public LegacyConfiguration.IotDeviceEntity asLegacyConfiguration() {
+        LegacyConfiguration.IotDeviceEntity result = new LegacyConfiguration.IotDeviceEntity();
 
         if (((utilizationModelCpu != null) && (utilizationModelCpu.length() > 0)) ||
                 ((utilizationModelRam != null) && (utilizationModelRam.length() > 0)) ||
                 ((utilizationModelBw != null) && (utilizationModelBw.length() > 0))) {
-            ConfiguationEntity.EdgeLetEntity ele = new ConfiguationEntity.EdgeLetEntity();
+            LegacyConfiguration.EdgeLetEntity ele = new LegacyConfiguration.EdgeLetEntity();
             ele.setCloudletId(cloudletId);
             ele.setCloudletLength(cloudletLength);
             ele.setCloudletFileSize(cloudletFileSize);
@@ -119,7 +144,7 @@ public class IoTDeviceConfiguration {
 
         if ((((networkType != null) && (networkType.length() > 0))) ||
                 (((communicationProtocol != null) && (communicationProtocol.length() > 0)))) {
-            ConfiguationEntity.NetworkModelEntity nme = new ConfiguationEntity.NetworkModelEntity();
+            LegacyConfiguration.NetworkModelEntity nme = new LegacyConfiguration.NetworkModelEntity();
             nme.setCommunicationProtocol(communicationProtocol);
             nme.setNetworkType(networkType);
             result.setNetworkModelEntity(nme);
@@ -127,13 +152,18 @@ public class IoTDeviceConfiguration {
             result.setNetworkModelEntity(null);
         }
 
-        ConfiguationEntity.MovingRangeEntity mre = new ConfiguationEntity.MovingRangeEntity();
-        mre.beginX = beginX;
-        mre.endX = endX;
-        mre.beginY = beginY;
-        mre.endY = endY;
+        LegacyConfiguration.MovingRangeEntity mre;
+        if (hasMovingRange) {
+            mre = new LegacyConfiguration.MovingRangeEntity();
+            mre.beginX = beginX;
+            mre.endX = endX;
+            mre.beginY = beginY;
+            mre.endY = endY;
+        } else {
+            mre = null;
+        }
 
-        ConfiguationEntity.MobilityEntity mobility = new ConfiguationEntity.MobilityEntity(new Mobility.Location(beginX, beginY, z));
+        LegacyConfiguration.MobilityEntity mobility = new LegacyConfiguration.MobilityEntity(new Mobility.Location(beginX, beginY, z));
         mobility.setMovable(movable);
         mobility.setRange(mre);
         mobility.setSignalRange(signalRange);
@@ -159,6 +189,22 @@ public class IoTDeviceConfiguration {
         result.setMobilityEntity(mobility);
 
         return result;
+    }
+
+    public boolean isHasMovingRange() {
+        return hasMovingRange;
+    }
+
+    public void setHasMovingRange(boolean hasMovingRange) {
+        this.hasMovingRange = hasMovingRange;
+    }
+
+    public String getAssociatedEdge() {
+        return associatedEdge;
+    }
+
+    public void setAssociatedEdge(String associatedEdge) {
+        this.associatedEdge = associatedEdge;
     }
 
     public double getTotalMovingDistance() {

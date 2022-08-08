@@ -1,0 +1,16 @@
+logLevel: "debug"
+saveLogToFile: yes
+logFilePath: "log.txt"
+append: no
+trace_flag: no
+edgeDataCenters:
+  - "Edge_1"
+cloudDataCenters:
+  - "Cloud_1"
+topologyLinksFile: "network.csv"
+IoTSpecsFile: "iot.csv"
+sdwan:
+  controller_name: ""
+  controllercontroller_trafficPolicy: ""
+  controllercontroller_routingPolicy: ""
+  switches_file: ""

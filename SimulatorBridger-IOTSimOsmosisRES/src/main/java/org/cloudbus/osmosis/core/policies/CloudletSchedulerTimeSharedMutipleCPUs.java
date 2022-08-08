@@ -14,7 +14,7 @@ package org.cloudbus.osmosis.core.policies;
 import java.util.List;
 
 import org.cloudbus.cloudsim.Cloudlet;
-import org.cloudbus.cloudsim.CloudletSchedulerTimeShared;
+import uk.ncl.giacomobergami.components.cloudlet_scheduler.CloudletSchedulerTimeShared;
 import org.cloudbus.cloudsim.ResCloudlet;
 
 /**
