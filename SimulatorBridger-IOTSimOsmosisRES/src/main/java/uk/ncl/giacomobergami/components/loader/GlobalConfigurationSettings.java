@@ -16,6 +16,7 @@ import uk.ncl.giacomobergami.components.networking.TopologyLink;
 import uk.ncl.giacomobergami.components.networking.VM;
 import uk.ncl.giacomobergami.components.simulator.OsmoticConfiguration;
 import uk.ncl.giacomobergami.utils.asthmatic.WorkloadCSV;
+import uk.ncl.giacomobergami.utils.asthmatic.WorkloadCSVMediator;
 import uk.ncl.giacomobergami.utils.data.CSVMediator;
 import uk.ncl.giacomobergami.utils.data.YAML;
 
@@ -123,6 +124,9 @@ public class GlobalConfigurationSettings {
     @JsonIgnore
     public List<WorkloadCSV> apps;
 
+    @JsonIgnore
+    private List<TopologyLink> preserved_links;
+
     public GlobalConfigurationSettings(List<SubNetworkConfiguration> actualEdgeDataCenters,
                                        List<SubNetworkConfiguration> actualCloudDataCenters,
                                        List<IoTDeviceTabularConfiguration> iotDevices,
@@ -138,7 +142,8 @@ public class GlobalConfigurationSettings {
         this.actualEdgeDataCenters = actualEdgeDataCenters;
         this.actualCloudDataCenters = actualCloudDataCenters;
         this.iotDevices = iotDevices;
-        this.global_network_links = TopologyLink.asNetworkedLinks(global_network_links);
+        this.preserved_links = global_network_links;
+        this.global_network_links = TopologyLink.asNetworkedLinks(this.preserved_links);
         logLevel = "debug";
         this.apps = apps;
         OsmesisBroker = "OsmesisBroker";
@@ -166,95 +171,46 @@ public class GlobalConfigurationSettings {
         return conf.newBroker(OsmesisBroker);
     }
 
-    void serialize() {
+    public void dump(File folder) {
+        mkFolder(folder);
+
+        actualEdgeDataCenters.forEach(x -> {
+            File newFolder = new File(folder, x.name);
+            mkFolder(newFolder);
+            x.serializeToFolder(newFolder);
+        });
+        actualCloudDataCenters.forEach(x -> {
+            File newFolder = new File(folder, x.name);
+            mkFolder(newFolder);
+            x.serializeToFolder(newFolder);
+        });
+
+        apps_file = "apps.csv";
+        new WorkloadCSVMediator().writeAll(new File(folder, apps_file), apps);
+
+        // Dumping all of the IoT Devices, so that they are not exclusevly attached to a network
+        IoTSpecsFile = "iot.csv";
+        IoTDeviceTabularConfiguration.csvReader().writeAll(new File(folder, IoTSpecsFile), iotDevices);
+
         // Dumping the complete graph of the network, so to better analyse and visualize it
         topologyLinksFile = "network.csv";
-        apps_file = "apps.csv";
-        sdwan = new SDWAN();
-        OsmesisBroker = "OsmesisBroker";
-        mel_switch_policy = "uk.ncl.giacomobergami.components.mel_routing.RoundRobinMELRoutingPolicy";
-        num_user = 1;
-        terminate_simulation_at = -1.0;
-//        try (var writer = TopologyLink.csvReader().beginCSVWrite(new File(topologyLinksFile))) {
-//            for (var cloud : conf.getCloudDatacenter()) {
-//                var network = cloud.getName();
-//                File folder = new File(network);
-//                if (folder.exists() && (!folder.isDirectory())) {
-//                    throw new RuntimeException("ERROR: make "+network+" as a folder in the current directory");
-//                } else if (!folder.exists()) {
-//                    folder.mkdirs();
-//                }
-//                var hosts = cloud.getHosts().stream().map(Host::new).collect(Collectors.toList());
-//                var vms_or_mels = cloud.getVMs().stream().map(VM::new).collect(Collectors.toList());
-//                var switches = cloud.getSwitches().stream().map(uk.ncl.giacomobergami.components.networking.Switch::new).collect(Collectors.toList());
-//                var dataForFolder = new SubNetworkConfiguration(hosts, vms_or_mels, switches, new DataCenterWithController(cloud));
-//                dataForFolder.serializeToFolder(folder);
-//                for (var legacyLink : cloud.getLinks()) {
-//                    writer.write(new TopologyLink(network, legacyLink));
-//                }
-//            }
-//            for (var edge : conf.getEdgeDatacenter()) {
-//                var network = edge.getName();
-//                File folder = new File(network);
-//                if (folder.exists() && (!folder.isDirectory())) {
-//                    throw new RuntimeException("ERROR: make "+network+" as a folder in the current directory");
-//                } else if (!folder.exists()) {
-//                    folder.mkdirs();
-//                }
-//                var hosts = edge.getHosts().stream().map(Host::new).collect(Collectors.toList());
-//                var vms_or_mels = edge.getMELEntities().stream().map(VM::new).collect(Collectors.toList());
-//                var switches = edge.getSwitches().stream().map(uk.ncl.giacomobergami.components.networking.Switch::new).collect(Collectors.toList());
-//                var dataForFolder = new SubNetworkConfiguration(hosts, vms_or_mels, switches, new DataCenterWithController(edge));
-//                dataForFolder.serializeToFolder(folder);
-//                for (var legacyLink : edge.getLinks()) {
-//                    writer.write(new TopologyLink(network, legacyLink));
-//                }
-//            }
-//            for (var wan : conf.getSdwan()) {
-//                String network = "sdwan";
-//                sdwan.switches_file = "sdwan_switches.csv";
-//                sdwan.controller_name = wan.getControllers().name;
-//                sdwan.controllercontroller_routingPolicy = wan.getControllers().routingPolicy;
-//                sdwan.controllercontroller_trafficPolicy = wan.getControllers().trafficPolicy;
-//                for (var legacyLink : wan.getLinks()) {
-//                    writer.write(new TopologyLink(network, legacyLink));
-//                }
-//                try (var wswitch = uk.ncl.giacomobergami.components.networking.Switch.csvReader().beginCSVWrite(new File(sdwan.switches_file))) {
-//                    for (var legacySwitch : wan.getSwitches()) {
-//                        wswitch.write(new uk.ncl.giacomobergami.components.networking.Switch(legacySwitch));
-//                    }
-//                } catch (Exception e) {}
-//            }
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//
-//        // Dumping all of the IoT Devices, so that they are not exclusevly attached to a network
-//        IoTSpecsFile = "iot.csv";
-//        try (var writer = IoTDeviceTabularConfiguration.csvReader().beginCSVWrite(new File(IoTSpecsFile))) {
-//            for (var edge : conf.getEdgeDatacenter()) {
-//                for (var legacyLink : edge.getIoTDevices()) {
-//                    writer.write(IoTDeviceTabularConfiguration.fromLegacy(legacyLink));
-//                }
-//            }
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//
-//        trace_flag = conf.isTrace_flag();
-//
-//        var logger = conf.getLogEntity();
-//        logLevel = logger.getLogLevel();
-//        saveLogToFile = logger.isSaveLogToFile();
-//        logFilePath = logger.getLogFilePath();
-//        append = logger.isAppend();
-//
-//        edgeDataCenters = new ArrayList<>();
-//        conf.getEdgeDatacenter().forEach( x-> edgeDataCenters.add(x.getName()));
-//        cloudDataCenters = new ArrayList<>();
-//        conf.getCloudDatacenter().forEach(x -> cloudDataCenters.add(x.getName()));
+        TopologyLink.csvReader().writeAll(new File(folder, topologyLinksFile), this.preserved_links);
+
+        // Dumping the sdwan_switches
+        sdwan.switches_file = "sdwan_switches.csv";
+        uk.ncl.giacomobergami.components.networking.Switch.csvReader().writeAll(new File(folder, sdwan.switches_file), sdwan.switches);
 
         YAML.serialize(this, new File("iot_sim_osmosis_res.yaml").getAbsoluteFile());
+    }
+
+    private void mkFolder(File folder) {
+        if (!folder.exists()) {
+            folder.mkdirs();
+        } else {
+            if (folder.exists() && (!folder.isDirectory())) {
+                throw new RuntimeException("Remove from the filesystem: "+ folder);
+            }
+        }
     }
 
     public void fromLegacyConfiguration(LegacyConfiguration conf) {
@@ -278,7 +234,7 @@ public class GlobalConfigurationSettings {
                 var hosts = cloud.getHosts().stream().map(Host::new).collect(Collectors.toList());
                 var vms_or_mels = cloud.getVMs().stream().map(VM::new).collect(Collectors.toList());
                 var switches = cloud.getSwitches().stream().map(uk.ncl.giacomobergami.components.networking.Switch::new).collect(Collectors.toList());
-                var dataForFolder = new SubNetworkConfiguration(hosts, vms_or_mels, switches, new DataCenterWithController(cloud));
+                var dataForFolder = new SubNetworkConfiguration(hosts, vms_or_mels, switches, new DataCenterWithController(cloud), network);
                 dataForFolder.serializeToFolder(folder);
                 for (var legacyLink : cloud.getLinks()) {
                     writer.write(new TopologyLink(network, legacyLink));
@@ -295,7 +251,7 @@ public class GlobalConfigurationSettings {
                 var hosts = edge.getHosts().stream().map(Host::new).collect(Collectors.toList());
                 var vms_or_mels = edge.getMELEntities().stream().map(VM::new).collect(Collectors.toList());
                 var switches = edge.getSwitches().stream().map(uk.ncl.giacomobergami.components.networking.Switch::new).collect(Collectors.toList());
-                var dataForFolder = new SubNetworkConfiguration(hosts, vms_or_mels, switches, new DataCenterWithController(edge));
+                var dataForFolder = new SubNetworkConfiguration(hosts, vms_or_mels, switches, new DataCenterWithController(edge), network);
                 dataForFolder.serializeToFolder(folder);
                 for (var legacyLink : edge.getLinks()) {
                     writer.write(new TopologyLink(network, legacyLink));

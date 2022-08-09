@@ -26,18 +26,22 @@ public class SubNetworkConfiguration {
     public List<VM> vms_or_mels;
     public List<Switch> switches;
     public DataCenterWithController conf;
+    public final String name;
 
     public SubNetworkConfiguration(List<Host> hosts,
                                    List<VM> vms_or_mels,
                                    List<Switch> switches,
-                                   DataCenterWithController conf) {
+                                   DataCenterWithController conf,
+                                   String name) {
         this.hosts = hosts;
         this.vms_or_mels = vms_or_mels;
         this.switches = switches;
         this.conf = conf;
+        this.name = name;
     }
 
     public SubNetworkConfiguration(File folder) {
+        this.name = folder.getName();
         hosts = new ArrayList<>();
         vms_or_mels = new ArrayList<>();
         switches = new ArrayList<>();
@@ -138,6 +142,8 @@ public class SubNetworkConfiguration {
         datacenter.getSdnController().addVmsToSDNhosts(MELList);
         return datacenter;
     }
+
+
 
     public void serializeToFolder(File folder) {
         Host.csvReader().writeAll(new File(folder, "hosts.csv").getAbsoluteFile(), hosts);

@@ -8,7 +8,6 @@ import uk.ncl.giacomobergami.utils.annotations.Output;
 import uk.ncl.giacomobergami.utils.structures.StraightforwardAdjacencyList;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -149,6 +148,6 @@ public class EdgeInfrastructureGenerator {
             result.add(new TopologyLink(conf.edge_network_name, dst, src, conf.between_edge_bw));
         });
 
-        return new SubNetworkConfiguration(hosts, vm, switches, conf.network_configuration);
+        return new SubNetworkConfiguration(hosts, vm, switches, conf.network_configuration, conf.edge_network_name);
     }
 }

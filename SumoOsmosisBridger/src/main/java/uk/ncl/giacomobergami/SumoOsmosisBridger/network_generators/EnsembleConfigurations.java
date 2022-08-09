@@ -249,6 +249,10 @@ public class EnsembleConfigurations {
         var conf = YAML.parse(EnsembleConfigurations.Configuration.class, configuration_file).orElseThrow();
         var ec = new EnsembleConfigurations(conf.first(), conf.second(), conf.third(), conf.fourth(), conf.fith());
         var ls = ec.getTimedPossibleConfigurations(conf);
+        var dump = new File(configuration_file.getParentFile(), "dump");
+        ls.forEach(x -> {
+            x.dump(dump);
+        });
         return true;
     }
 

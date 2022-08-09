@@ -214,7 +214,7 @@ public class CloudInfrastructureGenerator {
         }
 
         var vm = generateDistinctVMs(conf.hosts_and_vms.n_vm, conf.hosts_and_vms.vm_bw, conf.hosts_and_vms.vm_cloudletPolicy, conf.hosts_and_vms.vm_mips, conf.hosts_and_vms.vm_pes, conf.hosts_and_vms.vm_ram, conf.hosts_and_vms.vm_storage);
-        return new SubNetworkConfiguration(hosts, vm, switches, conf.network_configuration);
+        return new SubNetworkConfiguration(hosts, vm, switches, conf.network_configuration, conf.cloud_network_name);
 
     }
 }

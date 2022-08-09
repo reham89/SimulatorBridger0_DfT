@@ -122,13 +122,7 @@ public class WorkloadFromVehicularProgram {
     private void generateWorkloadAtStop(double micro_interval,
                                         AtomicInteger ai,
                                         Map<String, Integer> mel_to_vm) {
-        endTime = lastTick - micro_interval;
-        if (Objects.equals(startTime, endTime))
-            endTime += (micro_interval/ 100.0);
-        else if (endTime > (startTime - micro_interval))
-            endTime -= micro_interval;
-        else
-            throw new RuntimeException("ERROR");
+        endTime = lastTick - (micro_interval / 100.0);
         WorkloadCSV wl = new WorkloadCSV();
         wl.OsmesisApp = "App_"+ ai.get();
         wl.ID = ai.getAndIncrement();
