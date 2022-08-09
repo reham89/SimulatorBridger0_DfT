@@ -1,6 +1,6 @@
 package uk.ncl.giacomobergami.utils.algorithms;
 
-import uk.ncl.giacomobergami.utils.structures.ConcretePair;
+import uk.ncl.giacomobergami.utils.structures.ImmutablePair;
 
 import java.util.*;
 import java.util.function.Predicate;
@@ -141,19 +141,19 @@ public class ClusterDifference<T> implements Predicate<T> {
         return change.isEmpty() ? new ClusterDifference<>() : new ClusterDifference<>(type.CHANGED, change);
     }
 
-    public static <H, K, T> ConcretePair<ConcretePair<H, List<T>>, List<ClusterDifference<T>>>
+    public static <H, K, T> ImmutablePair<ImmutablePair<H, List<T>>, List<ClusterDifference<T>>>
     computeTemporalDifference(Map<H, Map<K, List<T>>> toDiff,
                               K holder,
                               Comparator<T>tmp) {
         boolean first = true;
         List<T> prevLs = null;
-        ConcretePair<H, List<T>> cp = null;
+        ImmutablePair<H, List<T>> cp = null;
         List<ClusterDifference<T>> lsDiff = new ArrayList<>();
         for (var x : toDiff.entrySet()) {
             if (first) {
                 prevLs = x.getValue().get(holder);
                 if (prevLs == null) prevLs = (List<T>)local_empty_list;
-                cp = new ConcretePair<>(x.getKey(), prevLs);
+                cp = new ImmutablePair<>(x.getKey(), prevLs);
                 first = false;
             } else {
                 List<T> currLs = x.getValue().get(holder);
@@ -161,14 +161,14 @@ public class ClusterDifference<T> implements Predicate<T> {
                 prevLs = currLs;
             }
         }
-        return new ConcretePair<>(cp, lsDiff);
+        return new ImmutablePair<>(cp, lsDiff);
     }
 
-    public static <H, K, T> HashMap<K, ConcretePair<ConcretePair<H, List<T>>, List<ClusterDifference<T>>>>
+    public static <H, K, T> HashMap<K, ImmutablePair<ImmutablePair<H, List<T>>, List<ClusterDifference<T>>>>
     computeTemporalDifference(Map<H, Map<K, List<T>>> toDiff,
                               Collection<K> holder,
                               Comparator<T>tmp) {
-        HashMap<K, ConcretePair<ConcretePair<H, List<T>>, List<ClusterDifference<T>>>> res = new HashMap<>();
+        HashMap<K, ImmutablePair<ImmutablePair<H, List<T>>, List<ClusterDifference<T>>>> res = new HashMap<>();
         for (var h : holder) {
             res.put(h, computeTemporalDifference(toDiff, h, tmp));
         }return res

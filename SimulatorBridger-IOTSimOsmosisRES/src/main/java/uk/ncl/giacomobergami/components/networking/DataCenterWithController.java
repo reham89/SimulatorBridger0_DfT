@@ -26,6 +26,26 @@ public class DataCenterWithController {
     public String controller_trafficPolicy;
     public String controller_routingPolicy;
 
+    public DataCenterWithController copy() {
+        DataCenterWithController result = new DataCenterWithController();
+        result.scheduling_interval = scheduling_interval;
+        result.datacenter_name = datacenter_name;
+        result.datacenter_type = datacenter_type;
+        result.datacenter_vmAllocationPolicy = datacenter_vmAllocationPolicy;
+        result.datacenter_architecture = datacenter_architecture;
+        result.datacenter_os = datacenter_os;
+        result.datacenter_vmm = datacenter_vmm;
+        result.datacenter_timeZone = datacenter_timeZone;
+        result.datacenter_costPerSec = datacenter_costPerSec;
+        result.datacenter_costPerMem = datacenter_costPerMem;
+        result.datacenter_costPerStorage = datacenter_costPerStorage;
+        result.datacenter_costPerBw = datacenter_costPerBw;
+        result.controller_name = controller_name;
+        result.controller_trafficPolicy = controller_trafficPolicy;
+        result.controller_routingPolicy = controller_routingPolicy;
+        return result;
+    }
+
     public DataCenterWithController() {}
 
     public DataCenterWithController(LegacyConfiguration.CloudDataCenterEntity cloud) {

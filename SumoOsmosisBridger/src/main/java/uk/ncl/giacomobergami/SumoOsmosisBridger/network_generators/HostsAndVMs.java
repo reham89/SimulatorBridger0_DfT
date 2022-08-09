@@ -6,7 +6,7 @@ public class HostsAndVMs {
     public int hosts_mips;
     public int hosts_pes;
     public int hosts_ram;
-    public int hosts_storage;
+    public long hosts_storage;
 
     public int n_vm;
     public int vm_bw;
@@ -14,7 +14,25 @@ public class HostsAndVMs {
     public int vm_ram;
     public int vm_pes;
     public String vm_cloudletPolicy;
-    public int vm_storage;
+    public long vm_storage;
+
+    public HostsAndVMs copy() {
+        HostsAndVMs result = new HostsAndVMs();
+        result.n_hosts_per_edges = n_hosts_per_edges;
+        result.hosts_bandwidth = hosts_bandwidth;
+        result.hosts_mips = hosts_mips;
+        result.hosts_pes = hosts_pes;
+        result.hosts_ram = hosts_ram;
+        result.hosts_storage = hosts_storage;
+        result.n_vm = n_vm;
+        result.vm_bw = vm_bw;
+        result.vm_mips = vm_mips;
+        result.vm_ram = vm_ram;
+        result.vm_pes = vm_pes;
+        result.vm_cloudletPolicy = vm_cloudletPolicy;
+        result.vm_storage = vm_storage;
+        return result;
+    }
     
     void validate() {
         if (vm_bw > hosts_bandwidth)  {
@@ -39,107 +57,5 @@ public class HostsAndVMs {
         }
     }
 
-    public int getN_hosts_per_edges() {
-        return n_hosts_per_edges;
-    }
 
-    public void setN_hosts_per_edges(int n_hosts_per_edges) {
-        this.n_hosts_per_edges = n_hosts_per_edges;
-    }
-
-    public int getHosts_bandwidth() {
-        return hosts_bandwidth;
-    }
-
-    public void setHosts_bandwidth(int hosts_bandwidth) {
-        this.hosts_bandwidth = hosts_bandwidth;
-    }
-
-    public int getHosts_mips() {
-        return hosts_mips;
-    }
-
-    public void setHosts_mips(int hosts_mips) {
-        this.hosts_mips = hosts_mips;
-    }
-
-    public int getHosts_pes() {
-        return hosts_pes;
-    }
-
-    public void setHosts_pes(int hosts_pes) {
-        this.hosts_pes = hosts_pes;
-    }
-
-    public int getHosts_ram() {
-        return hosts_ram;
-    }
-
-    public void setHosts_ram(int hosts_ram) {
-        this.hosts_ram = hosts_ram;
-    }
-
-    public int getHosts_storage() {
-        return hosts_storage;
-    }
-
-    public void setHosts_storage(int hosts_storage) {
-        this.hosts_storage = hosts_storage;
-    }
-
-    public int getN_vm() {
-        return n_vm;
-    }
-
-    public void setN_vm(int n_vm) {
-        this.n_vm = n_vm;
-    }
-
-    public int getVm_bw() {
-        return vm_bw;
-    }
-
-    public void setVm_bw(int vm_bw) {
-        this.vm_bw = vm_bw;
-    }
-
-    public double getVm_mips() {
-        return vm_mips;
-    }
-
-    public void setVm_mips(double vm_mips) {
-        this.vm_mips = vm_mips;
-    }
-
-    public int getVm_ram() {
-        return vm_ram;
-    }
-
-    public void setVm_ram(int vm_ram) {
-        this.vm_ram = vm_ram;
-    }
-
-    public int getVm_pes() {
-        return vm_pes;
-    }
-
-    public void setVm_pes(int vm_pes) {
-        this.vm_pes = vm_pes;
-    }
-
-    public String getVm_cloudletPolicy() {
-        return vm_cloudletPolicy;
-    }
-
-    public void setVm_cloudletPolicy(String vm_cloudletPolicy) {
-        this.vm_cloudletPolicy = vm_cloudletPolicy;
-    }
-
-    public int getVm_storage() {
-        return vm_storage;
-    }
-
-    public void setVm_storage(int vm_storage) {
-        this.vm_storage = vm_storage;
-    }
 }

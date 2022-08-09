@@ -3,7 +3,7 @@ package uk.ncl.giacomobergami.utils.shared_data.iot;
 import uk.ncl.giacomobergami.utils.algorithms.ClusterDifference;
 import uk.ncl.giacomobergami.utils.shared_data.abstracted.SimulationProgram;
 import uk.ncl.giacomobergami.utils.shared_data.edge.TimedEdge;
-import uk.ncl.giacomobergami.utils.structures.ConcretePair;
+import uk.ncl.giacomobergami.utils.structures.ImmutablePair;
 import uk.ncl.giacomobergami.utils.structures.Union2;
 
 import java.util.*;
@@ -67,18 +67,18 @@ public class IoTProgram implements SimulationProgram {
     }
 
     public final TreeMap<Double, ProgramDetails> pathingAtEachSimulationTime;
-    public ConcretePair<ConcretePair<Double, List<String>>, List<ClusterDifference<String>>> clusterConnection;
+    public ImmutablePair<ImmutablePair<Double, List<String>>, List<ClusterDifference<String>>> clusterConnection;
     public double startCommunicatingAtSimulationTime = Double.MAX_VALUE;
 
     public TreeMap<Double, ProgramDetails> getPathingAtEachSimulationTime() {
         return pathingAtEachSimulationTime;
     }
 
-    public ConcretePair<ConcretePair<Double, List<String>>, List<ClusterDifference<String>>> getClusterConnection() {
+    public ImmutablePair<ImmutablePair<Double, List<String>>, List<ClusterDifference<String>>> getClusterConnection() {
         return clusterConnection;
     }
 
-    public void setClusterConnection(ConcretePair<ConcretePair<Double, List<String>>, List<ClusterDifference<String>>> clusterConnection) {
+    public void setClusterConnection(ImmutablePair<ImmutablePair<Double, List<String>>, List<ClusterDifference<String>>> clusterConnection) {
         this.clusterConnection = clusterConnection;
     }
 
@@ -90,7 +90,7 @@ public class IoTProgram implements SimulationProgram {
         this.startCommunicatingAtSimulationTime = startCommunicatingAtSimulationTime;
     }
 
-    public IoTProgram(ConcretePair<ConcretePair<Double, List<String>>, List<ClusterDifference<String>>> clusterConnection) {
+    public IoTProgram(ImmutablePair<ImmutablePair<Double, List<String>>, List<ClusterDifference<String>>> clusterConnection) {
         this.clusterConnection = clusterConnection;
         this.pathingAtEachSimulationTime = new TreeMap<>();
     }

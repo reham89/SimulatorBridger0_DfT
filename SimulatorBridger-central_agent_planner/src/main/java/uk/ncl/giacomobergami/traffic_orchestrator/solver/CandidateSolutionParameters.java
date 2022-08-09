@@ -3,7 +3,7 @@ package uk.ncl.giacomobergami.traffic_orchestrator.solver;
 import uk.ncl.giacomobergami.utils.algorithms.ClusterDifference;
 import uk.ncl.giacomobergami.utils.shared_data.edge.TimedEdge;
 import uk.ncl.giacomobergami.utils.shared_data.iot.TimedIoT;
-import uk.ncl.giacomobergami.utils.structures.ConcretePair;
+import uk.ncl.giacomobergami.utils.structures.ImmutablePair;
 
 import java.util.HashMap;
 import java.util.List;
@@ -14,7 +14,7 @@ public class CandidateSolutionParameters {
     public Map<Double, LocalTimeOptimizationProblem.Solution> bestResult = null;
     public TreeMap<Double, Map<String, List<String>>> inStringTime = null;
     public HashMap<Double, Map<TimedEdge, List<TimedIoT>>> inCurrentTime = null;
-    public HashMap<String, ConcretePair<ConcretePair<Double, List<String>>, List<ClusterDifference<String>>>> delta_associations = null;
+    public HashMap<String, ImmutablePair<ImmutablePair<Double, List<String>>, List<ClusterDifference<String>>>> delta_associations = null;
     public long networkingRankingTime;
     public Double bestResultScore;
 
@@ -42,11 +42,11 @@ public class CandidateSolutionParameters {
         this.inCurrentTime = inCurrentTime;
     }
 
-    public HashMap<String, ConcretePair<ConcretePair<Double, List<String>>, List<ClusterDifference<String>>>> getDelta_associations() {
+    public HashMap<String, ImmutablePair<ImmutablePair<Double, List<String>>, List<ClusterDifference<String>>>> getDelta_associations() {
         return delta_associations;
     }
 
-    public void setDelta_associations(HashMap<String, ConcretePair<ConcretePair<Double, List<String>>, List<ClusterDifference<String>>>> delta_associations) {
+    public void setDelta_associations(HashMap<String, ImmutablePair<ImmutablePair<Double, List<String>>, List<ClusterDifference<String>>>> delta_associations) {
         this.delta_associations = delta_associations;
     }
 

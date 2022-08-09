@@ -2,16 +2,16 @@ package uk.ncl.giacomobergami.utils.shared_data.edge;
 
 import uk.ncl.giacomobergami.utils.algorithms.ClusterDifference;
 import uk.ncl.giacomobergami.utils.shared_data.abstracted.SimulationProgram;
-import uk.ncl.giacomobergami.utils.structures.ConcretePair;
+import uk.ncl.giacomobergami.utils.structures.ImmutablePair;
 
 import java.util.*;
 
 public class EdgeProgram implements SimulationProgram  {
-    private final TreeMap<Double, ProgramDetails> neighboursAtEachSimulationTime;
+    public final TreeMap<Double, ProgramDetails> neighboursAtEachSimulationTime;
     private Double startCommunicatingAtSimulationTime;
 
-    public void finaliseProgram(ConcretePair<ConcretePair<Double, List<String>>, List<ClusterDifference<String>>> deltaIoTDevices,
-                                ConcretePair<ConcretePair<Double, List<String>>, List<ClusterDifference<String>>> deltaNetworkNeighbours) {
+    public void finaliseProgram(ImmutablePair<ImmutablePair<Double, List<String>>, List<ClusterDifference<String>>> deltaIoTDevices,
+                                ImmutablePair<ImmutablePair<Double, List<String>>, List<ClusterDifference<String>>> deltaNetworkNeighbours) {
         if (deltaIoTDevices.getRight().size() != deltaNetworkNeighbours.getRight().size()) {
             throw new RuntimeException("ERROR");
         }

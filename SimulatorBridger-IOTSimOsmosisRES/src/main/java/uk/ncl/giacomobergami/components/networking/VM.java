@@ -14,7 +14,7 @@ public class VM {
     public int ram;
     public int pes;
     public String cloudletPolicy;
-    public int storage;
+    public long storage;
 
     private static CSVMediator<VM> readerWriter = null;
     public static CSVMediator<VM> csvReader() {
@@ -25,7 +25,7 @@ public class VM {
 
     public VM() {}
 
-    public VM(String name, long bw, double mips, int ram, int pes, String cloudletPolicy, int storage) {
+    public VM(String name, long bw, double mips, int ram, int pes, String cloudletPolicy, long storage) {
         this.name = name;
         this.bw = bw;
         this.mips = mips;
@@ -145,11 +145,11 @@ public class VM {
         this.cloudletPolicy = cloudletPolicy;
     }
 
-    public int getStorage() {
+    public long getStorage() {
         return storage;
     }
 
-    public void setStorage(int storage) {
+    public void setStorage(long storage) {
         this.storage = storage;
     }
 }

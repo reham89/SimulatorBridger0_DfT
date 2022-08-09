@@ -6,7 +6,7 @@ import uk.ncl.giacomobergami.utils.algorithms.CartesianProduct;
 import uk.ncl.giacomobergami.utils.gir.SquaredCartesianDistanceFunction;
 import uk.ncl.giacomobergami.utils.shared_data.edge.TimedEdge;
 import uk.ncl.giacomobergami.utils.shared_data.iot.TimedIoT;
-import uk.ncl.giacomobergami.utils.structures.ConcretePair;
+import uk.ncl.giacomobergami.utils.structures.ImmutablePair;
 import uk.ncl.giacomobergami.utils.structures.ReconstructNetworkInformation;
 import uk.ncl.giacomobergami.utils.structures.StraightforwardAdjacencyList;
 import uk.ncl.giacomobergami.utils.structures.Union2;
@@ -55,7 +55,7 @@ public class LocalTimeOptimizationProblem {
         public final StraightforwardAdjacencyList<TimedEdge> RSUNetworkNeighbours;
         public HashMap<TimedEdge, List<TimedIoT>> rsuToCommunicatingVehiclesCluster;
 
-        public Solution(IntermediateSolution v, ConcretePair<Map<TimedIoT, TimedEdge>, Map<TimedIoT, TimedEdge>> cp) {
+        public Solution(IntermediateSolution v, ImmutablePair<Map<TimedIoT, TimedEdge>, Map<TimedIoT, TimedEdge>> cp) {
             this(v.objectives, cp.getKey(), cp.getValue(), v.communicationPaths, v.RSUNetworkNeighbours);
         }
 
@@ -149,7 +149,7 @@ public class LocalTimeOptimizationProblem {
         long startTime = System.currentTimeMillis();
         final ArrayList<Solution> solutionList = new ArrayList<>();
         final ArrayList<IntermediateSolution> all = new ArrayList<>();
-        final ArrayList<ConcretePair<Map<TimedIoT, TimedEdge>, Map<TimedIoT, TimedEdge>>> allPossiblePairs = new ArrayList<>();
+        final ArrayList<ImmutablePair<Map<TimedIoT, TimedEdge>, Map<TimedIoT, TimedEdge>>> allPossiblePairs = new ArrayList<>();
 
         for (Map<TimedIoT, TimedEdge> firstCommunication : this.firstMileCommunication) {
             if (firstCommunication.isEmpty()) continue;
@@ -172,7 +172,7 @@ public class LocalTimeOptimizationProblem {
                     }
                     if (noMatch) continue;
                 }
-                allPossiblePairs.add(new ConcretePair<>(firstCommunication, alpha));
+                allPossiblePairs.add(new ImmutablePair<>(firstCommunication, alpha));
             }
         }
 
@@ -228,7 +228,7 @@ public class LocalTimeOptimizationProblem {
     private IntermediateSolution computeRanking(double k1,
                                                                                     double k2,
                                                                                     boolean ignoreCubic,
-                                                                                    ConcretePair<Map<TimedIoT, TimedEdge>, Map<TimedIoT, TimedEdge>> pair,
+                                                                                    ImmutablePair<Map<TimedIoT, TimedEdge>, Map<TimedIoT, TimedEdge>> pair,
                                                                                     boolean updateAfterRunning) {
         var firstCommunication = pair.getLeft();
         var alpha = pair.getRight();
@@ -347,7 +347,7 @@ public class LocalTimeOptimizationProblem {
                 } else {
                     // Forcibly running shortest path, so to reconstruct the expected path.
                     flow.bellman_ford_moore(vehs.get(v));
-                    var cp = new ConcretePair<>(vehs.get(v), rsus.get(returned));
+                    var cp = new ImmutablePair<>(vehs.get(v), rsus.get(returned));
                     p = flow.map.get(cp);
                     if (p == null) {
                         p = updatePathWithFeasibleOne(vehs, vehOrRSUPath, v, returned, p);
@@ -364,7 +364,7 @@ public class LocalTimeOptimizationProblem {
             for (var v : pair.getKey().entrySet()) {
                 if (paths.containsKey(v.getKey())) continue; // I am not re-computing the paths that were computed before
                 flow.bellman_ford_moore(vehs.get(v.getKey()));
-                var p = flow.map.get(new ConcretePair<>(vehs.get(v.getKey()), rsus.get(v.getValue())));
+                var p = flow.map.get(new ImmutablePair<>(vehs.get(v.getKey()), rsus.get(v.getValue())));
                 if (p == null) {
                     p = updatePathWithFeasibleOne(vehs, vehOrRSUPath, v.getKey(), v.getValue(), p);
                 }

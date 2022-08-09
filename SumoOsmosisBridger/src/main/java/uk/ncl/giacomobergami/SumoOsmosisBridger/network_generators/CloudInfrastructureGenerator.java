@@ -59,158 +59,58 @@ public class CloudInfrastructureGenerator {
     public static List<Switch> generateDistinctEdgeSwitches(int n, long mips) {
         return IntStream.range(1, n+1).mapToObj(x-> generateEdgeSwitch(edge.getAndIncrement(), mips)).collect(Collectors.toList());
     }
-    public static VM generateVirtualMachine(int id, int bandwidth, String policy, double mips, int pes, int ram, int storage) {
+    public static VM generateVirtualMachine(int id, int bandwidth, String policy, double mips, int pes, int ram, long storage) {
         return new VM(vmId(id), bandwidth, mips, ram, pes, policy, storage);
     }
-    public static List<VM> generateDistinctVMs(int n, int bandwidth, String policy, double mips, int pes, int ram, int storage) {
+    public static List<VM> generateDistinctVMs(int n, int bandwidth, String policy, double mips, int pes, int ram, long storage) {
         return IntStream.range(1, n+1).mapToObj(x-> generateVirtualMachine(vm.getAndIncrement(), bandwidth, policy, mips, pes, ram, storage)).collect(Collectors.toList());
     }
-    public static Host generateHost(int id, int bw, int mips, int pes, int ram, int storage) {
+    public static Host generateHost(int id, int bw, int mips, int pes, int ram, long storage) {
         return new Host(hostId(id),  pes, ram,  bw, storage, mips, 0, 0, 0, 0);
     }
-    public static List<Host> generateDistinctHosts(int n, int bandwidth, int mips, int pes, int ram, int storage) {
+    public static List<Host> generateDistinctHosts(int n, int bandwidth, int mips, int pes, int ram, long storage) {
         return IntStream.range(1, n+1).mapToObj(x-> generateHost(host.getAndIncrement(), bandwidth, mips, pes, ram, storage)).collect(Collectors.toList());
     }
 
     public static class Configuration {
         public String cloud_network_name;
         public String gateway_name;
-        public long gateway_mips;
+        public long gateway_iops;
 
         public int n_cores;
-        public long cores_mips;
+        public long cores_iops;
         public int gateway_to_core_bandwidth;
 
         public int n_aggregates;
-        public long aggregates_mpis;
+        public long aggregates_iops;
         public int core_to_aggregate_bandwidth;
 
         public int n_edges;
-        public int edges_mips;
+        public int edges_iops;
         public int n_edges_group_size;
         public int aggregate_to_edge_bandwidth;
 
         public HostsAndVMs              hosts_and_vms;
         public DataCenterWithController network_configuration;
 
-        public HostsAndVMs getHosts_and_vms() {
-            return hosts_and_vms;
-        }
-
-        public void setHosts_and_vms(HostsAndVMs hosts_and_vms) {
-            this.hosts_and_vms = hosts_and_vms;
-        }
-
-        public String getCloud_network_name() {
-            return cloud_network_name;
-        }
-
-        public void setCloud_network_name(String cloud_network_name) {
-            this.cloud_network_name = cloud_network_name;
-        }
-
-        public String getGateway_name() {
-            return gateway_name;
-        }
-
-        public void setGateway_name(String gateway_name) {
-            this.gateway_name = gateway_name;
-        }
-
-        public long getGateway_mips() {
-            return gateway_mips;
-        }
-
-        public void setGateway_mips(long gateway_mips) {
-            this.gateway_mips = gateway_mips;
-        }
-
-        public int getN_cores() {
-            return n_cores;
-        }
-
-        public void setN_cores(int n_cores) {
-            this.n_cores = n_cores;
-        }
-
-        public long getCores_mips() {
-            return cores_mips;
-        }
-
-        public void setCores_mips(long cores_mips) {
-            this.cores_mips = cores_mips;
-        }
-
-        public int getGateway_to_core_bandwidth() {
-            return gateway_to_core_bandwidth;
-        }
-
-        public void setGateway_to_core_bandwidth(int gateway_to_core_bandwidth) {
-            this.gateway_to_core_bandwidth = gateway_to_core_bandwidth;
-        }
-
-        public int getN_aggregates() {
-            return n_aggregates;
-        }
-
-        public void setN_aggregates(int n_aggregates) {
-            this.n_aggregates = n_aggregates;
-        }
-
-        public long getAggregates_mpis() {
-            return aggregates_mpis;
-        }
-
-        public void setAggregates_mpis(long aggregates_mpis) {
-            this.aggregates_mpis = aggregates_mpis;
-        }
-
-        public int getCore_to_aggregate_bandwidth() {
-            return core_to_aggregate_bandwidth;
-        }
-
-        public void setCore_to_aggregate_bandwidth(int core_to_aggregate_bandwidth) {
-            this.core_to_aggregate_bandwidth = core_to_aggregate_bandwidth;
-        }
-
-        public int getN_edges() {
-            return n_edges;
-        }
-
-        public void setN_edges(int n_edges) {
-            this.n_edges = n_edges;
-        }
-
-        public int getEdges_mips() {
-            return edges_mips;
-        }
-
-        public void setEdges_mips(int edges_mips) {
-            this.edges_mips = edges_mips;
-        }
-
-        public int getN_edges_group_size() {
-            return n_edges_group_size;
-        }
-
-        public void setN_edges_group_size(int n_edges_group_size) {
-            this.n_edges_group_size = n_edges_group_size;
-        }
-
-        public int getAggregate_to_edge_bandwidth() {
-            return aggregate_to_edge_bandwidth;
-        }
-
-        public void setAggregate_to_edge_bandwidth(int aggregate_to_edge_bandwidth) {
-            this.aggregate_to_edge_bandwidth = aggregate_to_edge_bandwidth;
-        }
-
-        public DataCenterWithController getNetwork_configuration() {
-            return network_configuration;
-        }
-
-        public void setNetwork_configuration(DataCenterWithController network_configuration) {
-            this.network_configuration = network_configuration;
+        public Configuration copy() {
+            Configuration result = new Configuration();
+            result.cloud_network_name = cloud_network_name;
+            result.gateway_name = gateway_name;
+            result.gateway_iops = gateway_iops;
+            result.n_cores = n_cores;
+            result.cores_iops = cores_iops;
+            result.gateway_to_core_bandwidth = gateway_to_core_bandwidth;
+            result.n_aggregates = n_aggregates;
+            result.aggregates_iops = aggregates_iops;
+            result.core_to_aggregate_bandwidth = core_to_aggregate_bandwidth;
+            result.n_edges = n_edges;
+            result.edges_iops = edges_iops;
+            result.n_edges_group_size = n_edges_group_size;
+            result.aggregate_to_edge_bandwidth = aggregate_to_edge_bandwidth;
+            result.hosts_and_vms = hosts_and_vms.copy();
+            result.network_configuration = network_configuration.copy();
+            return result;
         }
     }
 
@@ -218,16 +118,16 @@ public class CloudInfrastructureGenerator {
                                                                     @Output List<TopologyLink> result) {
         List<Switch> switches = new ArrayList<>();
         conf.hosts_and_vms.validate();
-        switches.add(new Switch("gateway", conf.gateway_name, conf.gateway_mips));
+        switches.add(new Switch("gateway", conf.gateway_name, conf.gateway_iops));
 
         // Gateway to cores
-        var cores = generateDistinctCoreSwitches(conf.n_cores, conf.cores_mips);
+        var cores = generateDistinctCoreSwitches(conf.n_cores, conf.cores_iops);
         for (var core : cores) result.add(new TopologyLink(conf.cloud_network_name, conf.gateway_name, core.name, conf.gateway_to_core_bandwidth));
         switches.addAll(cores);
-        cores.clear();
+//        cores.clear();
 
         // Cores to aggregates
-        var aggregates = generateDistinctAggregateSwitches(conf.n_aggregates, conf.aggregates_mpis);
+        var aggregates = generateDistinctAggregateSwitches(conf.n_aggregates, conf.aggregates_iops);
         int half_cores = conf.n_cores/2;
         int half_aggregates = conf.n_aggregates/2;
         for (int i = 1; i<=half_cores; i++) {
@@ -253,10 +153,10 @@ public class CloudInfrastructureGenerator {
             }
         }
         switches.addAll(aggregates);
-        aggregates.clear();
+//        aggregates.clear();
 
         // Aggregates to edges
-        var edges = generateDistinctEdgeSwitches(conf.n_edges, conf.edges_mips);
+        var edges = generateDistinctEdgeSwitches(conf.n_edges, conf.edges_iops);
         var nGroups = numberOfGroups(conf.n_edges, conf.n_edges_group_size);
         int splits;
         if (nGroups >= conf.n_aggregates) {
@@ -274,7 +174,11 @@ public class CloudInfrastructureGenerator {
             HashMultimap<Integer, Integer> m = HashMultimap.create();
             for (int i = 1; i<=nGroups; i++) {
                 for (int prev_i = i; prev_i<i+splits; prev_i++) {
-                    for (int next_j = i; next_j<i+nGroups-1; next_j++) {
+                    for (int next_j = i; next_j<i+conf.n_edges_group_size; next_j++) {
+                        if (prev_i > aggregates.size())
+                            throw new RuntimeException("ERROR!");
+                        if (next_j > edges.size())
+                            throw new RuntimeException("ERROR!");
                         m.put(prev_i, next_j);
                     }
                 }
@@ -290,7 +194,7 @@ public class CloudInfrastructureGenerator {
             }
         }
         switches.addAll(edges);
-        edges.clear();
+//        edges.clear();
 
         var hosts = generateDistinctHosts(
                 conf.hosts_and_vms.n_hosts_per_edges * conf.n_edges,
@@ -304,7 +208,7 @@ public class CloudInfrastructureGenerator {
             for (int j = 1; j<=conf.hosts_and_vms.n_hosts_per_edges; j++) {
                 result.add(new TopologyLink(conf.cloud_network_name,
                                             edges.get(i-1).name,
-                                            hosts.get(j*(i-1)-1).name,
+                                            hosts.get(conf.hosts_and_vms.n_hosts_per_edges*(i-1)+j).name,
                                             conf.aggregate_to_edge_bandwidth));
             }
         }

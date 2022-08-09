@@ -11,7 +11,7 @@ import uk.ncl.giacomobergami.utils.shared_data.edge.TimedEdge;
 import uk.ncl.giacomobergami.utils.shared_data.edge.TimedEdgeMediator;
 import uk.ncl.giacomobergami.utils.shared_data.iot.TimedIoT;
 import uk.ncl.giacomobergami.utils.shared_data.iot.TimedIoTMediator;
-import uk.ncl.giacomobergami.utils.structures.ConcretePair;
+import uk.ncl.giacomobergami.utils.structures.ImmutablePair;
 import uk.ncl.giacomobergami.utils.structures.StraightforwardAdjacencyList;
 
 import java.io.*;
@@ -74,7 +74,7 @@ public abstract class TrafficConverter {
             timedNodeAdjacency.put(tick, network.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, x->new ArrayList<>(x.getValue()))));
         }
 
-        HashMap<String, ConcretePair<ConcretePair<Double, List<String>>, List<ClusterDifference<String>>>> delta_network_neighbours = ClusterDifference.computeTemporalDifference(timedNodeAdjacency, allTlsS, StringComparator.getInstance());
+        HashMap<String, ImmutablePair<ImmutablePair<Double, List<String>>, List<ClusterDifference<String>>>> delta_network_neighbours = ClusterDifference.computeTemporalDifference(timedNodeAdjacency, allTlsS, StringComparator.getInstance());
         try {
             Files.writeString(Paths.get(new File(conf.RSUCsvFile+"_"+"neighboursChange.json").getAbsolutePath()), gson.toJson(delta_network_neighbours));
         } catch (IOException e) {

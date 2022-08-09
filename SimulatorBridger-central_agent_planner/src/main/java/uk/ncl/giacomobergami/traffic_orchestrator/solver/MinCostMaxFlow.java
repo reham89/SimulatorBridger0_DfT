@@ -2,7 +2,7 @@ package uk.ncl.giacomobergami.traffic_orchestrator.solver;
 // Java Program to implement
 // the above approach
 /// https://www.geeksforgeeks.org/minimum-cost-maximum-flow-from-a-graph-using-bellman-ford-algorithm/
-import uk.ncl.giacomobergami.utils.structures.ConcretePair;
+import uk.ncl.giacomobergami.utils.structures.ImmutablePair;
 
 import java.util.*;
 
@@ -107,7 +107,7 @@ public class MinCostMaxFlow {
 		return found[sink];
 	}
 
-	HashMap<ConcretePair<Integer, Integer>, List<Integer>> map = null;
+	HashMap<ImmutablePair<Integer, Integer>, List<Integer>> map = null;
 	HashSet<Integer> vis  = null;
 	int[] d = null;
 	boolean[] b = null;
@@ -169,7 +169,7 @@ public class MinCostMaxFlow {
 				}
 				inversePath.add(r);
 				Collections.reverse(inversePath);
-				map.put(new ConcretePair<>(r, actualTarget), inversePath);
+				map.put(new ImmutablePair<>(r, actualTarget), inversePath);
 			}
 		}
 	}

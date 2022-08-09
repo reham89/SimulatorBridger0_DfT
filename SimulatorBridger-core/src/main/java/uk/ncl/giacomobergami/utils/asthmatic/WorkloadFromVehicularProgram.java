@@ -64,7 +64,7 @@ public class WorkloadFromVehicularProgram {
                 if (mel != null) {
                     if (val.setConnectionVariation.changes.get(mel) != ClusterDifference.typeOfChange.REMOVAL_OF)
                         throw new RuntimeException("ERROR");
-                    generateWorkloadAtStop(micro_interval, ai, mel_to_vm.get(lastTick));
+                    generateWorkloadAtStop(micro_interval, ai, mel_to_vm == null ? null : mel_to_vm.get(lastTick));
                 }
                 if (val.setConnectionVariation.changes.size() > 2)
                     throw new RuntimeException("ERROR");
@@ -76,7 +76,7 @@ public class WorkloadFromVehicularProgram {
                 }
             }
         }
-        finalize(micro_interval, ai, mel_to_vm.get(lastTick));
+        finalize(micro_interval, ai, mel_to_vm == null ? null : mel_to_vm.get(lastTick));
         return result;
     }
 
@@ -119,7 +119,9 @@ public class WorkloadFromVehicularProgram {
         }
     }
 
-    private void generateWorkloadAtStop(double micro_interval, AtomicInteger ai, Map<String, Integer> mel_to_vm) {
+    private void generateWorkloadAtStop(double micro_interval,
+                                        AtomicInteger ai,
+                                        Map<String, Integer> mel_to_vm) {
         endTime = lastTick - micro_interval;
         if (Objects.equals(startTime, endTime))
             endTime += (micro_interval/ 100.0);
@@ -138,7 +140,7 @@ public class WorkloadFromVehicularProgram {
         wl.MELName = mel;
         wl.OsmesisEdgelet_MI = 250;
         wl.MELOutputData_Mb = 70;
-        wl.VmName = "VM_"+ mel_to_vm.get(mel);
+        wl.VmName = (mel_to_vm == null || mel_to_vm.isEmpty()) ? "*" : "VM_"+ mel_to_vm.get(mel);
         wl.OsmesisCloudlet_MI = 200;
         result.add(wl);
         buildUpNewWorkload(null, null);

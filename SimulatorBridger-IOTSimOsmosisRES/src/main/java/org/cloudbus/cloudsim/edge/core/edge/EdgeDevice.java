@@ -36,7 +36,8 @@ public class EdgeDevice extends Host implements CartesianPoint {
 	private String deviceName;	
 	public Mobility.Location location;
 	public double signalRange;
-	private boolean enabled;		
+	private boolean enabled;
+	public double max_vehicle_communication;
 	
 	public EdgeDevice(int id, String deviceName, RamProvisioner ramProvisioner, BwProvisioner bwProvisioner,
 			long storage, List<? extends Pe> peList) {

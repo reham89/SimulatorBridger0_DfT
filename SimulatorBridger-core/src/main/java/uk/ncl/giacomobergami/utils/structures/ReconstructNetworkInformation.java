@@ -2,12 +2,17 @@ package uk.ncl.giacomobergami.utils.structures;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.SetMultimap;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import uk.ncl.giacomobergami.utils.algorithms.ClusterDifference;
 import uk.ncl.giacomobergami.utils.algorithms.ReconstructorIterator;
 import uk.ncl.giacomobergami.utils.algorithms.StringComparator;
 import uk.ncl.giacomobergami.utils.shared_data.edge.Edge;
 import uk.ncl.giacomobergami.utils.shared_data.edge.TimedEdge;
+import uk.ncl.giacomobergami.utils.shared_data.edge.TimedEdgeMediator;
 
+import java.io.*;
+import java.lang.reflect.Type;
 import java.util.*;
 
 public class ReconstructNetworkInformation implements Iterator<ReconstructNetworkInformation.TimedNetwork> {
@@ -24,6 +29,55 @@ public class ReconstructNetworkInformation implements Iterator<ReconstructNetwor
         this.edgeNodeForReconstruction = edgeNodeForReconstruction;
     }
 
+    public static ReconstructNetworkInformation fromFiles(File timedscc,
+                                                          File neighdelta,
+                                                          File rsucsv) {
+
+        TimedEdgeMediator rsum;
+        rsum = new TimedEdgeMediator();
+        Gson gson = new Gson();
+        Type sccType = new TypeToken<TreeMap<Double, List<List<String>>>>() {}.getType();
+        Type networkType = new TypeToken<HashMap<String, ImmutablePair<ImmutablePair<Double, List<String>>, List<ClusterDifference<String>>>>>() {}.getType();
+        BufferedReader reader1 = null, reader2 = null;
+        try {
+            reader1 = new BufferedReader(new FileReader(timedscc.getAbsoluteFile()));
+            reader2 = new BufferedReader(new FileReader(neighdelta.getAbsoluteFile()));
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
+        HashMap<String, ImmutablePair<ImmutablePair<Double, List<String>>, List<ClusterDifference<String>>>>
+                adjacencyListVariationInTime =  gson.fromJson(reader2, networkType);
+        TreeMap<Double, List<List<String>>>
+                timed_scc = gson.fromJson(reader1, sccType);
+        try {
+            reader1.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
+        var reader3 = rsum.beginCSVRead(rsucsv);
+        HashMap<String, Edge> finalLS = new HashMap<>();
+        {
+            HashMap<String, HashMap<Double, TimedEdge>> ls = new HashMap<>();
+            while (reader3.hasNext()) {
+                var curr = reader3.next();
+                ls.computeIfAbsent(curr.id, s -> new HashMap<>()).put(curr.simtime, curr);
+            }
+            try {
+                reader3.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            for (var x : ls.entrySet()) {
+                finalLS.put(x.getKey(), new Edge(x.getValue(), null));
+            }
+        }
+        return new ReconstructNetworkInformation(adjacencyListVariationInTime,
+                timed_scc,
+                finalLS);
+    }
+
     public static class TimedNetwork {
         public StraightforwardAdjacencyList<TimedEdge> network;
         public ArrayList<TimedEdge> tls;
@@ -31,7 +85,7 @@ public class ReconstructNetworkInformation implements Iterator<ReconstructNetwor
         public SetMultimap<TimedEdge, TimedEdge> edgeToSCC;
     }
 
-    public ReconstructNetworkInformation(HashMap<String, ConcretePair<ConcretePair<Double, List<String>>, List<ClusterDifference<String>>>> adjacencyListVariationInTime,
+    public ReconstructNetworkInformation(HashMap<String, ImmutablePair<ImmutablePair<Double, List<String>>, List<ClusterDifference<String>>>> adjacencyListVariationInTime,
                                          TreeMap<Double, List<List<String>>> timed_scc,
                                          HashMap<String, Edge> edgeNodeForReconstruction) {
         this.timed_scc = timed_scc;
