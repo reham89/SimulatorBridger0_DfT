@@ -1,16 +1,23 @@
 package uk.ncl.giacomobergami.SumoOsmosisBridger.network_generators;
 
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.google.common.collect.HashMultimap;
 import uk.ncl.giacomobergami.components.loader.SubNetworkConfiguration;
 import uk.ncl.giacomobergami.components.networking.*;
-import uk.ncl.giacomobergami.utils.structures.ConcretePair;
+import uk.ncl.giacomobergami.utils.annotations.Input;
+import uk.ncl.giacomobergami.utils.annotations.Output;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class CloudInfrastructureGenerator {
+
+    private static AtomicInteger core = new AtomicInteger(1);
+    private static AtomicInteger aggregate = new AtomicInteger(1);
+    private static AtomicInteger edge = new AtomicInteger(1);
+    private static AtomicInteger vm = new AtomicInteger(1);
+    private static AtomicInteger host = new AtomicInteger(1);
 
     public static String coreId(int id) {
         return "core"+id;
@@ -37,32 +44,32 @@ public class CloudInfrastructureGenerator {
     public static Switch generateCoreSwitch(int id, long mips) {
         return new Switch("core", coreId(id), mips);
     }
-    public static List<Switch> generateCoreSwitches(int n, long mips) {
-        return IntStream.range(1, n+1).mapToObj(x-> generateCoreSwitch(x, mips)).collect(Collectors.toList());
+    public static List<Switch> generateDistinctCoreSwitches(int n, long mips) {
+        return IntStream.range(1, n+1).mapToObj(x-> generateCoreSwitch(core.getAndIncrement(), mips)).collect(Collectors.toList());
     }
     public static Switch generateAggregateSwitch(int id, long mips) {
         return new Switch("aggregate", aggregateId(id), mips);
     }
-    public static List<Switch> generateAggregateSwitches(int n, long mips) {
-        return IntStream.range(1, n+1).mapToObj(x-> generateAggregateSwitch(x, mips)).collect(Collectors.toList());
+    public static List<Switch> generateDistinctAggregateSwitches(int n, long mips) {
+        return IntStream.range(1, n+1).mapToObj(x-> generateAggregateSwitch(aggregate.getAndIncrement(), mips)).collect(Collectors.toList());
     }
     public static Switch generateEdgeSwitch(int id, long mips) {
         return new Switch("edge", edgeId(id), mips);
     }
-    public static List<Switch> generateEdgeSwitches(int n, long mips) {
-        return IntStream.range(1, n+1).mapToObj(x-> generateEdgeSwitch(x, mips)).collect(Collectors.toList());
+    public static List<Switch> generateDistinctEdgeSwitches(int n, long mips) {
+        return IntStream.range(1, n+1).mapToObj(x-> generateEdgeSwitch(edge.getAndIncrement(), mips)).collect(Collectors.toList());
     }
     public static VM generateVirtualMachine(int id, int bandwidth, String policy, double mips, int pes, int ram, int storage) {
         return new VM(vmId(id), bandwidth, mips, ram, pes, policy, storage);
     }
-    public static List<VM> generateVMs(int n, int bandwidth, String policy, double mips, int pes, int ram, int storage) {
-        return IntStream.range(1, n+1).mapToObj(x-> generateVirtualMachine(x, bandwidth, policy, mips, pes, ram, storage)).collect(Collectors.toList());
+    public static List<VM> generateDistinctVMs(int n, int bandwidth, String policy, double mips, int pes, int ram, int storage) {
+        return IntStream.range(1, n+1).mapToObj(x-> generateVirtualMachine(vm.getAndIncrement(), bandwidth, policy, mips, pes, ram, storage)).collect(Collectors.toList());
     }
     public static Host generateHost(int id, int bw, int mips, int pes, int ram, int storage) {
         return new Host(hostId(id),  pes, ram,  bw, storage, mips, 0, 0, 0, 0);
     }
-    public static List<Host> generateHosts(int n, int bandwidth,  int mips, int pes, int ram, int storage) {
-        return IntStream.range(1, n+1).mapToObj(x-> generateHost(x, bandwidth, mips, pes, ram, storage)).collect(Collectors.toList());
+    public static List<Host> generateDistinctHosts(int n, int bandwidth, int mips, int pes, int ram, int storage) {
+        return IntStream.range(1, n+1).mapToObj(x-> generateHost(host.getAndIncrement(), bandwidth, mips, pes, ram, storage)).collect(Collectors.toList());
     }
 
     public static class Configuration {
@@ -207,27 +214,30 @@ public class CloudInfrastructureGenerator {
         }
     }
 
-    public static SubNetworkConfiguration generate(Configuration conf, List<TopologyLink> result) {
-//        List<TopologyLink> result = new ArrayList<>();
+    public static SubNetworkConfiguration generateFromConfiguration(@Input final Configuration conf,
+                                                                    @Output List<TopologyLink> result) {
         List<Switch> switches = new ArrayList<>();
         conf.hosts_and_vms.validate();
         switches.add(new Switch("gateway", conf.gateway_name, conf.gateway_mips));
 
         // Gateway to cores
-        var cores = generateCoreSwitches(conf.n_cores, conf.cores_mips);
+        var cores = generateDistinctCoreSwitches(conf.n_cores, conf.cores_mips);
         for (var core : cores) result.add(new TopologyLink(conf.cloud_network_name, conf.gateway_name, core.name, conf.gateway_to_core_bandwidth));
         switches.addAll(cores);
         cores.clear();
 
         // Cores to aggregates
-        var aggregates = generateAggregateSwitches(conf.n_aggregates, conf.aggregates_mpis);
+        var aggregates = generateDistinctAggregateSwitches(conf.n_aggregates, conf.aggregates_mpis);
         int half_cores = conf.n_cores/2;
         int half_aggregates = conf.n_aggregates/2;
         for (int i = 1; i<=half_cores; i++) {
             for (int j = 0; (j<half_aggregates); j++) {
                 int jId = j*2+1;
                 if (jId <= conf.n_aggregates) {
-                    result.add(new TopologyLink(conf.cloud_network_name, coreId(i), aggregateId(jId), conf.core_to_aggregate_bandwidth));
+                    result.add(new TopologyLink(conf.cloud_network_name,
+                                                cores.get(i-1).name,
+                                                aggregates.get(jId-1).name,
+                                                conf.core_to_aggregate_bandwidth));
                 }
             }
         }
@@ -235,7 +245,10 @@ public class CloudInfrastructureGenerator {
             for (int j = 1; (j<half_aggregates); j++) {
                 int jId = j*2;
                 if (jId <= conf.n_aggregates) {
-                    result.add(new TopologyLink(conf.cloud_network_name, coreId(i), aggregateId(jId), conf.core_to_aggregate_bandwidth));
+                    result.add(new TopologyLink(conf.cloud_network_name,
+                                                cores.get(i-1).name,
+                                                aggregates.get(jId-1).name,
+                                                conf.core_to_aggregate_bandwidth));
                 }
             }
         }
@@ -243,7 +256,7 @@ public class CloudInfrastructureGenerator {
         aggregates.clear();
 
         // Aggregates to edges
-        var edges = generateEdgeSwitches(conf.n_edges, conf.edges_mips);
+        var edges = generateDistinctEdgeSwitches(conf.n_edges, conf.edges_mips);
         var nGroups = numberOfGroups(conf.n_edges, conf.n_edges_group_size);
         int splits;
         if (nGroups >= conf.n_aggregates) {
@@ -251,7 +264,10 @@ public class CloudInfrastructureGenerator {
             for (int prev_i = 1; prev_i<=conf.n_aggregates; prev_i++) {
                 int finalAssignJ = prev_i+splits-1+conf.n_edges_group_size-1;
                 for (int assign_j = prev_i; assign_j<=finalAssignJ; assign_j++)
-                    result.add(new TopologyLink(conf.cloud_network_name, aggregateId(prev_i), edgeId(assign_j), conf.aggregate_to_edge_bandwidth));
+                    result.add(new TopologyLink(conf.cloud_network_name,
+                                                aggregates.get(prev_i-1).name,
+                                                edges.get(assign_j-1).name,
+                                                conf.aggregate_to_edge_bandwidth));
             }
         } else {
             splits = numberOfGroups(conf.n_aggregates, nGroups);
@@ -266,14 +282,17 @@ public class CloudInfrastructureGenerator {
             for (var x : m.asMap().entrySet()) {
                 var prev_i = x.getKey();
                 for (var assign_j : x.getValue()) {
-                    result.add(new TopologyLink(conf.cloud_network_name, aggregateId(prev_i), edgeId(assign_j), conf.aggregate_to_edge_bandwidth));
+                    result.add(new TopologyLink(conf.cloud_network_name,
+                                                aggregates.get(prev_i-1).name,
+                                                edges.get(assign_j-1).name,
+                                                conf.aggregate_to_edge_bandwidth));
                 }
             }
         }
         switches.addAll(edges);
         edges.clear();
 
-        var hosts = generateHosts(
+        var hosts = generateDistinctHosts(
                 conf.hosts_and_vms.n_hosts_per_edges * conf.n_edges,
                 conf.hosts_and_vms.hosts_bandwidth,
                 conf.hosts_and_vms.hosts_mips,
@@ -283,11 +302,14 @@ public class CloudInfrastructureGenerator {
         );
         for (int i = 1; i<conf.n_edges; i++) {
             for (int j = 1; j<=conf.hosts_and_vms.n_hosts_per_edges; j++) {
-                result.add(new TopologyLink(conf.cloud_network_name, edgeId(i), hostId(j*(i-1)+1), conf.aggregate_to_edge_bandwidth));
+                result.add(new TopologyLink(conf.cloud_network_name,
+                                            edges.get(i-1).name,
+                                            hosts.get(j*(i-1)-1).name,
+                                            conf.aggregate_to_edge_bandwidth));
             }
         }
 
-        var vm = generateVMs(conf.hosts_and_vms.n_vm, conf.hosts_and_vms.vm_bw, conf.hosts_and_vms.vm_cloudletPolicy, conf.hosts_and_vms.vm_mips, conf.hosts_and_vms.vm_pes, conf.hosts_and_vms.vm_ram, conf.hosts_and_vms.vm_storage);
+        var vm = generateDistinctVMs(conf.hosts_and_vms.n_vm, conf.hosts_and_vms.vm_bw, conf.hosts_and_vms.vm_cloudletPolicy, conf.hosts_and_vms.vm_mips, conf.hosts_and_vms.vm_pes, conf.hosts_and_vms.vm_ram, conf.hosts_and_vms.vm_storage);
         return new SubNetworkConfiguration(hosts, vm, switches, conf.network_configuration);
 
     }

@@ -167,7 +167,6 @@ public class GlobalConfigurationSettings {
     }
 
     public void fromLegacyConfiguration(LegacyConfiguration conf) {
-
         // Dumping the complete graph of the network, so to better analyse and visualize it
         topologyLinksFile = "network.csv";
         apps_file = "apps.csv";
@@ -233,8 +232,8 @@ public class GlobalConfigurationSettings {
         // Dumping all of the IoT Devices, so that they are not exclusevly attached to a network
         IoTSpecsFile = "iot.csv";
         try (var writer = IoTDeviceTabularConfiguration.csvReader().beginCSVWrite(new File(IoTSpecsFile))) {
-            for (var cloud : conf.getEdgeDatacenter()) {
-                for (var legacyLink : cloud.getIoTDevices()) {
+            for (var edge : conf.getEdgeDatacenter()) {
+                for (var legacyLink : edge.getIoTDevices()) {
                     writer.write(IoTDeviceTabularConfiguration.fromLegacy(legacyLink));
                 }
             }
@@ -262,7 +261,7 @@ public class GlobalConfigurationSettings {
         conf = new SimulatorSettings();
     }
 
-    public static GlobalConfigurationSettings readFromFile(File yaml) {
+    public static GlobalConfigurationSettings readFromYAML(File yaml) {
         var a = yaml.getAbsoluteFile();
         var self = YAML.parse(GlobalConfigurationSettings.class, a).orElseThrow();
         self.absolute = a;

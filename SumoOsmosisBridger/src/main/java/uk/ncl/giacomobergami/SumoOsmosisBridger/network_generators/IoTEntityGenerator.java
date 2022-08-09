@@ -14,7 +14,7 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
-public class IoTGenerators {
+public class IoTEntityGenerator {
     final TreeMap<String, IoT>  timed_scc;
     final IoTGlobalConfiguration conf;
 
@@ -30,67 +30,54 @@ public class IoTGenerators {
         public String getNetworkType() {
             return networkType;
         }
-
         public void setNetworkType(String networkType) {
             this.networkType = networkType;
         }
-
         public String getCommunicationProtocol() {
             return communicationProtocol;
         }
-
         public void setCommunicationProtocol(String communicationProtocol) {
             this.communicationProtocol = communicationProtocol;
         }
-
         public double getBw() {
             return bw;
         }
-
         public void setBw(double bw) {
             this.bw = bw;
         }
-
         public double getMax_battery_capacity() {
             return max_battery_capacity;
         }
-
         public void setMax_battery_capacity(double max_battery_capacity) {
             this.max_battery_capacity = max_battery_capacity;
         }
-
         public double getBattery_sensing_rate() {
             return battery_sensing_rate;
         }
-
         public void setBattery_sensing_rate(double battery_sensing_rate) {
             this.battery_sensing_rate = battery_sensing_rate;
         }
-
         public double getBattery_sending_rate() {
             return battery_sending_rate;
         }
-
         public void setBattery_sending_rate(double battery_sending_rate) {
             this.battery_sending_rate = battery_sending_rate;
         }
-
         public String getIoTClassName() {
             return ioTClassName;
         }
-
         public void setIoTClassName(String ioTClassName) {
             this.ioTClassName = ioTClassName;
         }
     }
 
-    public IoTGenerators(TreeMap<String, IoT> timed_scc,
-                         IoTGlobalConfiguration conf) {
+    public IoTEntityGenerator(TreeMap<String, IoT> timed_scc,
+                              IoTGlobalConfiguration conf) {
         this.timed_scc = timed_scc;
         this.conf = conf;
     }
 
-    public IoTGenerators(File iotFiles, File configuration) {
+    public IoTEntityGenerator(File iotFiles, File configuration) {
         Type sccType = new TypeToken<TreeMap<String, IoT>>() {}.getType();
         conf = YAML.parse(IoTGlobalConfiguration.class, configuration).orElseThrow();
         Gson gson = new Gson();
@@ -132,7 +119,11 @@ public class IoTGenerators {
         }
     }
 
-    public List<IoTDeviceTabularConfiguration> asIoTConfigurationList() {
+    public int maximumNumberOfCommunicatingVehicles() {
+        return timed_scc.size();
+    }
+
+    public List<IoTDeviceTabularConfiguration> asIoTJSONConfigurationList() {
         return timed_scc.values()
                 .stream()
                 .map(x -> {
@@ -166,7 +157,7 @@ public class IoTGenerators {
     }
 
     public static void main(String[] args) {
-        new IoTGenerators(new File("/home/giacomo/IdeaProjects/SimulatorBridger/stats/test_vehicle.json"),
+        new IoTEntityGenerator(new File("/home/giacomo/IdeaProjects/SimulatorBridger/stats/test_vehicle.json"),
                 new File("/home/giacomo/IdeaProjects/SimulatorBridger/iot_generators.yaml"));
     }
 }

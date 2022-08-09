@@ -12,6 +12,20 @@ import java.util.stream.Collectors;
 
 public class EnsembleConfigurations {
 
+    private final IoTEntityGenerator ioTEntityGenerator;
+
+    public EnsembleConfigurations(IoTEntityGenerator ioTEntityGenerator) {
+        this.ioTEntityGenerator = ioTEntityGenerator;
+    }
+
+    public void setCloudPolicyFromIoTNumbers(int numberOfClouds,
+                                             int IoTMultiplicityForVMs,
+                                             CloudInfrastructureGenerator.Configuration globalCloud) {
+
+        // Assuming to set VM in the number of IT*IoTMultiplicityForVMs/numberOfClouds
+
+    }
+
     public static GlobalConfigurationSettings ensemble(List<CloudInfrastructureGenerator.Configuration> cloudNets,
                                                        List<EdgeInfrastructureGenerator.Configuration>  edgeNets,
                                                        WANInfrastructureGenerator.Configuration conf,
@@ -34,7 +48,7 @@ public class EnsembleConfigurations {
         // Generating the cloud nets
         List<SubNetworkConfiguration> actualCloudDataCenters = cloudNets
                 .stream()
-                .map(x -> CloudInfrastructureGenerator.generate(x, global_network_links))
+                .map(x -> CloudInfrastructureGenerator.generateFromConfiguration(x, global_network_links))
                 .collect(Collectors.toList());
 
         // Generating the sdwan_switches

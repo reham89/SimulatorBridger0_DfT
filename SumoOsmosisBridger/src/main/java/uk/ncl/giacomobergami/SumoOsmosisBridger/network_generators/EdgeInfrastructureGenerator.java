@@ -6,10 +6,15 @@ import uk.ncl.giacomobergami.utils.structures.StraightforwardAdjacencyList;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class EdgeInfrastructureGenerator {
+
+    private static AtomicInteger edgeDevice = new AtomicInteger(1);
+    private static AtomicInteger vm = new AtomicInteger(1);
+    private static AtomicInteger edgeSwitch = new AtomicInteger(1);
 
     public static String edgeDeviceId(int id) {
         return "edgeDevice_"+id;
@@ -27,9 +32,9 @@ public class EdgeInfrastructureGenerator {
     public static Switch generateEdgeSwitch(int id, long mips) {
         return new Switch("edge", edgeId(id), mips);
     }
-    public static List<Switch> generateEdgeSwitches(int n, long mips) {
-        return IntStream.range(1, n+1).mapToObj(x-> generateEdgeSwitch(x, mips)).collect(Collectors.toList());
-    }
+//    public static List<Switch> generateEdgeSwitches(int n, long mips) {
+//        return IntStream.range(1, n+1).mapToObj(x-> generateEdgeSwitch(x, mips)).collect(Collectors.toList());
+//    }
     public static Switch generateCoreSwitch(int id, long mips) {
         return new Switch("edge", edgeId(id), mips);
     }
@@ -39,14 +44,14 @@ public class EdgeInfrastructureGenerator {
     public static Host generateEdgeDevice(int id, int bw, int mips, int pes, int ram, int storage) {
         return new Host(edgeDeviceId(id),  pes, ram,  bw, storage, mips, 0, 0, 0, 0);
     }
-    public static List<Host> generateEdgeDevices(int n, int bandwidth,  int mips, int pes, int ram, int storage) {
-        return IntStream.range(1, n+1).mapToObj(x-> generateEdgeDevice(x, bandwidth, mips, pes, ram, storage)).collect(Collectors.toList());
+    public static List<Host> generateDistinctEdgeDevices(int n, int bandwidth, int mips, int pes, int ram, int storage) {
+        return IntStream.range(1, n+1).mapToObj(x-> generateEdgeDevice(edgeDevice.getAndIncrement(), bandwidth, mips, pes, ram, storage)).collect(Collectors.toList());
     }
     public static VM generateMEL(int id, int bandwidth, String policy, double mips, int pes, int ram, int storage) {
         return new VM(melId(id), bandwidth, mips, ram, pes, policy, storage);
     }
     public static List<VM> generateVMs(int n, int bandwidth, String policy, double mips, int pes, int ram, int storage) {
-        return IntStream.range(1, n+1).mapToObj(x-> generateMEL(x, bandwidth, policy, mips, pes, ram, storage)).collect(Collectors.toList());
+        return IntStream.range(1, n+1).mapToObj(x-> generateMEL(vm.getAndIncrement(), bandwidth, policy, mips, pes, ram, storage)).collect(Collectors.toList());
     }
 
     public static class Configuration {
@@ -75,7 +80,7 @@ public class EdgeInfrastructureGenerator {
         conf.hosts_and_vms.validate();
 
         switches.add(new Switch("gateway", conf.gateway_name, conf.gateway_iops));
-        var hosts = generateEdgeDevices(conf.n_edgeDevices_and_edges,
+        var hosts = generateDistinctEdgeDevices(conf.n_edgeDevices_and_edges,
                 conf.hosts_and_vms.hosts_bandwidth,
                 conf.hosts_and_vms.hosts_mips,
                 conf.hosts_and_vms.hosts_pes,
@@ -90,9 +95,9 @@ public class EdgeInfrastructureGenerator {
 
         var vm = generateVMs(conf.hosts_and_vms.n_vm, conf.hosts_and_vms.vm_bw, conf.hosts_and_vms.vm_cloudletPolicy, conf.hosts_and_vms.vm_mips, conf.hosts_and_vms.vm_pes, conf.hosts_and_vms.vm_ram, conf.hosts_and_vms.vm_storage);
         for (int i = 1; i<=conf.n_edgeDevices_and_edges; i++) {
-            var edgeDeviceID = edgeDeviceId(i);
-            var edgeID = edgeId(i);
-            switches.add(generateEdgeSwitch(i, conf.edge_switch_iops));
+            var edgeDeviceID = hosts.get(i-1).name;
+            switches.add(generateEdgeSwitch(edgeSwitch.getAndIncrement(), conf.edge_switch_iops));
+            var edgeID = switches.get(i-1).name;
             result.add(new TopologyLink(conf.edge_network_name, edgeDeviceID, edgeID, conf.edge_device_to_edge_bw));
             var nCore = (i % conf.n_edges_to_one_core)+1;
             var nCoreID = coreId(nCore);
@@ -105,8 +110,8 @@ public class EdgeInfrastructureGenerator {
         };
 
         conf.edge_switch_network.forEach((src, dst) -> {
-            result.add(new TopologyLink(conf.edge_network_name, edgeId(src), edgeId(dst), conf.between_edge_bw));
-            result.add(new TopologyLink(conf.edge_network_name, edgeId(dst), edgeId(src), conf.between_edge_bw));
+            result.add(new TopologyLink(conf.edge_network_name, switches.get(src-1).name, switches.get(dst-1).name, conf.between_edge_bw));
+            result.add(new TopologyLink(conf.edge_network_name, switches.get(dst-1).name, switches.get(src-1).name, conf.between_edge_bw));
         });
 
         return new SubNetworkConfiguration(hosts, vm, switches, conf.network_configuration);

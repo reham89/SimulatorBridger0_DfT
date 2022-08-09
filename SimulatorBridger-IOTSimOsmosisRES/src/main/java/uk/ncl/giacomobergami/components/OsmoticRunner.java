@@ -30,7 +30,7 @@ public class OsmoticRunner {
     }
 
     public static void current(String configuration) {
-        var conf = GlobalConfigurationSettings.readFromFile(new File(configuration));
+        var conf = GlobalConfigurationSettings.readFromYAML(new File(configuration));
         var conv = new OsmoticWrapper(conf.asPreviousOsmoticConfiguration());
         conv.runConfiguration(conf);
         conv.stop();
