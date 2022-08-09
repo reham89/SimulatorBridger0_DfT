@@ -174,12 +174,17 @@ public class GlobalConfigurationSettings {
     public void dump(File folder) {
         mkFolder(folder);
 
+        edgeDataCenters = new ArrayList<>();
+        cloudDataCenters = new ArrayList<>();
+
         actualEdgeDataCenters.forEach(x -> {
+            edgeDataCenters.add(x.name);
             File newFolder = new File(folder, x.name);
             mkFolder(newFolder);
             x.serializeToFolder(newFolder);
         });
         actualCloudDataCenters.forEach(x -> {
+            cloudDataCenters.add(x.name);
             File newFolder = new File(folder, x.name);
             mkFolder(newFolder);
             x.serializeToFolder(newFolder);
@@ -200,7 +205,7 @@ public class GlobalConfigurationSettings {
         sdwan.switches_file = "sdwan_switches.csv";
         uk.ncl.giacomobergami.components.networking.Switch.csvReader().writeAll(new File(folder, sdwan.switches_file), sdwan.switches);
 
-        YAML.serialize(this, new File("iot_sim_osmosis_res.yaml").getAbsoluteFile());
+        YAML.serialize(this, new File(folder, "iot_sim_osmosis_res.yaml").getAbsoluteFile());
     }
 
     private void mkFolder(File folder) {
@@ -333,12 +338,15 @@ public class GlobalConfigurationSettings {
         }
     }
 
+    @JsonIgnore
     public List<IoTDeviceTabularConfiguration> getIoTConfigurations() {
         List<IoTDeviceTabularConfiguration> ls = new ArrayList<>();
         IoTDeviceTabularConfiguration.csvReader().readAll(new File(IoTSpecsFile), ls);
         return ls;
     }
 
+
+    @JsonIgnore
     public List<IoTDevice> getIoTDevices(OsmoticBroker broker, List<IoTDeviceTabularConfiguration> input) {
         return input.stream()
                 .map(curr -> {

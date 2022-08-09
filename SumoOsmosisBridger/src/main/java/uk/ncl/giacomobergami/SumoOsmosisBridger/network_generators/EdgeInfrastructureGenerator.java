@@ -39,7 +39,7 @@ public class EdgeInfrastructureGenerator {
 //        return IntStream.range(1, n+1).mapToObj(x-> generateEdgeSwitch(x, mips)).collect(Collectors.toList());
 //    }
     public static Switch generateCoreSwitch(int id, long mips) {
-        return new Switch("edge", edgeId(id), mips);
+        return new Switch("core", coreId(id), mips);
     }
 //    public static List<Switch> generateCoreSwitches(int n, long mips) {
 //        return IntStream.range(1, n+1).mapToObj(x-> generateCoreSwitch(x, mips)).collect(Collectors.toList());
@@ -105,7 +105,8 @@ public class EdgeInfrastructureGenerator {
     }
 
     public static SubNetworkConfiguration generate(@Input final Configuration conf,
-                                                   @Output List<TopologyLink> result) {
+                                                   @Output List<TopologyLink> result,
+                                                   @Input boolean only_one_mel_per_edge_network) {
         List<Switch> switches = new ArrayList<>();
         conf.hosts_and_vms.validate();
 
@@ -126,6 +127,8 @@ public class EdgeInfrastructureGenerator {
         if (conf.n_edges_to_one_core<= 0)
             throw new RuntimeException("ERROR");
         conf.n_core = conf.n_edgeDevices_and_edges % conf.n_edges_to_one_core;
+        if (only_one_mel_per_edge_network)
+            conf.hosts_and_vms.n_vm = 1;
 
         var vm = generateVMs(conf.edge_network_name, conf.hosts_and_vms.n_vm, conf.hosts_and_vms.vm_bw, conf.hosts_and_vms.vm_cloudletPolicy, conf.hosts_and_vms.vm_mips, conf.hosts_and_vms.vm_pes, conf.hosts_and_vms.vm_ram, conf.hosts_and_vms.vm_storage);
         for (int i = 1; i<=conf.n_edgeDevices_and_edges; i++) {
@@ -133,14 +136,13 @@ public class EdgeInfrastructureGenerator {
             switches.add(generateEdgeSwitch(edgeSwitch.getAndIncrement(), conf.edge_switch_iops));
             var edgeID = switches.get(i-1).name;
             result.add(new TopologyLink(conf.edge_network_name, edgeDeviceID, edgeID, conf.edge_device_to_edge_bw));
-            var nCore = (i % conf.n_edges_to_one_core)+1;
+            var nCore = ((i-1) % conf.n_edges_to_one_core)+1;
             var nCoreID = coreId(nCore);
-            if ((i / conf.n_edges_to_one_core)<= 0) {
-                switches.add(generateCoreSwitch(i, conf.edge_to_core_bw));
-                result.add(new TopologyLink(conf.edge_network_name, edgeID, nCoreID, conf.edge_to_core_bw));
+            result.add(new TopologyLink(conf.edge_network_name, edgeID, nCoreID, conf.edge_to_core_bw));
+            if (((i-1) / conf.n_edges_to_one_core)<= 0) {
+                switches.add(generateCoreSwitch(nCore, conf.edge_to_core_bw));
                 result.add(new TopologyLink(conf.edge_network_name, nCoreID, conf.gateway_name, conf.core_to_gateway_bw));
             }
-            result.add(new TopologyLink(conf.edge_network_name, edgeID,nCoreID, conf.edge_device_to_edge_bw));
         };
 
         conf.edge_switch_network.forEach((src, dst) -> {

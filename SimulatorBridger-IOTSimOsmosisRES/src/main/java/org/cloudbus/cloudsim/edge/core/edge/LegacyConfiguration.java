@@ -172,7 +172,8 @@ public class LegacyConfiguration {
 	    private String destination;
 	    private long bw;
 
-		public void initializeLink(Map<String, Integer> nameIdTable, Topology topology) {
+		public void initializeLink(Map<String, Integer> nameIdTable,
+								   Topology topology) {
 			String src = getSource();
 			String dst = getDestination();
 			long bw = getBw();
@@ -180,6 +181,8 @@ public class LegacyConfiguration {
 			if(dst.equals("")){
 				System.out.println("Null!");
 			}
+			if (!nameIdTable.containsKey(dst))
+				throw new RuntimeException("ERROR!");
 			int dstAddress = nameIdTable.get(dst);
 			topology.addLink(srcAddress, dstAddress, bw);
 		}

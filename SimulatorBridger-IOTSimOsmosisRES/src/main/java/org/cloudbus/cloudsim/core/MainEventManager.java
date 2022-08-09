@@ -892,9 +892,15 @@ public class MainEventManager {
 		if (!running) {
 			runStart(); // Starting all of the entities that should be started!
 		}
+		double curr = Math.floor(clock());
 		while (true) {
 			if (runClockTick() || abruptTerminate) {
 				break;
+			}
+
+			if (curr < Math.floor(clock())) {
+				curr = Math.floor(clock());
+				System.out.println(curr);
 			}
 
 			// this block allows termination of simulation at a specific time

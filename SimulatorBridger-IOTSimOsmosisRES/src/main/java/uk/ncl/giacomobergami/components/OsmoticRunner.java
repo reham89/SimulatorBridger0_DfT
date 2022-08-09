@@ -38,7 +38,7 @@ public class OsmoticRunner {
     }
 
     public static void main(String[] args) {
-        String configuration = "/home/giacomo/IdeaProjects/SimulatorBridger/inputFiles/original/iot_sim_osmosis_res.yaml";
+        String configuration = "/home/giacomo/IdeaProjects/SimulatorBridger/inputFiles/novel/dump/iot_sim_osmosis_res.yaml";
         if (args.length >= 1) {
             configuration = args[0];
         }

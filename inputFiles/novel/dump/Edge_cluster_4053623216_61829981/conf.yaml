@@ -12,5 +12,5 @@ datacenter_costPerMem: 0.05
 datacenter_costPerStorage: 0.001
 datacenter_costPerBw: 0.0
 controller_name: "e_sdn_cluster_4053623216_61829981"
-controller_trafficPolicy: "uk.ncl.giacomobergami.SumoOsmosisBridger.osmotic.mel_routing.MELNearestDistanceRouting"
+controller_trafficPolicy: "uk.ncl.giacomobergami.components.sdn_traffic.SDNTrafficPolicyFairShare"
 controller_routingPolicy: "uk.ncl.giacomobergami.components.sdn_routing.SDNRoutingLoadBalancing"

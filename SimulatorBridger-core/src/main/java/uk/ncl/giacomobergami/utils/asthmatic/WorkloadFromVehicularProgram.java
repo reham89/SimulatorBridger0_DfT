@@ -128,7 +128,7 @@ public class WorkloadFromVehicularProgram {
         wl.ID = ai.getAndIncrement();
         wl.StopDataGeneration_Sec = endTime;
         wl.StartDataGenerationTime_Sec = startTime;
-        wl.DataRate_Sec = micro_interval / 100.0;
+        wl.DataRate_Sec = micro_interval / 10.0;
         wl.IoTDevice = firstId;
         wl.IoTDeviceOutputData_Mb = 90;
         wl.MELName = mel;

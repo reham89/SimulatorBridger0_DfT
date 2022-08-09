@@ -12,7 +12,7 @@ edges_iops: 1000000000
 n_edges_group_size: 5
 aggregate_to_edge_bandwidth: 1000
 hosts_and_vms:
-  n_hosts_per_edges: 4
+  n_hosts_per_edges: 1
   hosts_bandwidth: 10000
   hosts_mips: 1250
   hosts_pes: 4

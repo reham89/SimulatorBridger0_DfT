@@ -1,0 +1,46 @@
+---
+logLevel: "debug"
+saveLogToFile: true
+logFilePath: "log.txt"
+append: true
+trace_flag: false
+edgeDataCenters:
+- "Edge_5733487834"
+- "Edge_cluster_13"
+- "Edge_16738089"
+- "Edge_cluster_5"
+- "Edge_2084-A"
+- "Edge_16808391"
+- "Edge_cluster_18130111_573429067"
+- "Edge_34"
+- "Edge_cluster_4053623216_61829981"
+- "Edge_cluster_1"
+- "Edge_cluster3"
+- "Edge_cluster4"
+- "Edge_cluster_12"
+- "Edge_cluster_cluster_291989965_cluster_16712095_1687916304_238019098_426840038_426840052_5435187931_5435187932_5453540861_645448573_cluster_gneJ29_gneJ30"
+- "Edge_cluster1"
+- "Edge_308"
+- "Edge_94"
+- "Edge_cluster_1524336663_4379571780_4379571781"
+cloudDataCenters:
+- "Cloud_1"
+topologyLinksFile: "network.csv"
+IoTSpecsFile: "iot.csv"
+sdwan:
+  controller_name: "wan_sdn"
+  controllercontroller_trafficPolicy: "uk.ncl.giacomobergami.components.sdn_traffic.SDNTrafficPolicyFairShare"
+  controllercontroller_routingPolicy: "uk.ncl.giacomobergami.components.sdn_routing.SDNRoutingLoadBalancing"
+  switches_file: "sdwan_switches.csv"
+apps_file: "apps.csv"
+OsmesisBroker: "OsmesisBroker"
+num_user: 0
+mel_switch_policy: null
+terminate_simulation_at: 0.0
+simulationStartTime: null
+RES_CONFIG_FILE: null
+AGENT_CONFIG_FILE: null
+ioTSpecsFile: "iot.csv"
+osmesisBroker: "OsmesisBroker"
+res_CONFIG_FILE: null
+agent_CONFIG_FILE: null

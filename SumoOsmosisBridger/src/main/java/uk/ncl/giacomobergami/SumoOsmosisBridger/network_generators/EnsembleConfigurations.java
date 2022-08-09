@@ -154,6 +154,7 @@ public class EnsembleConfigurations {
         public String edge_general_configuration;       // /home/giacomo/IdeaProjects/SimulatorBridger/edge_generators.yaml
         public String wan_general_configuration;       // /home/giacomo/IdeaProjects/SimulatorBridger/edge_generators.yaml
         public String mel_app_policy;
+        public boolean only_one_mel_per_edge_network;
 
         public IoTEntityGenerator first() {
             return new IoTEntityGenerator(new File(iots), new File(iot_generators));
@@ -203,7 +204,7 @@ public class EnsembleConfigurations {
             List<EdgeInfrastructureGenerator.Configuration> edgeNets = generateConfigurationForSimulationTime(time, edge, nodeToCloudName);
 
             filteredApps.forEach(x -> {
-                x.VmName = "*";
+                x.VmName = "VM_1";
                 if (casus == null)
                     x.MELName = "*";
                 else switch (casus) {
@@ -219,7 +220,7 @@ public class EnsembleConfigurations {
                                                                                                       nSCC,
                                                                                                       cloud);
 
-            ls.add(ensemble(cloudNets, edgeNets, wan_conf, iotDevices, filteredApps, conf.global_simulation_terminate, conf.start_time));
+            ls.add(ensemble(cloudNets, edgeNets, wan_conf, iotDevices, filteredApps, conf.global_simulation_terminate, conf.start_time, conf.only_one_mel_per_edge_network));
         }
         return ls;
     }
@@ -235,14 +236,15 @@ public class EnsembleConfigurations {
                                                        List<IoTDeviceTabularConfiguration> iotDevices,
                                                                List<WorkloadCSV> apps,
                                                                double terminate,
-                                                               String start) {
+                                                               String start,
+                                                       boolean only_one_mel_per_edge_network) {
 
         List<TopologyLink> global_network_links = new ArrayList<>();
 
         // Generating the edge nets in a way which is IoT independent, and only considering Edge devices
         List<SubNetworkConfiguration> actualEdgeDataCenters = edgeNets
                 .stream()
-                .map(x -> EdgeInfrastructureGenerator.generate(x, global_network_links))
+                .map(x -> EdgeInfrastructureGenerator.generate(x, global_network_links, only_one_mel_per_edge_network))
                 .collect(Collectors.toList());
 
         // Generating the cloud nets
