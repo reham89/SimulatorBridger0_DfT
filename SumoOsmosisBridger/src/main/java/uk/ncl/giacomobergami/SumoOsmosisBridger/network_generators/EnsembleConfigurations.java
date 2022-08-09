@@ -14,9 +14,7 @@ import uk.ncl.giacomobergami.utils.data.YAML;
 import uk.ncl.giacomobergami.utils.structures.ImmutablePair;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -27,6 +25,12 @@ public class EnsembleConfigurations {
     private final CloudInfrastructureGenerator.Configuration cloud;
     private final  EdgeInfrastructureGenerator.Configuration edge;
     private final WANInfrastructureGenerator.Configuration wan_conf;
+
+    public enum MEL_APP_POLICY {
+        ANY_MEL,
+        NETWORK_MEL,
+        THAT_MEL
+    }
 
     public EnsembleConfigurations(IoTEntityGenerator ioTEntityGenerator,
                                   EdgeNetworksGenerator edgeNetworkGenerator,
@@ -84,22 +88,27 @@ public class EnsembleConfigurations {
         return ls;
     }
 
-    public List<EdgeInfrastructureGenerator.Configuration> generateConfigurationForSimulationTime(double tick, EdgeInfrastructureGenerator.Configuration conf) {
+    public List<EdgeInfrastructureGenerator.Configuration> generateConfigurationForSimulationTime(@Input final double tick,
+                                                                                                  @Input final EdgeInfrastructureGenerator.Configuration conf,
+                                                                                                  @Output Map<String, String> mapEdgeToClusterName) {
         for (var cp : edgeNetworkGenerator.chron)
             if ((cp.getLeft() <= tick) && (tick <= cp.getRight()))
-                return generateConfigurationForSimulationTime(cp, conf);
+                return generateConfigurationForSimulationTime(cp, conf, mapEdgeToClusterName);
         return Collections.emptyList();
     }
 
-    private List<EdgeInfrastructureGenerator.Configuration> generateConfigurationForSimulationTime(ImmutablePair<Double, Double> cp,
-                                                                                                   EdgeInfrastructureGenerator.Configuration conf) {
+    private List<EdgeInfrastructureGenerator.Configuration> generateConfigurationForSimulationTime(@Input final ImmutablePair<Double, Double> cp,
+                                                                                                   @Input final EdgeInfrastructureGenerator.Configuration conf,
+                                                                                                   @Output Map<String, String> mapEdgeToClusterName) {
         var css = edgeNetworkGenerator.css_in_time.get(cp);
         var edges = edgeNetworkGenerator.retrieved_basic_information.get(cp.getLeft());
         var timedNetwork = edgeNetworkGenerator.timed_connectivity.get(cp.getLeft());
         List<EdgeInfrastructureGenerator.Configuration> resultCSS = new ArrayList<>();
+        mapEdgeToClusterName.clear();
 
         for (var sub_network : css) {
             var candidate = sub_network.iterator().next();
+
             // Setting the remaining instance-dependant parameters
             // Cloud name
             var local = conf.copy();
@@ -116,6 +125,7 @@ public class EnsembleConfigurations {
             local.stringToInteger = new ArrayList<>(sub_network);
 
             for (var edge : sub_network) {
+                mapEdgeToClusterName.put(edge, local.edge_network_name);
                 var neigh = timedNetwork.get(edge);
                 if ((neigh != null) && (!neigh.isEmpty())) {
                     local.edge_switch_network.putAll(edge, neigh);
@@ -143,6 +153,7 @@ public class EnsembleConfigurations {
         public String cloud_general_configuration;      // /home/giacomo/IdeaProjects/SimulatorBridger/cloud_generators.yaml
         public String edge_general_configuration;       // /home/giacomo/IdeaProjects/SimulatorBridger/edge_generators.yaml
         public String wan_general_configuration;       // /home/giacomo/IdeaProjects/SimulatorBridger/edge_generators.yaml
+        public String mel_app_policy;
 
         public IoTEntityGenerator first() {
             return new IoTEntityGenerator(new File(iots), new File(iot_generators));
@@ -177,6 +188,7 @@ public class EnsembleConfigurations {
         List<IoTDeviceTabularConfiguration> iotDevices = ioTEntityGenerator.asIoTJSONConfigurationList();
         AtomicInteger global_program_counter = new AtomicInteger(1);
         List<WorkloadCSV> globalApps = ioTEntityGenerator.generateAppSetUp(conf.simulation_step, global_program_counter);
+        MEL_APP_POLICY casus = MEL_APP_POLICY.valueOf(conf.mel_app_policy);
 
         for (var consistent_network_conf : edgeNetworkGenerator.simulation_intervals) {
             var filteredApps = globalApps
@@ -185,8 +197,21 @@ public class EnsembleConfigurations {
                             (consistent_network_conf.getRight() >= x.StopDataGeneration_Sec))
                     .collect(Collectors.toList());
 
+
+            Map<String, String> nodeToCloudName = new HashMap<>();
             var time = consistent_network_conf.getLeft();
-            List<EdgeInfrastructureGenerator.Configuration> edgeNets = generateConfigurationForSimulationTime(time, edge);
+            List<EdgeInfrastructureGenerator.Configuration> edgeNets = generateConfigurationForSimulationTime(time, edge, nodeToCloudName);
+
+            filteredApps.forEach(x -> {
+                if (casus == null)
+                    x.MELName = "*";
+                else switch (casus) {
+                    case ANY_MEL -> x.MELName = "*";
+                    case NETWORK_MEL -> x.MELName = "MEL_"+nodeToCloudName.get(x.MELName)+".*";
+                    case THAT_MEL -> x.MELName = "@"+x.MELName;
+                }
+            });
+
             int nSCC = edgeNets.size();
             List<CloudInfrastructureGenerator.Configuration> cloudNets = setCloudPolicyFromIoTNumbers(conf.numberOfClouds,
                                                                                                       conf.IoTMultiplicityForVMs,

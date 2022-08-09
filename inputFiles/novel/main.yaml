@@ -5,6 +5,7 @@ start_time:
 start_vehicle_time: 0.0
 simulation_step: 1.0
 end_vehicle_time: 100
+mel_app_policy: "NETWORK_MEL"
 iots: "/home/giacomo/IdeaProjects/SimulatorBridger/inputFiles/novel/test_vehicle.json"
 iot_generators: "/home/giacomo/IdeaProjects/SimulatorBridger/inputFiles/novel/iot_generators.yaml"
 strongly_connected_components: "/home/giacomo/IdeaProjects/SimulatorBridger/inputFiles/novel/rsu.csv_timed_scc.json"
