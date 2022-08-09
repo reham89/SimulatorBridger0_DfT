@@ -24,6 +24,7 @@ import org.cloudbus.cloudsim.edge.iot.network.EdgeNetworkInfo;
 import org.cloudbus.cloudsim.edge.utils.LogUtil;
 import org.cloudbus.osmosis.core.*;
 import uk.ncl.giacomobergami.components.iot_protocol.IoTProtocolGeneratorFactory;
+import uk.ncl.giacomobergami.utils.gir.CartesianPoint;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,13 +38,13 @@ import java.util.concurrent.atomic.AtomicInteger;
  * 
 **/
 
-public abstract class IoTDevice extends SimEntity {
+public abstract class IoTDevice extends SimEntity implements CartesianPoint {
 	public static int cloudLetId = 0;
 	private double runningTime = 0;
 	protected Battery battery;
 	private EdgeNetworkInfo networkModel;	
 //	private MovingPolicy movingPolicy;
-	private Mobility mobility;
+	public Mobility mobility;
 	int connectingEdgeDeviceId = -1;
 	private boolean enabled;
 	public abstract boolean updateBatteryBySensing();
@@ -51,6 +52,16 @@ public abstract class IoTDevice extends SimEntity {
 	private double bw;
 	private double usedBw;
 	private final AtomicInteger flowId;
+
+	@Override
+	public double getX() {
+		return mobility.location.x;
+	}
+
+	@Override
+	public double getY() {
+		return mobility.location.y;
+	}
 
 	String associatedEdge;
 

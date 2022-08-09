@@ -104,15 +104,15 @@ public class SDWANController extends SDNController {
 		if (srchost != null)			
 		{		
 			List<NetworkNIC> route = new ArrayList<>();	
-			route = sdnRoutingPoloicy.getRoute(flow.getOrigin(), flow.getDestination());			
+			route = sdnRoutingPolicy.getRoute(flow.getOrigin(), flow.getDestination());
 			if(route == null){			
 				buildSDNForwardingTableVmBased(srchost, dsthost, flowId, flow);
 			}
 				 												
-			List<NetworkNIC> endToEndRoute = sdnRoutingPoloicy.getRoute(flow.getOrigin(), flow.getDestination());					
+			List<NetworkNIC> endToEndRoute = sdnRoutingPolicy.getRoute(flow.getOrigin(), flow.getDestination());
 			flow.setNodeOnRouteList(endToEndRoute);
 			
-			List<Link> links = sdnRoutingPoloicy.getLinks(flow.getOrigin(), flow.getDestination());
+			List<Link> links = sdnRoutingPolicy.getLinks(flow.getOrigin(), flow.getDestination());
 			flow.setLinkList(links);
 			
 			sendNow(destDC.getSdnController().getId(), OsmoticTags.BUILD_ROUTE, flow);
@@ -124,7 +124,7 @@ public class SDWANController extends SDNController {
 	protected boolean buildSDNForwardingTableVmBased(NetworkNIC srcHost, NetworkNIC desthost, int flowId, Flow flow) {		
 
 		List<NetworkNIC> route = new ArrayList<>();					
-		route = sdnRoutingPoloicy.buildRoute(srcHost, desthost, flow); 			
+		route = sdnRoutingPolicy.buildRoute(srcHost, desthost, flow);
 		NetworkNIC currentNode = null;
 		NetworkNIC nextNode = null;
 
@@ -184,6 +184,6 @@ public class SDWANController extends SDNController {
 				int dstAddress = nameIdTable.get(dst);
 				topology.addLink(srcAddress, dstAddress, bw);
 		}
-		this.sdnRoutingPoloicy.setNodeList(topology.getAllNodes(), topology);	
+		this.sdnRoutingPolicy.setNodeList(topology.getAllNodes(), topology);
 	}
 }

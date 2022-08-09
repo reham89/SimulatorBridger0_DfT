@@ -387,8 +387,7 @@ public class Flow {
 	}
 
 	public void addPacketSize(long pktSize){	 
-		this.flowSize = pktSize; // for printing 
-		
+		this.flowSize = pktSize; // for printing
 		this.amountToBeProcessed = pktSize;
 	}
 	

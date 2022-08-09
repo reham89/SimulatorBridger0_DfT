@@ -22,6 +22,7 @@ import org.cloudbus.cloudsim.Host;
 import org.cloudbus.cloudsim.Pe;
 import org.cloudbus.cloudsim.provisioners.*;
 import uk.ncl.giacomobergami.components.allocation_policy.VmSchedulerTimeSharedEnergy;
+import uk.ncl.giacomobergami.utils.gir.CartesianPoint;
 
 /**
  * 
@@ -31,10 +32,10 @@ import uk.ncl.giacomobergami.components.allocation_policy.VmSchedulerTimeSharedE
  * 
 **/
 
-public class EdgeDevice extends Host {
-	
+public class EdgeDevice extends Host implements CartesianPoint {
 	private String deviceName;	
-
+	public Mobility.Location location;
+	public double signalRange;
 	private boolean enabled;		
 	
 	public EdgeDevice(int id, String deviceName, RamProvisioner ramProvisioner, BwProvisioner bwProvisioner,
@@ -43,17 +44,14 @@ public class EdgeDevice extends Host {
 				new VmSchedulerTimeSharedEnergy(peList));
 		this.deviceName = deviceName;
 		this.enabled = true;
+		location = new Mobility.Location(0,0,0);
+		signalRange = Double.MAX_VALUE;
 	}
 
 	public static List<Pe> generatePEList( LegacyConfiguration.EdgeDeviceEntity hostEntity) {
 		return IntStream.range(0, hostEntity.getPes())
 				.mapToObj(i -> new Pe(i, new PeProvisionerSimple(hostEntity.getMips())))
 				.collect(Collectors.toList());
-//		var peList = new LinkedList<Pe>();
-//		int peId=0;
-//		for(int i= 0; i < hostEntity.getPes(); i++) {
-//			peList.add(new Pe(peId++,new PeProvisionerSimple(hostEntity.getMips())));
-//		}
 	}
 
     public EdgeDevice(AtomicInteger idGen, LegacyConfiguration.EdgeDeviceEntity hostEntity) {
@@ -63,9 +61,9 @@ public class EdgeDevice extends Host {
 				new BwProvisionerSimple(hostEntity.getBwSize()),
 				hostEntity.getStorage(),
 				generatePEList(hostEntity));
+		location = hostEntity.location;
+		signalRange = hostEntity.signalRange;
     }
-
-
     public String getDeviceName() {
 		return deviceName;
 	}
@@ -76,5 +74,15 @@ public class EdgeDevice extends Host {
 
 	public void setEnabled(boolean enabled) {
 		this.enabled = enabled;
+	}
+
+	@Override
+	public double getX() {
+		return location.x;
+	}
+
+	@Override
+	public double getY() {
+		return location.y;
 	}
 }

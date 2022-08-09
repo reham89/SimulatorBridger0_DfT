@@ -1,6 +1,7 @@
 package uk.ncl.giacomobergami.components.mel_routing;
 
 import org.cloudbus.osmosis.core.OsmoticBroker;
+import uk.ncl.giacomobergami.components.iot.IoTDevice;
 
 import java.util.HashMap;
 import java.util.List;
@@ -10,7 +11,7 @@ public class RoundRobinMELRoutingPolicy implements MELRoutingPolicy {
     private Map<String, Integer> roundRobinMelMap;
     public RoundRobinMELRoutingPolicy() { roundRobinMelMap = new HashMap<>(); }
     @Override
-    public String apply(String abstractMel, OsmoticBroker self) {
+    public String apply(IoTDevice IoTDevice, String abstractMel, OsmoticBroker self) {
         List<String> instances = getCandidateMELsFromPattern(abstractMel, self);
         if (!roundRobinMelMap.containsKey(abstractMel)){
             roundRobinMelMap.put(abstractMel,0);

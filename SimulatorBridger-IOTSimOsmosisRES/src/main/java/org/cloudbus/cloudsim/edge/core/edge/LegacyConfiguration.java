@@ -100,7 +100,6 @@ public class LegacyConfiguration {
 
 	@Data
 	public static class VmAllcationPolicyEntity {
-
 		String className;
 		List<HostEntity> hostEntities;
 	}
@@ -112,7 +111,9 @@ public class LegacyConfiguration {
 		int pes;
 		int ramSize;
 		int mips;
-		int bwSize;					
+		int bwSize;
+		Location location;
+		double signalRange;
 	}
 	
 	@Data

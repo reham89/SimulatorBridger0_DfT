@@ -59,7 +59,7 @@ public class CloudInfrastructureGenerator {
         return IntStream.range(1, n+1).mapToObj(x-> generateVirtualMachine(x, bandwidth, policy, mips, pes, ram, storage)).collect(Collectors.toList());
     }
     public static Host generateHost(int id, int bw, int mips, int pes, int ram, int storage) {
-        return new Host(hostId(id),  pes, ram,  bw, storage, mips);
+        return new Host(hostId(id),  pes, ram,  bw, storage, mips, 0, 0, 0, 0);
     }
     public static List<Host> generateHosts(int n, int bandwidth,  int mips, int pes, int ram, int storage) {
         return IntStream.range(1, n+1).mapToObj(x-> generateHost(x, bandwidth, mips, pes, ram, storage)).collect(Collectors.toList());
@@ -207,8 +207,8 @@ public class CloudInfrastructureGenerator {
         }
     }
 
-    public static ConcretePair<SubNetworkConfiguration, List<TopologyLink>> generateLinks(Configuration conf) {
-        List<TopologyLink> result = new ArrayList<>();
+    public static SubNetworkConfiguration generate(Configuration conf, List<TopologyLink> result) {
+//        List<TopologyLink> result = new ArrayList<>();
         List<Switch> switches = new ArrayList<>();
         conf.hosts_and_vms.validate();
         switches.add(new Switch("gateway", conf.gateway_name, conf.gateway_mips));
@@ -288,8 +288,7 @@ public class CloudInfrastructureGenerator {
         }
 
         var vm = generateVMs(conf.hosts_and_vms.n_vm, conf.hosts_and_vms.vm_bw, conf.hosts_and_vms.vm_cloudletPolicy, conf.hosts_and_vms.vm_mips, conf.hosts_and_vms.vm_pes, conf.hosts_and_vms.vm_ram, conf.hosts_and_vms.vm_storage);
-        return new ConcretePair<>(new SubNetworkConfiguration(hosts, vm, switches, conf.network_configuration),
-                                  result
-                                  );
+        return new SubNetworkConfiguration(hosts, vm, switches, conf.network_configuration);
+
     }
 }

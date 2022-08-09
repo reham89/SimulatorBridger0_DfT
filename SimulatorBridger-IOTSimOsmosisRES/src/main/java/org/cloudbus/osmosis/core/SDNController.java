@@ -41,9 +41,7 @@ import uk.ncl.giacomobergami.components.sdn_routing.SDNRoutingPolicy;
 **/
 
 public class SDNController extends NetworkOperatingSystem {
-	
-	
-	protected volatile SDNRoutingPolicy sdnRoutingPoloicy;
+	protected volatile SDNRoutingPolicy sdnRoutingPolicy;
 	private volatile SDNTrafficSchedulingPolicy sdnSchedulingPolicy;
 	
 	private volatile OsmosisOrchestrator orchestrator;
@@ -60,7 +58,7 @@ public class SDNController extends NetworkOperatingSystem {
 	public SDNController(String name, SDNTrafficSchedulingPolicy sdnPolicy, SDNRoutingPolicy sdnRouting) {				
 		super(name);
 		this.sdnSchedulingPolicy = sdnPolicy;
-		this.sdnRoutingPoloicy = sdnRouting;
+		this.sdnRoutingPolicy = sdnRouting;
 	}
 	
 	public void setWanOorchestrator(OsmosisOrchestrator orchestrator) {
@@ -96,19 +94,17 @@ public class SDNController extends NetworkOperatingSystem {
 		startTransmitting(flow);	
 	}
 	
-	public void startTransmitting(Flow flow) {				
-		
+	public void startTransmitting(Flow flow) {
 		int srcVm = flow.getOrigin();
 		int dstVm = flow.getDestination();
 
+		// Either src or dst are null if they are coming from outside the local network
 		NetworkNIC srchost = findSDNHost(srcVm);
 		NetworkNIC dsthost = findSDNHost(dstVm);
 		int flowId = flow.getFlowId();
 		System.out.println(srchost+"-->"+dsthost);
 
-
-		if (srchost == null)			
-		{			
+		if (srchost == null)  {
 			srchost = this.getGateway(); // packets coming from outside the datacenter			
 		} 
 									
@@ -117,14 +113,12 @@ public class SDNController extends NetworkOperatingSystem {
 			srchost.addRoute(srcVm, dstVm, flowId, dsthost);
 			List<NetworkNIC> listNodes = new ArrayList<NetworkNIC>();					
 			listNodes.add(srchost);			
-			getSdnSchedulingPolicy().setAppFlowStartTime(flow, flow.getSubmitTime()); // no transmission 
-
+			getSdnSchedulingPolicy().setAppFlowStartTime(flow, flow.getSubmitTime()); // no transmission
 			return;
 		} 
 
-
-		List<NetworkNIC> route = new ArrayList<>();	
-		route = sdnRoutingPoloicy.getRoute(flow.getOrigin(), flow.getDestination());
+		List<NetworkNIC> route;
+		route = sdnRoutingPolicy.getRoute(flow.getOrigin(), flow.getDestination());
 		
 		if(route == null){			
 			buildSDNForwardingTableVmBased(srcVm, dstVm, flowId, flow);
@@ -132,10 +126,10 @@ public class SDNController extends NetworkOperatingSystem {
 		
 		NetworkNIC destinationHhost = findSDNHost(dstVm);
 		if(destinationHhost == null){
-			List<NetworkNIC> endToEndRoute = sdnRoutingPoloicy.getRoute(flow.getOrigin(), flow.getDestination());					
+			List<NetworkNIC> endToEndRoute = sdnRoutingPolicy.getRoute(flow.getOrigin(), flow.getDestination());
 			flow.setNodeOnRouteList(endToEndRoute);
 			
-			List<Link> links = sdnRoutingPoloicy.getLinks(flow.getOrigin(), flow.getDestination());
+			List<Link> links = sdnRoutingPolicy.getLinks(flow.getOrigin(), flow.getDestination());
 			flow.setLinkList(links);
 
 //			System.out.println("==>"+CloudSim.getEntityName(this.getWanOorchestrator().getId()));
@@ -143,16 +137,15 @@ public class SDNController extends NetworkOperatingSystem {
 			return;
 		}
 
-		List<NetworkNIC> endToEndRoute = sdnRoutingPoloicy.getRoute(flow.getOrigin(), flow.getDestination());					
+		List<NetworkNIC> endToEndRoute = sdnRoutingPolicy.getRoute(flow.getOrigin(), flow.getDestination());
 		flow.setNodeOnRouteList(endToEndRoute);		
-		List<Link> links = sdnRoutingPoloicy.getLinks(flow.getOrigin(), flow.getDestination());
+		List<Link> links = sdnRoutingPolicy.getLinks(flow.getOrigin(), flow.getDestination());
 		flow.setLinkList(links);
 
 		sendNow(this.getWanOorchestrator().getId(), OsmoticTags.START_TRANSMISSION, flow);
 	}
 		 
-	protected boolean buildSDNForwardingTableVmBased(int srcVm, int dstVm, int flowId, Flow flow) {		
-
+	protected boolean buildSDNForwardingTableVmBased(int srcVm, int dstVm, int flowId, Flow flow) {
 		NetworkNIC desthost = findSDNHost(dstVm);		
 		if(desthost == null){
 			/*
@@ -171,7 +164,7 @@ public class SDNController extends NetworkOperatingSystem {
 			srcHost = this.getGateway(); // packets coming from outside the datacenter			
 		} 
 		
-		route = sdnRoutingPoloicy.buildRoute(srcHost, desthost, flow); 			
+		route = sdnRoutingPolicy.buildRoute(srcHost, desthost, flow);
 				
 		NetworkNIC currentNode = null;
 		NetworkNIC nextNode = null;
@@ -190,7 +183,7 @@ public class SDNController extends NetworkOperatingSystem {
 	}
 	 	
 	public SDNRoutingPolicy getSdnRoutingPoloicy() {
-		return this.sdnRoutingPoloicy;
+		return this.sdnRoutingPolicy;
 	}
 
 	
@@ -211,8 +204,8 @@ public class SDNController extends NetworkOperatingSystem {
 		this.hosts = hosts;
 		this.sdnhosts = sdnhosts;
 		this.switches = switches;
-		this.sdnRoutingPoloicy.setNodeList(topology.getAllNodes(), topology);		
-		this.sdnRoutingPoloicy.buildNodeRelations(topology);
+		this.sdnRoutingPolicy.setNodeList(topology.getAllNodes(), topology);
+		this.sdnRoutingPolicy.buildNodeRelations(topology);
 		for(Switch sw : switches){
 			if(sw.getSwType().equals("gateway")){
 				this.gateway = sw;
@@ -257,11 +250,6 @@ public class SDNController extends NetworkOperatingSystem {
 		return this.gateway;
 	}
 
-	public void addAllDatacenters(List<OsmoticDatacenter> osmesisDatacentres) {
-
-	}
-
-	public void initSdWANTopology(List<SwitchEntity> switches, List<LinkEntity> wanLinks, List<Switch> datacenterGateways) {
-		
-	}
+	public void addAllDatacenters(List<OsmoticDatacenter> osmesisDatacentres) {}
+	public void initSdWANTopology(List<SwitchEntity> switches, List<LinkEntity> wanLinks, List<Switch> datacenterGateways) {}
 }

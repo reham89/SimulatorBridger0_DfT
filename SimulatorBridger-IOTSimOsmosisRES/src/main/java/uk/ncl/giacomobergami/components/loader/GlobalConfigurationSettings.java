@@ -322,7 +322,7 @@ public class GlobalConfigurationSettings {
         return TopologyLink.asNetworkedLinks(new File(topologyLinksFile));
     }
 
-    public GlobalConfigurationSettings buildTopology(OsmoticBroker broker) {
+    public GlobalConfigurationSettings buildTopologyForSimulator(OsmoticBroker broker) {
         if (actualEdgeDataCenters == null || actualCloudDataCenters == null || iotDevices == null ||global_network_links == null||sdwan == null || sdwan.switches == null || apps == null ||
                 (actualEdgeDataCenters.isEmpty()) ||
                 actualCloudDataCenters.isEmpty() ||

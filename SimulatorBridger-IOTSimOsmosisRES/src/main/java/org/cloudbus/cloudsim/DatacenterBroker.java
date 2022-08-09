@@ -1142,23 +1142,11 @@ public class DatacenterBroker extends SimEntity  {
 			Log.printLine(MainEventManager.clock() + ": " + getName() + ": Creation of VM #" + vmId
 					+ " failed in Datacenter #" + datacenterId);
 		}
-		
-//		if (vmId == vmList.size())
-//			
-//		{
-//			
-//			bindCloudletsToVmsComplex();
-//			
-//			
-//		}
 
 		incrementVmsAcks();
 
 		// all the requested VMs have been created
-		if (getVmsCreatedList().size() == getVmList().size() - getVmsDestroyed()) {
-			// Khaled commented submitCloudlets() 
-			//	submitCloudlets();
-		} else {
+		if (getVmsCreatedList().size() != getVmList().size() - getVmsDestroyed()) {
 			// all the acks received, but some VMs were not created
 			if (getVmsRequested() == getVmsAcks()) {
 				// find id of the next datacenter that has not been tried
@@ -1168,15 +1156,6 @@ public class DatacenterBroker extends SimEntity  {
 						return;
 					}
 				}
-
-				// all datacenters already queried
-//				if (getVmsCreatedList().size() > 0) { // if some vm were created
-//					submitCloudlets();
-//				} else { // no vms created. abort
-//					Log.printLine(CloudSim.clock() + ": " + getName()
-//							+ ": none of the required VMs could be created. Aborting");
-//					finishExecution();
-//				}
 			}
 		}
 	}

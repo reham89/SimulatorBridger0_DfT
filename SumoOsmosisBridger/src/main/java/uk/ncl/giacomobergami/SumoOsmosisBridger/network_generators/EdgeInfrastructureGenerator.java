@@ -2,7 +2,6 @@ package uk.ncl.giacomobergami.SumoOsmosisBridger.network_generators;
 
 import uk.ncl.giacomobergami.components.loader.SubNetworkConfiguration;
 import uk.ncl.giacomobergami.components.networking.*;
-import uk.ncl.giacomobergami.utils.structures.ConcretePair;
 import uk.ncl.giacomobergami.utils.structures.StraightforwardAdjacencyList;
 
 import java.util.ArrayList;
@@ -11,7 +10,6 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class EdgeInfrastructureGenerator {
-
 
     public static String edgeDeviceId(int id) {
         return "edgeDevice_"+id;
@@ -26,7 +24,6 @@ public class EdgeInfrastructureGenerator {
         return "MEL."+id;
     }
 
-
     public static Switch generateEdgeSwitch(int id, long mips) {
         return new Switch("edge", edgeId(id), mips);
     }
@@ -40,7 +37,7 @@ public class EdgeInfrastructureGenerator {
         return IntStream.range(1, n+1).mapToObj(x-> generateCoreSwitch(x, mips)).collect(Collectors.toList());
     }
     public static Host generateEdgeDevice(int id, int bw, int mips, int pes, int ram, int storage) {
-        return new Host(edgeDeviceId(id),  pes, ram,  bw, storage, mips);
+        return new Host(edgeDeviceId(id),  pes, ram,  bw, storage, mips, 0, 0, 0, 0);
     }
     public static List<Host> generateEdgeDevices(int n, int bandwidth,  int mips, int pes, int ram, int storage) {
         return IntStream.range(1, n+1).mapToObj(x-> generateEdgeDevice(x, bandwidth, mips, pes, ram, storage)).collect(Collectors.toList());
@@ -53,13 +50,13 @@ public class EdgeInfrastructureGenerator {
     }
 
     public static class Configuration {
-        public String cloud_network_name;
+        public String edge_network_name;
         public String gateway_name;
-        public long gateway_mips;
+        public long gateway_iops;
 
         public int n_edgeDevices_and_edges;
         public int edge_device_to_edge_bw;
-        public int edge_bw;
+        public int edge_switch_iops;
         public int between_edge_bw;
 
         public int n_core;
@@ -73,12 +70,11 @@ public class EdgeInfrastructureGenerator {
         StraightforwardAdjacencyList<Integer> edge_switch_network;
     }
 
-    public static ConcretePair<SubNetworkConfiguration, List<TopologyLink>> generateLinks(EdgeInfrastructureGenerator.Configuration conf) {
-        List<TopologyLink> result = new ArrayList<>();
+    public static SubNetworkConfiguration generate(Configuration conf, List<TopologyLink> result) {
         List<Switch> switches = new ArrayList<>();
         conf.hosts_and_vms.validate();
 
-        switches.add(new Switch("gateway", conf.gateway_name, conf.gateway_mips));
+        switches.add(new Switch("gateway", conf.gateway_name, conf.gateway_iops));
         var hosts = generateEdgeDevices(conf.n_edgeDevices_and_edges,
                 conf.hosts_and_vms.hosts_bandwidth,
                 conf.hosts_and_vms.hosts_mips,
@@ -96,25 +92,23 @@ public class EdgeInfrastructureGenerator {
         for (int i = 1; i<=conf.n_edgeDevices_and_edges; i++) {
             var edgeDeviceID = edgeDeviceId(i);
             var edgeID = edgeId(i);
-            switches.add(generateEdgeSwitch(i, conf.edge_bw));
-            result.add(new TopologyLink(conf.cloud_network_name, edgeDeviceID, edgeID, conf.edge_device_to_edge_bw));
+            switches.add(generateEdgeSwitch(i, conf.edge_switch_iops));
+            result.add(new TopologyLink(conf.edge_network_name, edgeDeviceID, edgeID, conf.edge_device_to_edge_bw));
             var nCore = (i % conf.n_edges_to_one_core)+1;
             var nCoreID = coreId(nCore);
             if ((i / conf.n_edges_to_one_core)<= 0) {
                 switches.add(generateCoreSwitch(i, conf.edge_to_core_bw));
-                result.add(new TopologyLink(conf.cloud_network_name, edgeID, nCoreID, conf.edge_to_core_bw));
-                result.add(new TopologyLink(conf.cloud_network_name, nCoreID, conf.gateway_name, conf.core_to_gateway_bw));
+                result.add(new TopologyLink(conf.edge_network_name, edgeID, nCoreID, conf.edge_to_core_bw));
+                result.add(new TopologyLink(conf.edge_network_name, nCoreID, conf.gateway_name, conf.core_to_gateway_bw));
             }
-            result.add(new TopologyLink(conf.cloud_network_name, edgeID,nCoreID, conf.edge_device_to_edge_bw));
+            result.add(new TopologyLink(conf.edge_network_name, edgeID,nCoreID, conf.edge_device_to_edge_bw));
         };
 
         conf.edge_switch_network.forEach((src, dst) -> {
-            result.add(new TopologyLink(conf.cloud_network_name, edgeId(src), edgeId(dst), conf.between_edge_bw));
-            result.add(new TopologyLink(conf.cloud_network_name, edgeId(dst), edgeId(src), conf.between_edge_bw));
+            result.add(new TopologyLink(conf.edge_network_name, edgeId(src), edgeId(dst), conf.between_edge_bw));
+            result.add(new TopologyLink(conf.edge_network_name, edgeId(dst), edgeId(src), conf.between_edge_bw));
         });
 
-        return new ConcretePair<>(new SubNetworkConfiguration(hosts, vm, switches, conf.network_configuration),
-                result
-        );
+        return new SubNetworkConfiguration(hosts, vm, switches, conf.network_configuration);
     }
 }

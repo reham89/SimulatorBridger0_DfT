@@ -1,0 +1,7 @@
+bw: 100
+max_battery_capacity: 100.0
+battery_sensing_rate: 0.001
+battery_sending_rate: 0.001
+ioTClassName: "uk.ncl.giacomobergami.components.iot.CarSensor"
+communicationProtocol: "uk.ncl.giacomobergami.components.iot_protocol.XMPPProtocol"
+networkType: "wifi"

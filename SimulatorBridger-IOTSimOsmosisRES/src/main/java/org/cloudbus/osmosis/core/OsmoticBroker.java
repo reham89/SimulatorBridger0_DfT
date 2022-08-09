@@ -11,27 +11,24 @@
 
 package org.cloudbus.osmosis.core;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
+import com.google.common.collect.HashMultimap;
 import org.cloudbus.agent.AgentBroker;
 import org.cloudbus.agent.CentralAgent;
-import org.cloudbus.cloudsim.Cloudlet;
-import org.cloudbus.cloudsim.DatacenterBroker;
-import org.cloudbus.cloudsim.UtilizationModelFull;
-import org.cloudbus.cloudsim.Vm;
+import org.cloudbus.cloudsim.*;
 import org.cloudbus.cloudsim.core.MainEventManager;
 import org.cloudbus.cloudsim.core.CloudSimTags;
 import org.cloudbus.cloudsim.core.SimEvent;
+import org.cloudbus.cloudsim.edge.core.edge.EdgeDevice;
 import org.cloudbus.cloudsim.edge.core.edge.EdgeLet;
 import uk.ncl.giacomobergami.components.iot.IoTDevice;
 import uk.ncl.giacomobergami.components.loader.GlobalConfigurationSettings;
 import uk.ncl.giacomobergami.components.mel_routing.MELRoutingPolicy;
 import uk.ncl.giacomobergami.utils.asthmatic.WorkloadCSV;
+import uk.ncl.giacomobergami.utils.shared_data.iot.IoT;
 
 /**
  * 
@@ -42,11 +39,11 @@ import uk.ncl.giacomobergami.utils.asthmatic.WorkloadCSV;
 **/
 
 public class OsmoticBroker extends DatacenterBroker {
-
 	public EdgeSDNController edgeController;
 	public List<Cloudlet> edgeletList = new ArrayList<>();
 	public List<OsmoticAppDescription> appList;
 	public Map<String, Integer> iotDeviceNameToId = new HashMap<>();
+	public Map<String, IoTDevice> iotDeviceNameToObject = new HashMap<>();
 	public Map<Integer, List<? extends Vm>> mapVmsToDatacenter  = new HashMap<>();
 	public static int brokerID;
 	public Map<String, Integer> iotVmIdByName = new HashMap<>();
@@ -79,6 +76,8 @@ public class OsmoticBroker extends DatacenterBroker {
 		super.startEntity();
 	}
 
+	public static Collection<OsmoticAppDescription> currentlyAvailableApps = Collections.emptyList();
+
 	@Override
 	public void processEvent(SimEvent ev) {
 		//Update simulation time in the AgentBroker
@@ -86,6 +85,15 @@ public class OsmoticBroker extends DatacenterBroker {
 
 		//Execute MAPE loop at time interval
 		AgentBroker.getInstance().executeMAPE(MainEventManager.clock());
+
+		if (appList != null) {
+			currentlyAvailableApps = appList
+					.stream()
+					.filter(x -> {
+						var t = MainEventManager.clock();
+						return (x.getAppStartTime() <= t) && (t < x.getStopDataGenerationTime());
+					}).toList();
+		}
 
 		switch (ev.getTag()) {
 		case CloudSimTags.RESOURCE_CHARACTERISTICS_REQUEST:
@@ -139,11 +147,13 @@ public class OsmoticBroker extends DatacenterBroker {
 	private void melResolution(SimEvent ev) {
 		Flow flow = (Flow) ev.getData();
 		String melName = flow.getAppNameDest();
+		String IoTDevice = flow.getAppNameSrc();
+		var actualIoT = iotDeviceNameToObject.get(IoTDevice);
 		int mel_id = -1;
 
 		if (melRouting.test(melName)){
 			// Using a policy for determining the next MEL
-			String melInstanceName = melRouting.apply(melName, this);
+			String melInstanceName = melRouting.apply(actualIoT, melName, this);
 			flow.setAppNameDest(melInstanceName);
 			mel_id = getVmIdByName(melInstanceName); //name of VM
 
@@ -252,7 +262,33 @@ public class OsmoticBroker extends DatacenterBroker {
 		return osmesis;
 	}
 
-	
+	HashMultimap<String, String> map = null;
+	public Set<String> selectVMFromHostPredicate(String melId) {
+		if (map == null) {
+			map = HashMultimap.create();
+		}
+		for (var cp : mapVmsToDatacenter.entrySet()) {
+			for (var vmOrMel : cp.getValue()) {
+				var host = vmOrMel.getHost();
+				if (host instanceof EdgeDevice) {
+					map.put(vmOrMel.getVmName(), ((EdgeDevice) host).getDeviceName());
+				}
+			}
+		}
+		return map.get(melId);
+	}
+	public EdgeDevice resolveEdgeDeviceFromId(String hostId) {
+		for (var cp : mapVmsToDatacenter.entrySet()) {
+			for (var vmOrMel : cp.getValue()) {
+				var host = vmOrMel.getHost();
+				if (host instanceof EdgeDevice) {
+					return (EdgeDevice) host;
+				}
+			}
+		}
+		return null;
+	}
+
 	public void submitVmList(List<? extends Vm> list, int datacenterId) {		
 		mapVmsToDatacenter.put(datacenterId, list);
 		getVmList().addAll(list);
@@ -334,13 +370,10 @@ public class OsmoticBroker extends DatacenterBroker {
 	public int getiotDeviceIdByName(String melName){
 		return this.iotDeviceNameToId.get(melName);
 	}
-
-	public void addIoTDevices(List<IoTDevice> devices) {
-		for(IoTDevice device : devices){
-			iotDeviceNameToId.put(device.getName(), device.getId());
-		}
+	public IoTDevice getiotDeviceByName(String melName){
+		return this.iotDeviceNameToObject.get(melName);
 	}
-	
+
 	public void mapVmNameToId(Map<String, Integer> melNameToIdList) {
 	this.iotVmIdByName.putAll(melNameToIdList);		
 	}
@@ -378,5 +411,6 @@ public class OsmoticBroker extends DatacenterBroker {
 
 	public void addIoTDevice(IoTDevice device) {
 		iotDeviceNameToId.put(device.getName(), device.getId());
+		iotDeviceNameToObject.put(device.getName(), device);
 	}
 }

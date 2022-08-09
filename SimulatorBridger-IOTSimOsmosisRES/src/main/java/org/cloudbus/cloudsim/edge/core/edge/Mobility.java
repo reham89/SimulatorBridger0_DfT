@@ -1,7 +1,6 @@
 package org.cloudbus.cloudsim.edge.core.edge;
 
 public class Mobility {
-
 	public boolean movable;
 	public double velocity;
 	public double totalMovingDistance;

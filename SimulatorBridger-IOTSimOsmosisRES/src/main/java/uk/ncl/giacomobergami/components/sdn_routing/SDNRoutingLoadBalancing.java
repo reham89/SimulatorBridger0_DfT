@@ -204,8 +204,7 @@ public class SDNRoutingLoadBalancing extends SDNRoutingPolicy {
 		Map<Integer, List<NetworkNIC>> parent = new HashMap<>();
 		List<NetworkNIC> listParent;
 		for(int i =0; i < graphSize; i++){
-		    distance[i] = Integer.MAX_VALUE; // to find min distance 
-//			bandwidth[i] = Double.MIN_VALUE; // to find max bw
+		    distance[i] = Integer.MAX_VALUE; // to find min distance
 			bandwidth[i] = Double.MIN_VALUE; // to find max bw 
 			visited[i] = false;
 		}

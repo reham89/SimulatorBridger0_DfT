@@ -160,7 +160,7 @@
 					   "z":0.0
 					}
 				 },
-				 "networkModelEntity":{
+				 "networkModelEntit ny":{
 					"communicationProtocol":"uk.ncl.giacomobergami.components.iot_protocol.XMPPProtocol",
 					"networkType":"wifi"
 				 }
