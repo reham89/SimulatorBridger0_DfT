@@ -103,12 +103,12 @@ public class EnsembleConfigurations {
             // Setting the remaining instance-dependant parameters
             // Cloud name
             var local = conf.copy();
-            local.network_configuration.datacenter_name = "Cloud_"+candidate;
-            local.edge_network_name = "Cloud_"+candidate;
+            local.network_configuration.datacenter_name = "Edge_"+candidate;
+            local.edge_network_name = "Edge_"+candidate;
             // controller name
-            local.network_configuration.controller_name = "sdn_"+candidate;
+            local.network_configuration.controller_name = "e_sdn_"+candidate;
             // gateway name
-            local.gateway_name = "gateway_"+candidate;
+            local.gateway_name = "egateway_"+candidate;
             local.n_edgeDevices_and_edges = sub_network.size();
 
             // Setting a number of VMs which is proportional to the number given

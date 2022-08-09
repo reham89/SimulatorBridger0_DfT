@@ -28,8 +28,8 @@ public class EdgeInfrastructureGenerator {
     public static String coreId(int id) {
         return "core"+id;
     }
-    public static String melId(int id) {
-        return "MEL."+id;
+    public static String melId(String network_name, int id) {
+        return "MEL_"+network_name+"."+id;
     }
 
     public static Switch generateEdgeSwitch(int id, long mips) {
@@ -50,11 +50,11 @@ public class EdgeInfrastructureGenerator {
     public static List<Host> generateDistinctEdgeDevices(int n, int bandwidth, int mips, int pes, int ram, long storage) {
         return IntStream.range(1, n+1).mapToObj(x-> generateEdgeDevice(edgeDevice.getAndIncrement(), bandwidth, mips, pes, ram, storage)).collect(Collectors.toList());
     }
-    public static VM generateMEL(int id, int bandwidth, String policy, double mips, int pes, int ram, long storage) {
-        return new VM(melId(id), bandwidth, mips, ram, pes, policy, storage);
+    public static VM generateMEL(String network_name, int id, int bandwidth, String policy, double mips, int pes, int ram, long storage) {
+        return new VM(melId(network_name, id), bandwidth, mips, ram, pes, policy, storage);
     }
-    public static List<VM> generateVMs(int n, int bandwidth, String policy, double mips, int pes, int ram, long storage) {
-        return IntStream.range(1, n+1).mapToObj(x-> generateMEL(vm.getAndIncrement(), bandwidth, policy, mips, pes, ram, storage)).collect(Collectors.toList());
+    public static List<VM> generateVMs(String network_name, int n, int bandwidth, String policy, double mips, int pes, int ram, long storage) {
+        return IntStream.range(1, n+1).mapToObj(x-> generateMEL(network_name, vm.getAndIncrement(), bandwidth, policy, mips, pes, ram, storage)).collect(Collectors.toList());
     }
 
     public static class Configuration {
@@ -127,7 +127,7 @@ public class EdgeInfrastructureGenerator {
             throw new RuntimeException("ERROR");
         conf.n_core = conf.n_edgeDevices_and_edges % conf.n_edges_to_one_core;
 
-        var vm = generateVMs(conf.hosts_and_vms.n_vm, conf.hosts_and_vms.vm_bw, conf.hosts_and_vms.vm_cloudletPolicy, conf.hosts_and_vms.vm_mips, conf.hosts_and_vms.vm_pes, conf.hosts_and_vms.vm_ram, conf.hosts_and_vms.vm_storage);
+        var vm = generateVMs(conf.edge_network_name, conf.hosts_and_vms.n_vm, conf.hosts_and_vms.vm_bw, conf.hosts_and_vms.vm_cloudletPolicy, conf.hosts_and_vms.vm_mips, conf.hosts_and_vms.vm_pes, conf.hosts_and_vms.vm_ram, conf.hosts_and_vms.vm_storage);
         for (int i = 1; i<=conf.n_edgeDevices_and_edges; i++) {
             var edgeDeviceID = hosts.get(i-1).name;
             switches.add(generateEdgeSwitch(edgeSwitch.getAndIncrement(), conf.edge_switch_iops));
