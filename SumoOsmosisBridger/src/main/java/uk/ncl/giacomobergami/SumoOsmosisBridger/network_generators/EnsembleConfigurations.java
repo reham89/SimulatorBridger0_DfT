@@ -203,6 +203,7 @@ public class EnsembleConfigurations {
             List<EdgeInfrastructureGenerator.Configuration> edgeNets = generateConfigurationForSimulationTime(time, edge, nodeToCloudName);
 
             filteredApps.forEach(x -> {
+                x.VmName = "*";
                 if (casus == null)
                     x.MELName = "*";
                 else switch (casus) {
