@@ -5,7 +5,7 @@ start_time:
 start_vehicle_time: 0.0
 simulation_step: 1.0
 end_vehicle_time: 100
-only_one_mel_per_edge_network: yes
+only_one_mel_per_edge_network: no
 mel_app_policy: "NETWORK_MEL"
 iots: "/home/giacomo/IdeaProjects/SimulatorBridger/inputFiles/novel/test_vehicle.json"
 iot_generators: "/home/giacomo/IdeaProjects/SimulatorBridger/inputFiles/novel/iot_generators.yaml"

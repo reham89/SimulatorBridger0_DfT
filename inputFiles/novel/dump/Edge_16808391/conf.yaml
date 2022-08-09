@@ -2,7 +2,7 @@
 scheduling_interval: 1.0
 datacenter_name: "Edge_16808391"
 datacenter_type: "edge"
-datacenter_vmAllocationPolicy: "uk.ncl.giacomobergami.components.allocation_policy.VmAllocationPolicyCombinedLeastFullFirst"
+datacenter_vmAllocationPolicy: "uk.ncl.giacomobergami.components.allocation_policy.VmAllocationPolicyRoundRobin"
 datacenter_architecture: "x86"
 datacenter_os: "Linux"
 datacenter_vmm: "Xen"
