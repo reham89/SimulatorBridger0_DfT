@@ -1,6 +1,7 @@
 package uk.ncl.giacomobergami.SumoOsmosisBridger.osmotic.mel_routing;
 
 import com.eatthepath.jvptree.DistanceFunction;
+import org.cloudbus.cloudsim.edge.core.edge.EdgeDevice;
 import org.cloudbus.osmosis.core.OsmoticBroker;
 import uk.ncl.giacomobergami.components.iot.IoTDevice;
 import uk.ncl.giacomobergami.components.mel_routing.RoundRobinMELRoutingPolicy;
@@ -8,10 +9,18 @@ import uk.ncl.giacomobergami.utils.gir.CartesianPoint;
 import uk.ncl.giacomobergami.utils.gir.SquaredCartesianDistanceFunction;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class MELNearestDistanceRouting extends RoundRobinMELRoutingPolicy {
-    private final DistanceFunction<CartesianPoint> f = SquaredCartesianDistanceFunction.getInstance();
+    private final DistanceFunction<CartesianPoint> f;
+    private Map<String, Integer> roundRobinMelMap;
+
+    public MELNearestDistanceRouting() {
+        f = SquaredCartesianDistanceFunction.getInstance();
+        roundRobinMelMap = new HashMap<>();
+    }
 
     @Override
     public List<String> getCandidateMELsFromPattern(String pattern, OsmoticBroker self) {
@@ -24,23 +33,41 @@ public class MELNearestDistanceRouting extends RoundRobinMELRoutingPolicy {
 
     @Override
     public String apply(IoTDevice ioTDevice, String melName, OsmoticBroker self) {
-        double iotSqRange = ioTDevice.mobility.signalRange * ioTDevice.mobility.signalRange;
         double minimumDistance = Double.MAX_VALUE;
         String minimumCandidate = null;
-        for (String candidate : getCandidateMELsFromPattern(melName, self)) {
-            var hosts = self.selectVMFromHostPredicate(melName);
-            for (String host : hosts) {
-                var edgeHost = self.resolveEdgeDeviceFromId(host);
-                double edgeSqRange = edgeHost.signalRange * edgeHost.signalRange;
-                var squaredDistance = f.getDistance(ioTDevice, edgeHost);
-                if (squaredDistance <= Math.min(iotSqRange, edgeSqRange)) {
-                    if (squaredDistance <= minimumDistance) {
-                        minimumDistance = squaredDistance;
-                        minimumCandidate = host;
-                    }
+        EdgeDevice minimumHost = null;
+        if (ioTDevice.getName().equals("7"))
+            System.out.println("DEBUG");
+        var hosts = self.selectVMFromHostPredicate();
+        for (String host : hosts) {
+            var edgeHost = self.resolveEdgeDeviceFromId(host);
+            double edgeSqRange = edgeHost.signalRange * edgeHost.signalRange;
+            var squaredDistance = f.getDistance(ioTDevice, edgeHost);
+            if (squaredDistance <= edgeSqRange) {
+                if (squaredDistance <= minimumDistance) {
+                    minimumDistance = squaredDistance;
+                    minimumCandidate = host;
+                    minimumHost = edgeHost;
                 }
             }
         }
-        return minimumCandidate;
+        if (minimumHost != null) {
+            var instances = minimumHost.getVmList();
+            if (!roundRobinMelMap.containsKey(ioTDevice.getName())){
+                roundRobinMelMap.put(ioTDevice.getName(),0);
+            }
+            int pos = roundRobinMelMap.get(ioTDevice.getName());
+            if (pos>= instances.size()){
+                pos=0;
+            }
+            var result = instances.get(pos);
+            pos++;
+            if (pos>= instances.size()){
+                pos=0;
+            }
+            roundRobinMelMap.put(ioTDevice.getName(),pos);
+            return result.getVmName();
+        }
+        return null;
     }
 }

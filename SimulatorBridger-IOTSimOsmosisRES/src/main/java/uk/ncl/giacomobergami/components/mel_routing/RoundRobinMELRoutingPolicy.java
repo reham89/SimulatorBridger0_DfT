@@ -17,6 +17,9 @@ public class RoundRobinMELRoutingPolicy implements MELRoutingPolicy {
             roundRobinMelMap.put(abstractMel,0);
         }
         int pos = roundRobinMelMap.get(abstractMel);
+        if (pos>= instances.size()){
+            pos=0;
+        }
         String result = instances.get(pos);
         pos++;
         if (pos>= instances.size()){

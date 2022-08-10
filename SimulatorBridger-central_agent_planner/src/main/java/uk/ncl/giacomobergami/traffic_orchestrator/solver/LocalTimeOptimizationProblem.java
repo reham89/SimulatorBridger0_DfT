@@ -39,13 +39,6 @@ public class LocalTimeOptimizationProblem {
         rd = new Random();
     }
 
-    public void setSCCLastMileTargets(boolean use_local_demand_forecast,
-                                      int use_top_k_nearest_targets,
-                                      boolean use_top_k_nearest_targets_randomOne) {
-        for (var x : vehicles_communicating_with_nearest_RSUs.entrySet()) {
-            
-        }
-    }
 
     public class Solution {
         double[] obj;
@@ -430,6 +423,7 @@ public class LocalTimeOptimizationProblem {
             if (!distanceQueryResult.isEmpty()) {
                 hasSomeResult = true;
                 for (var veh : distanceQueryResult) {
+                    System.out.println("d("+veh.id+","+x.id+")="+f.getDistance(veh,x)+" ["+veh.x+","+veh.y+"]--["+x.x+","+x.y+"]");
                     vehicles_communicating_with_nearest_RSUs.get(veh).add(x);
                     visitedVehicles.add(veh.id);
                 }

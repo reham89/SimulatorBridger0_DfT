@@ -16,6 +16,7 @@ import org.cloudbus.osmosis.core.*;
 import org.cloudbus.res.EnergyController;
 import org.cloudbus.res.config.AppConfig;
 import org.cloudbus.res.dataproviders.res.RESResponse;
+import uk.ncl.giacomobergami.components.iot.IoTEntityGenerator;
 import uk.ncl.giacomobergami.components.loader.GlobalConfigurationSettings;
 import uk.ncl.giacomobergami.components.mel_routing.MELRoutingPolicy;
 import uk.ncl.giacomobergami.components.mel_routing.MELRoutingPolicyGeneratorFacade;
@@ -36,7 +37,7 @@ import java.util.stream.Collectors;
 public class OsmoticWrapper {
     private OsmoticConfiguration conf;
     LegacyTopologyBuilder topologyBuilder;
-    OsmoticBroker osmesisBroker;
+    OsmoticBroker osmoticBroker;
     AgentBroker agentBroker;
     Map<String, EnergyController> energyControllers;
     private boolean init;
@@ -75,7 +76,7 @@ public class OsmoticWrapper {
             MainEventManager.novel_stop();
 //            OsmoticAppsParser.appList.clear();
             OsmoticBroker.workflowTag.clear();
-            osmesisBroker = null;
+            osmoticBroker = null;
             topologyBuilder = null;
             agentBroker = null;
             started = false;
@@ -109,11 +110,11 @@ public class OsmoticWrapper {
 
         allocateOrClearDataStructures(calendar);
 
-        osmesisBroker = LegacyTopologyBuilder.newBroker(); // TODO: new OsmoticBroker(conf.OsmesisBroker, edgeLetId);
+        osmoticBroker = LegacyTopologyBuilder.newBroker(); // TODO: new OsmoticBroker(conf.OsmesisBroker, edgeLetId);
         MELRoutingPolicy melSwitchPolicy = MELRoutingPolicyGeneratorFacade.generateFacade(conf.mel_switch_policy);
-        osmesisBroker.setMelRouting(melSwitchPolicy);
+        osmoticBroker.setMelRouting(melSwitchPolicy);
 
-        topologyBuilder = new LegacyTopologyBuilder(osmesisBroker);
+        topologyBuilder = new LegacyTopologyBuilder(osmoticBroker);
         {
             var confFile = fileExists(conf.configurationFile);
             if (confFile != null) {
@@ -135,14 +136,14 @@ public class OsmoticWrapper {
 
         List<SDNController> controllers = new ArrayList<>();
         for(OsmoticDatacenter osmesisDC : topologyBuilder.getOsmesisDatacentres()){
-            osmesisBroker.submitVmList(osmesisDC.getVmList(), osmesisDC.getId());
+            osmoticBroker.submitVmList(osmesisDC.getVmList(), osmesisDC.getId());
             controllers.add(osmesisDC.getSdnController());
             osmesisDC.getSdnController().setWanOorchestrator(conductor);
         }
         controllers.add(topologyBuilder.getSdWanController());
         conductor.setSdnControllers(controllers);
-        osmesisBroker.submitOsmesisApps(appList);
-        osmesisBroker.setDatacenters(topologyBuilder.getOsmesisDatacentres());
+        osmoticBroker.submitOsmesisApps(appList);
+        osmoticBroker.setDatacenters(topologyBuilder.getOsmesisDatacentres());
 
         init = true;
         return init;
@@ -307,23 +308,24 @@ public class OsmoticWrapper {
 
         allocateOrClearDataStructures(calendar);
 
-
-        osmesisBroker = conf.newBroker(); // TODO: new OsmoticBroker(conf.OsmesisBroker, edgeLetId);
+        osmoticBroker = conf.newBroker(); // TODO: new OsmoticBroker(conf.OsmesisBroker, edgeLetId);
         MELRoutingPolicy melSwitchPolicy = MELRoutingPolicyGeneratorFacade.generateFacade(conf.mel_switch_policy);
-        osmesisBroker.setMelRouting(melSwitchPolicy);
-        conf.buildTopologyForSimulator(osmesisBroker);
+        osmoticBroker.setMelRouting(melSwitchPolicy);
+        conf.buildTopologyForSimulator(osmoticBroker);
 
         OsmosisOrchestrator conductor = new OsmosisOrchestrator();
         List<SDNController> controllers = new ArrayList<>();
         for(OsmoticDatacenter osmesisDC : conf.conf.osmesisDatacentres){
-            osmesisBroker.submitVmList(osmesisDC.getVmList(), osmesisDC.getId());
+            osmoticBroker.submitVmList(osmesisDC.getVmList(), osmesisDC.getId());
             controllers.add(osmesisDC.getSdnController());
             osmesisDC.getSdnController().setWanOorchestrator(conductor);
         }
         controllers.add(conf.sdWanController);
         conductor.setSdnControllers(controllers);
-        appList = osmesisBroker.submitWorkloadCSVApps(conf.apps);
-        osmesisBroker.setDatacenters(conf.conf.osmesisDatacentres);
+        appList = osmoticBroker.submitWorkloadCSVApps(conf.apps);
+        osmoticBroker.setDatacenters(conf.conf.osmesisDatacentres);
+        osmoticBroker.setDeltaVehUpdate(conf.simulation_step);
+        osmoticBroker.setIoTTraces(new IoTEntityGenerator(new File(conf.iot_traces), null));
 
         init = true;
         return init;

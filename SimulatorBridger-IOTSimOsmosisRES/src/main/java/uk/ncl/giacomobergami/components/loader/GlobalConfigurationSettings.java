@@ -43,6 +43,8 @@ public class GlobalConfigurationSettings {
     public String simulationStartTime;
     public String RES_CONFIG_FILE;
     public String AGENT_CONFIG_FILE;
+    public String iot_traces;
+    public double simulation_step;
 
     public OsmoticConfiguration asPreviousOsmoticConfiguration() {
         OsmoticConfiguration conf = new OsmoticConfiguration();
@@ -137,7 +139,10 @@ public class GlobalConfigurationSettings {
                                        String sdwan_routing,
                                        String sdwan_controller,
                                        double terminate,
-                                       String start) {
+                                       String start,
+                                       String mel_routing_policy,
+                                       String iot_traces,
+                                       double delta) {
         this();
         this.actualEdgeDataCenters = actualEdgeDataCenters;
         this.actualCloudDataCenters = actualCloudDataCenters;
@@ -158,6 +163,9 @@ public class GlobalConfigurationSettings {
         sdwan.switches = sdwan_switches;
         terminate_simulation_at = terminate;
         simulationStartTime = start;
+        this.mel_switch_policy = mel_routing_policy;
+        this.iot_traces = iot_traces;
+        this.simulation_step = delta;
     }
 
     public static OsmoticAppDescription asLegacyApp(WorkloadCSV novel) {

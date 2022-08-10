@@ -5,11 +5,14 @@ import uk.ncl.giacomobergami.components.loader.SubNetworkConfiguration;
 import uk.ncl.giacomobergami.components.networking.*;
 import uk.ncl.giacomobergami.utils.annotations.Input;
 import uk.ncl.giacomobergami.utils.annotations.Output;
+import uk.ncl.giacomobergami.utils.shared_data.edge.TimedEdge;
 import uk.ncl.giacomobergami.utils.structures.StraightforwardAdjacencyList;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -106,7 +109,8 @@ public class EdgeInfrastructureGenerator {
 
     public static SubNetworkConfiguration generate(@Input final Configuration conf,
                                                    @Output List<TopologyLink> result,
-                                                   @Input boolean only_one_mel_per_edge_network) {
+                                                   @Input boolean only_one_mel_per_edge_network,
+                                                   @Input Function<String, TimedEdge> f) {
         List<Switch> switches = new ArrayList<>();
         conf.hosts_and_vms.validate();
 
@@ -122,6 +126,11 @@ public class EdgeInfrastructureGenerator {
             throw  new RuntimeException("ERROR!");
         for (int i = 0; i<hosts.size(); i++) {
             hosts.get(i).name = conf.stringToInteger.get(i);
+            var el = f.apply(hosts.get(i).name);
+            var dst = hosts.get(i);
+            dst.x = el.x;
+            dst.y = el.y;
+            dst.signalRange = el.communication_radius;
         }
 
         if (conf.n_edges_to_one_core<= 0)

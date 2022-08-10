@@ -1,7 +1,7 @@
 package uk.ncl.giacomobergami.SumoOsmosisBridger.network_generators;
 
 import uk.ncl.giacomobergami.SumoOsmosisBridger.network_generators.from_traffic_data.EdgeNetworksGenerator;
-import uk.ncl.giacomobergami.SumoOsmosisBridger.network_generators.from_traffic_data.IoTEntityGenerator;
+import uk.ncl.giacomobergami.components.iot.IoTEntityGenerator;
 import uk.ncl.giacomobergami.SumoOsmosisBridger.network_generators.from_traffic_data.TimeTicker;
 import uk.ncl.giacomobergami.components.iot.IoTDeviceTabularConfiguration;
 import uk.ncl.giacomobergami.components.loader.GlobalConfigurationSettings;
@@ -11,11 +11,13 @@ import uk.ncl.giacomobergami.utils.annotations.Input;
 import uk.ncl.giacomobergami.utils.annotations.Output;
 import uk.ncl.giacomobergami.utils.asthmatic.WorkloadCSV;
 import uk.ncl.giacomobergami.utils.data.YAML;
+import uk.ncl.giacomobergami.utils.shared_data.edge.TimedEdge;
 import uk.ncl.giacomobergami.utils.structures.ImmutablePair;
 
 import java.io.File;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class EnsembleConfigurations {
@@ -155,6 +157,7 @@ public class EnsembleConfigurations {
         public String wan_general_configuration;       // /home/giacomo/IdeaProjects/SimulatorBridger/edge_generators.yaml
         public String mel_app_policy;
         public boolean only_one_mel_per_edge_network;
+        public String mel_routing_policy;
 
         public IoTEntityGenerator first() {
             return new IoTEntityGenerator(new File(iots), new File(iot_generators));
@@ -219,8 +222,7 @@ public class EnsembleConfigurations {
                                                                                                       conf.IoTMultiplicityForVMs,
                                                                                                       nSCC,
                                                                                                       cloud);
-
-            ls.add(ensemble(cloudNets, edgeNets, wan_conf, iotDevices, filteredApps, conf.global_simulation_terminate, conf.start_time, conf.only_one_mel_per_edge_network));
+            ls.add(ensemble(consistent_network_conf.getLeft(), cloudNets, edgeNets, wan_conf, iotDevices, filteredApps, conf));
         }
         return ls;
     }
@@ -230,21 +232,21 @@ public class EnsembleConfigurations {
 
 
 
-    public static GlobalConfigurationSettings ensemble(List<CloudInfrastructureGenerator.Configuration> cloudNets,
-                                                       List<EdgeInfrastructureGenerator.Configuration>  edgeNets,
-                                                       WANInfrastructureGenerator.Configuration conf,
-                                                       List<IoTDeviceTabularConfiguration> iotDevices,
-                                                               List<WorkloadCSV> apps,
-                                                               double terminate,
-                                                               String start,
-                                                       boolean only_one_mel_per_edge_network) {
+    private GlobalConfigurationSettings ensemble(Double left, List<CloudInfrastructureGenerator.Configuration> cloudNets,
+                                                 List<EdgeInfrastructureGenerator.Configuration> edgeNets,
+                                                 WANInfrastructureGenerator.Configuration conf,
+                                                 List<IoTDeviceTabularConfiguration> iotDevices,
+                                                 List<WorkloadCSV> apps,
+                                                 Configuration confDis) {
 
         List<TopologyLink> global_network_links = new ArrayList<>();
+
+        Function<String, TimedEdge> f = x -> edgeNetworkGenerator.retriveEdgeLocationInTime(left, x);
 
         // Generating the edge nets in a way which is IoT independent, and only considering Edge devices
         List<SubNetworkConfiguration> actualEdgeDataCenters = edgeNets
                 .stream()
-                .map(x -> EdgeInfrastructureGenerator.generate(x, global_network_links, only_one_mel_per_edge_network))
+                .map(x -> EdgeInfrastructureGenerator.generate(x, global_network_links, confDis.only_one_mel_per_edge_network, f))
                 .collect(Collectors.toList());
 
         // Generating the cloud nets
@@ -258,7 +260,6 @@ public class EnsembleConfigurations {
                 WANInfrastructureGenerator.generate(cloudNets, edgeNets, conf, global_network_links);
 
 
-
         return new GlobalConfigurationSettings(actualEdgeDataCenters,
                 actualCloudDataCenters,
                 iotDevices,
@@ -268,8 +269,11 @@ public class EnsembleConfigurations {
                 conf.sdwan_traffic,
                 conf.sdwan_routing,
                 conf.sdwan_controller,
-                terminate,
-                start);
+                confDis.global_simulation_terminate,
+                confDis.start_time,
+                confDis.mel_routing_policy,
+                confDis.iots,
+                confDis.simulation_step);
     }
 
 
@@ -278,9 +282,14 @@ public class EnsembleConfigurations {
         var ec = new EnsembleConfigurations(conf.first(), conf.second(), conf.third(), conf.fourth(), conf.fith());
         var ls = ec.getTimedPossibleConfigurations(conf);
         var dump = new File(configuration_file.getParentFile(), "dump");
-        ls.forEach(x -> {
-            x.dump(dump);
-        });
+        if (ls.size() == 1) {
+            ls.get(0).dump(dump);
+        } else {
+            for (int i = 0; i<ls.size(); i++) {
+                File f = new File(dump, Integer.toString(i));
+                ls.get(i).dump(f);
+            }
+        }
         return true;
     }
 

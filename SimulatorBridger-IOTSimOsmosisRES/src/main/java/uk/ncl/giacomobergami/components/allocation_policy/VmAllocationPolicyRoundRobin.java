@@ -42,7 +42,6 @@ public class VmAllocationPolicyRoundRobin extends VmAllocationPolicy {
 	/**
 	 * Creates the new VmAllocationPolicySimple object.
 	 *
-	 * @param list the list
 	 * @pre $none
 	 * @post $none
 	 */

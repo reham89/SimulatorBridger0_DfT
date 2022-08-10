@@ -1,9 +1,7 @@
-package uk.ncl.giacomobergami.SumoOsmosisBridger.network_generators.from_traffic_data;
+package uk.ncl.giacomobergami.components.iot;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import uk.ncl.giacomobergami.components.iot.IoTDevice;
-import uk.ncl.giacomobergami.components.iot.IoTDeviceTabularConfiguration;
 import uk.ncl.giacomobergami.utils.annotations.Input;
 import uk.ncl.giacomobergami.utils.annotations.Output;
 import uk.ncl.giacomobergami.utils.asthmatic.WorkloadCSV;
@@ -40,7 +38,10 @@ public class IoTEntityGenerator {
     public IoTEntityGenerator(File iotFiles,
                               File configuration) {
         Type sccType = new TypeToken<TreeMap<String, IoT>>() {}.getType();
-        conf = YAML.parse(IoTGlobalConfiguration.class, configuration).orElseThrow();
+        if (configuration != null)
+            conf = YAML.parse(IoTGlobalConfiguration.class, configuration).orElseThrow();
+        else
+            conf = null;
         Gson gson = new Gson();
         BufferedReader reader1 = null;
         try {
@@ -63,15 +64,16 @@ public class IoTEntityGenerator {
                                 @Input double simTimeUp) {
         var ls = timed_iots.get(toUpdateWithTime.getName());
         var times = new TreeSet<>(ls.dynamicInformation.keySet());
-        var expectedLow = times.lower(simTimeLow);
+        Double expectedLow = times.contains(simTimeLow) ? ((Double) simTimeLow) : times.lower(simTimeLow);
         var dist = simTimeUp - simTimeLow;
         if ((expectedLow != null) && (expectedLow <= simTimeUp)) {
             var expObj = ls.dynamicInformation.get(expectedLow);
             toUpdateWithTime.mobility.range.beginX = (int) (toUpdateWithTime.mobility.location.x = expObj.x);
             toUpdateWithTime.mobility.range.beginY = (int) (toUpdateWithTime.mobility.location.y = expObj.y);
             toUpdateWithTime.mobility.location.y = ls.dynamicInformation.get(expectedLow).y;
+            toUpdateWithTime.mobility.location.x = ls.dynamicInformation.get(expectedLow).x;
             Double expectedUp = simTimeUp + dist;
-            expectedUp = times.lower(expectedUp);
+            expectedUp = times.contains(expectedUp) ? expectedUp : times.lower(expectedUp);
             if (expectedUp != null) {
                 expObj = ls.dynamicInformation.get(expectedUp);
                 toUpdateWithTime.mobility.range.endX = (int) expObj.x;

@@ -171,6 +171,7 @@ public class CentralAgentPlanner {
             return;
         }
         for (var simTimeToVehicles : vehSet) {
+            System.out.println(simTimeToVehicles.getKey());
             if (!timeEvolvingEdges.hasNext()) {
                 throw new RuntimeException("ERROR: the TLS should have the same timing of the Vehicles");
             }

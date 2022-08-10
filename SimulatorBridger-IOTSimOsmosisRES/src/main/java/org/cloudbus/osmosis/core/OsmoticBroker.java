@@ -25,6 +25,7 @@ import org.cloudbus.cloudsim.core.SimEvent;
 import org.cloudbus.cloudsim.edge.core.edge.EdgeDevice;
 import org.cloudbus.cloudsim.edge.core.edge.EdgeLet;
 import uk.ncl.giacomobergami.components.iot.IoTDevice;
+import uk.ncl.giacomobergami.components.iot.IoTEntityGenerator;
 import uk.ncl.giacomobergami.components.loader.GlobalConfigurationSettings;
 import uk.ncl.giacomobergami.components.mel_routing.MELRoutingPolicy;
 import uk.ncl.giacomobergami.utils.asthmatic.WorkloadCSV;
@@ -55,6 +56,8 @@ public class OsmoticBroker extends DatacenterBroker {
 
 	public CentralAgent osmoticCentralAgent;
 	private AtomicInteger flowId;
+	private IoTEntityGenerator ioTEntityGenerator;
+	private double deltaVehUpdate;
 
 	public OsmoticBroker(String name, AtomicInteger edgeLetId, AtomicInteger flowId) {
 		super(name);
@@ -82,9 +85,10 @@ public class OsmoticBroker extends DatacenterBroker {
 	public void processEvent(SimEvent ev) {
 		//Update simulation time in the AgentBroker
 		AgentBroker.getInstance().updateTime(MainEventManager.clock());
-
 		//Execute MAPE loop at time interval
 		AgentBroker.getInstance().executeMAPE(MainEventManager.clock());
+		double chron = MainEventManager.clock();
+
 
 		if (appList != null) {
 			currentlyAvailableApps = appList
@@ -94,6 +98,9 @@ public class OsmoticBroker extends DatacenterBroker {
 						return (x.getAppStartTime() <= t) && (t < x.getStopDataGenerationTime());
 					}).toList();
 		}
+		iotDeviceNameToObject.forEach((id, obj) -> {
+			ioTEntityGenerator.updateIoTDevice(obj, chron, chron+deltaVehUpdate);
+		});
 
 		switch (ev.getTag()) {
 		case CloudSimTags.RESOURCE_CHARACTERISTICS_REQUEST:
@@ -154,6 +161,8 @@ public class OsmoticBroker extends DatacenterBroker {
 		if (melRouting.test(melName)){
 			// Using a policy for determining the next MEL
 			String melInstanceName = melRouting.apply(actualIoT, melName, this);
+			if (melInstanceName == null)
+				return;
 			flow.setAppNameDest(melInstanceName);
 			mel_id = getVmIdByName(melInstanceName); //name of VM
 
@@ -271,18 +280,37 @@ public class OsmoticBroker extends DatacenterBroker {
 			for (var vmOrMel : cp.getValue()) {
 				var host = vmOrMel.getHost();
 				if (host instanceof EdgeDevice) {
-					map.put(vmOrMel.getVmName(), ((EdgeDevice) host).getDeviceName());
+					String toStartRegex = vmOrMel.getVmName();
+					toStartRegex = toStartRegex.substring(0, toStartRegex.lastIndexOf('.'))+".*";
+					map.put(toStartRegex, ((EdgeDevice) host).getDeviceName());
 				}
 			}
 		}
 		return map.get(melId);
+	}
+	public Collection<String> selectVMFromHostPredicate() {
+		if (map == null) {
+			map = HashMultimap.create();
+		}
+		for (var cp : mapVmsToDatacenter.entrySet()) {
+			for (var vmOrMel : cp.getValue()) {
+				var host = vmOrMel.getHost();
+				if (host instanceof EdgeDevice) {
+					String toStartRegex = vmOrMel.getVmName();
+					toStartRegex = toStartRegex.substring(0, toStartRegex.lastIndexOf('.'))+".*";
+					map.put(toStartRegex, ((EdgeDevice) host).getDeviceName());
+				}
+			}
+		}
+		return map.values();
 	}
 	public EdgeDevice resolveEdgeDeviceFromId(String hostId) {
 		for (var cp : mapVmsToDatacenter.entrySet()) {
 			for (var vmOrMel : cp.getValue()) {
 				var host = vmOrMel.getHost();
 				if (host instanceof EdgeDevice) {
-					return (EdgeDevice) host;
+					if (((EdgeDevice)host).getDeviceName().equals(hostId))
+						return (EdgeDevice) host;
 				}
 			}
 		}
@@ -412,5 +440,17 @@ public class OsmoticBroker extends DatacenterBroker {
 	public void addIoTDevice(IoTDevice device) {
 		iotDeviceNameToId.put(device.getName(), device.getId());
 		iotDeviceNameToObject.put(device.getName(), device);
+	}
+
+	public void setIoTTraces(IoTEntityGenerator ioTEntityGenerator) {
+		this.ioTEntityGenerator = ioTEntityGenerator;
+	}
+
+	public void setDeltaVehUpdate(double deltaVehUpdate) {
+		this.deltaVehUpdate = deltaVehUpdate;
+	}
+
+	public double getDeltaVehUpdate() {
+		return deltaVehUpdate;
 	}
 }
