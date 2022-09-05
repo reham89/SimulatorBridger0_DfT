@@ -7,9 +7,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class RoundRobinMELRoutingPolicy implements MELRoutingPolicy {
+public class RoundRobinMELSwitchPolicy implements MELSwitchPolicy {
     private Map<String, Integer> roundRobinMelMap;
-    public RoundRobinMELRoutingPolicy() { roundRobinMelMap = new HashMap<>(); }
+    public RoundRobinMELSwitchPolicy() { roundRobinMelMap = new HashMap<>(); }
     @Override
     public String apply(IoTDevice IoTDevice, String abstractMel, OsmoticBroker self) {
         List<String> instances = getCandidateMELsFromPattern(abstractMel, self);

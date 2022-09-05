@@ -21,6 +21,7 @@ public abstract class AbstractAgent implements Agent {
         return message;
     }
 
+
     public void publishMessage(AgentMessage message){
         //Publish message is managed by the Osmotic Broker.
         AgentBroker.getInstance().distributeMessage(message);

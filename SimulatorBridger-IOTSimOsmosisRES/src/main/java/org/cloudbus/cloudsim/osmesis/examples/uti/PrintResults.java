@@ -123,6 +123,10 @@ public class PrintResults {
 
 		
 		StartTime = app.getAppStartTime();
+		if (tags.isEmpty()) {
+			System.err.println("ERROR WITH APP: " + appName);
+			return;
+		}
 		EndTime = tags.get(tags.size()-1).getCloudLet().getFinishTime();
 		SimluationTime = EndTime - StartTime;			
 		

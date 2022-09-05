@@ -4,7 +4,7 @@ import com.eatthepath.jvptree.DistanceFunction;
 import org.cloudbus.cloudsim.edge.core.edge.EdgeDevice;
 import org.cloudbus.osmosis.core.OsmoticBroker;
 import uk.ncl.giacomobergami.components.iot.IoTDevice;
-import uk.ncl.giacomobergami.components.mel_routing.RoundRobinMELRoutingPolicy;
+import uk.ncl.giacomobergami.components.mel_routing.RoundRobinMELSwitchPolicy;
 import uk.ncl.giacomobergami.utils.gir.CartesianPoint;
 import uk.ncl.giacomobergami.utils.gir.SquaredCartesianDistanceFunction;
 
@@ -13,11 +13,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class MELNearestDistanceRouting extends RoundRobinMELRoutingPolicy {
+public class MELNearestDistanceSwitch extends RoundRobinMELSwitchPolicy {
     private final DistanceFunction<CartesianPoint> f;
     private Map<String, Integer> roundRobinMelMap;
 
-    public MELNearestDistanceRouting() {
+    public MELNearestDistanceSwitch() {
         f = SquaredCartesianDistanceFunction.getInstance();
         roundRobinMelMap = new HashMap<>();
     }

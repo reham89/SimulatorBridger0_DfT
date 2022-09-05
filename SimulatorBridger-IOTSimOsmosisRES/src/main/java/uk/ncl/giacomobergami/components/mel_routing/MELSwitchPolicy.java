@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
 
-public interface MELRoutingPolicy extends Predicate<String> {
+public interface MELSwitchPolicy extends Predicate<String> {
     default boolean test(String s) { return s.matches("^\\S*.[*]$"); }
     default List<String> getCandidateMELsFromPattern(String pattern,
                                                      OsmoticBroker self) {

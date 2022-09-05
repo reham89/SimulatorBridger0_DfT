@@ -27,6 +27,7 @@ public class DCAgent extends AbstractAgent {
         this.energyController = energyController;
     }
 
+
     @Override
     public void monitor() {
 

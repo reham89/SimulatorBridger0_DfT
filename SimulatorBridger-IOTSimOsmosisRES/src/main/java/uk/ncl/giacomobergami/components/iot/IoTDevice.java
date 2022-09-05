@@ -70,14 +70,15 @@ public abstract class IoTDevice extends SimEntity implements CartesianPoint {
 
 	private List<Flow> flowList = new ArrayList<>(); 
 	
-	public IoTDevice(LegacyConfiguration.IotDeviceEntity onta, AtomicInteger flowId) {
+	public IoTDevice(LegacyConfiguration.IotDeviceEntity onta,
+					 AtomicInteger flowId) {
 		super(onta.getName());
 		this.flowId = flowId;
 		this.battery = new Battery();
-		this.networkModel =
-				new EdgeNetworkInfo(new EdgeNetwork(
-						onta.getNetworkModelEntity().getNetworkType()), IoTProtocolGeneratorFactory.generateFacade(
-						onta.getNetworkModelEntity().getCommunicationProtocol()));
+		this.networkModel = new EdgeNetworkInfo(
+						new EdgeNetwork(onta.getNetworkModelEntity().getNetworkType()),
+						IoTProtocolGeneratorFactory.generateFacade(onta.getNetworkModelEntity().getCommunicationProtocol())
+				);
 		this.enabled = true;
 		this.bw = onta.getBw();
 		

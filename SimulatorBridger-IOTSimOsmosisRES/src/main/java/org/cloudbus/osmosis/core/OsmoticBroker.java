@@ -27,9 +27,8 @@ import org.cloudbus.cloudsim.edge.core.edge.EdgeLet;
 import uk.ncl.giacomobergami.components.iot.IoTDevice;
 import uk.ncl.giacomobergami.components.iot.IoTEntityGenerator;
 import uk.ncl.giacomobergami.components.loader.GlobalConfigurationSettings;
-import uk.ncl.giacomobergami.components.mel_routing.MELRoutingPolicy;
+import uk.ncl.giacomobergami.components.mel_routing.MELSwitchPolicy;
 import uk.ncl.giacomobergami.utils.asthmatic.WorkloadCSV;
-import uk.ncl.giacomobergami.utils.shared_data.iot.IoT;
 
 /**
  * 
@@ -143,11 +142,11 @@ public class OsmoticBroker extends DatacenterBroker {
 		}
 	}
 
-	MELRoutingPolicy melRouting;
-	public MELRoutingPolicy getMelRouting() {
+	MELSwitchPolicy melRouting;
+	public MELSwitchPolicy getMelRouting() {
 		return melRouting;
 	}
-	public void setMelRouting(MELRoutingPolicy melRouting) {
+	public void setMelRouting(MELSwitchPolicy melRouting) {
 		this.melRouting = melRouting;
 	}
 

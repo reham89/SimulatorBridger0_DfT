@@ -133,7 +133,7 @@ public class OsmosisOrchestrator extends SimEntity {
 	
 	public boolean updateFlowProcessing() {		
 		boolean needSendEvent = false;			
-		LinkedList<Channel> completeChannels = new LinkedList<Channel>();
+		List<Channel> completeChannels = new ArrayList<>(channelTable.size());
 		for(Channel ch:channelTable.values()){
 			boolean isCompleted = ch.updateFlowProcessing();						
 			needSendEvent = needSendEvent || isCompleted;
