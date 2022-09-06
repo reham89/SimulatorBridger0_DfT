@@ -1,11 +1,20 @@
-package uk.ncl.giacomobergami.SumoOsmosisBridger.meap.agents;
+package uk.ncl.giacomobergami.SumoOsmosisBridger.meap.agents.data_center;
 
-import org.cloudbus.agent.CentralAgent;
+import org.cloudbus.agent.DCAgent;
+import org.cloudbus.osmosis.core.OsmoticDatacenter;
+import uk.ncl.giacomobergami.SumoOsmosisBridger.meap.agents.AbstractNetworkAgent;
+import uk.ncl.giacomobergami.SumoOsmosisBridger.meap.agents.AbstractNetworkAgentPolicy;
 
-public class GeneralCentralAgent extends CentralAgent {
+public class GeneralDataCenterAgent extends DCAgent {
 
     AbstractNetworkAgent abstractNetworkAgent;
-    public GeneralCentralAgent() {
+
+    public GeneralDataCenterAgent(OsmoticDatacenter osmesisDatacenter) {
+        super(osmesisDatacenter);
+        abstractNetworkAgent = new AbstractNetworkAgent(this);
+    }
+
+    public GeneralDataCenterAgent() {
         abstractNetworkAgent = new AbstractNetworkAgent(this);
     }
 

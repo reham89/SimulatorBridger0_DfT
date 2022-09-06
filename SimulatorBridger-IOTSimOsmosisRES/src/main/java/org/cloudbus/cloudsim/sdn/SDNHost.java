@@ -56,75 +56,14 @@ public class SDNHost extends SimEntity implements NetworkNIC {
 		}
 	}
 	
-
-	
 	/******* Routeable interface implementation methods ******/
 
 	@Override
 	public int getAddress() {
 		return super.getId();
 	}
-
-//	@Override
-//	public void clearVMRoutingTable(){
-//		this.forwardingTable.clear();
-//	}
-
-//	@Override
-//	public void addRoute(int src, int dest, int flowId, NetworkNIC to){
-//		forwardingTable.addRule(src, dest, flowId, to);
-//	}
-//
-//	@Override
-//	public NetworkNIC getVMRoute(int src, int dest, int flowId){
-//		NetworkNIC route= this.forwardingTable.getRoute(src, dest, flowId);
-//		if(route == null) {
-//			System.err.println("SDNHost: ERROR: Cannot find route:" + src + "->"+dest + ", flow ="+flowId);
-//		}
-//		return route;
-//	}
-	
-//	@Override
-//	public void removeVMRoute(int src, int dest, int flowId){
-//		forwardingTable.removeRule(src, dest, flowId);
-//	}
-
 	
 	public String toString() {
 		return "SDNHost: "+this.getName();
 	}
-
-//	@Override
-//	public void addLink(Link l) {
-//		// TODO Auto-generated method stub
-//
-//	}
-
-//	@Override
-//	public void updateNetworkUtilization() {
-//		// TODO Auto-generated method stub
-//
-//	}
-
-//	@Override
-//	public NetworkNIC updateVMRoute(int srcVM, int destVM, int flowId, NetworkNIC to) {
-//		// TODO Auto-generated method stub
-//		return null;
-//	}
-
-//	@Override
-//	public void setAdjancentNodes(List<NetworkNIC> nodes) {
-//		// TODO Auto-generated method stub
-//		adjuNodes.addAll(nodes);
-//	}
-
-//	@Override
-//	public List<NetworkNIC> getAdjancentNodes() {
-//		return this.adjuNodes;
-//
-//	}
-
-//	@Override
-//	public void addRoute(NetworkNIC srcHost, NetworkNIC desthost, int flowId, NetworkNIC nextNode) { }
-
 }

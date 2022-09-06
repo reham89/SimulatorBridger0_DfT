@@ -10,6 +10,7 @@ import uk.ncl.giacomobergami.SumoOsmosisBridger.meap.messages.PayloadForIoTAgent
 import uk.ncl.giacomobergami.SumoOsmosisBridger.meap.messages.PayloadFromIoTAgent;
 import uk.ncl.giacomobergami.components.iot.IoTDevice;
 import uk.ncl.giacomobergami.traffic_orchestrator.solver.MinCostMaxFlow;
+import uk.ncl.giacomobergami.utils.gir.CartesianPoint;
 import uk.ncl.giacomobergami.utils.gir.SquaredCartesianDistanceFunction;
 import uk.ncl.giacomobergami.utils.structures.ImmutablePair;
 
@@ -51,6 +52,7 @@ public class AbstractNetworkAgent extends AbstractAgent {
             payloadMap.put(x.sender.getName(), x);
             devices.put(x.sender.getName(), x.sender);
         }
+        messagesFromIoTDevices.clear();
         switch (policy) {
 
             case GreedyNearest -> {
@@ -80,10 +82,12 @@ public class AbstractNetworkAgent extends AbstractAgent {
             }
 
             case OptimalMinCostFlux -> {
+                String iot_prefix = "iot_";
                 AtomicInteger id_generator = new AtomicInteger(0);
                 List<String> id_to_name = new ArrayList<>();
                 Map<String, Integer> name_to_id = new HashMap<>();
                 Map<String, List<String>> paths = new HashMap<>();
+                HashMultimap<String, List<String>> paths_for_network = HashMultimap.create();
 
                 int bogusSrc = id_generator.getAndIncrement();
                 int bogusDst = id_generator.getAndIncrement();
@@ -95,8 +99,8 @@ public class AbstractNetworkAgent extends AbstractAgent {
                 HashMap<String, NetworkNodeType> nodeType = new HashMap<>();
 
                 for (var cp : payloadMap.asMap().entrySet()) {
-                    name_to_id.put("iot_"+cp.getKey(), id_generator.getAndIncrement());
-                    id_to_name.add("iot_"+cp.getKey());
+                    name_to_id.put(iot_prefix+cp.getKey(), id_generator.getAndIncrement());
+                    id_to_name.add(iot_prefix+cp.getKey());
                     niot++;
                     for (var msgPayload : cp.getValue()) {
                         if (!msgPayload.sender.getName().equals(cp.getKey()))
@@ -142,7 +146,7 @@ public class AbstractNetworkAgent extends AbstractAgent {
 
                 // After counting how many nodes are there, now we can actually create the network!
                 for (var cp : payloadMap.asMap().entrySet()) {
-                    var iot = "iot_"+cp.getKey();
+                    var iot = iot_prefix+cp.getKey();
                     var iot_id = name_to_id.get(iot);
                     cost[bogusSrc][iot_id] = 0;
                     flow[bogusSrc][iot_id] = 1;
@@ -206,17 +210,8 @@ public class AbstractNetworkAgent extends AbstractAgent {
 
                 for (var p : result.minedPaths) {
                     var calculated_path = p.stream().map(id_to_name::get).collect(Collectors.toList());
-                    computedIoTPaths.add(calculated_path.get(1));
-                    paths.put(calculated_path.get(1), calculated_path);
-
-                    // TODO: update the path within the network, the the SDNController is the suitable one!
-
-//                    var payload = new PayloadForIoTAgent(y.getDeviceName()+".*", y.getX(), y.getY());
-//                    var message = new MessageWithPayload<PayloadForIoTAgent>();
-//                    message.setSOURCE(getName());
-//                    message.setDESTINATION(Collections.singletonList(dst));
-//                    message.setPayload(payload);
-//                    publishMessage(message);
+                    computedIoTPaths.add(calculated_path.get(0));
+                    paths.put(calculated_path.get(0), calculated_path);
                 }
                 if (result.minedPaths.size() != niot) {
                     if (result.minedPaths.size() > niot) {
@@ -238,7 +233,74 @@ public class AbstractNetworkAgent extends AbstractAgent {
                     }
                 }
 
-                System.out.println(paths);
+                for (var solutions : paths.entrySet()) {
+                    var iotName = solutions.getKey().substring(iot_prefix.length());
+                    var iotPath = solutions.getValue();
+                    var candidate = iotPath.remove(0).substring(iot_prefix.length());
+                    if (!candidate.equals(iotName))
+                        throw new RuntimeException("ERROR: IoT does not match");
+                    String network;
+                    int i = 0, substring_starts_at = 0;
+
+                    {
+                        int j = 0;
+                        int min=Integer.MAX_VALUE;
+                        String[] array = new String[iotPath.size()];
+
+                        //reversing the strings and finding the length of smallest string
+                        for(i=0;i<(iotPath.size());i++)  {
+                            if(iotPath.get(i).length()<min)
+                                min=iotPath.get(i).length();
+                            StringBuilder input1 = new StringBuilder();
+                            input1.append(iotPath.get(i));
+                            array[i] = input1.reverse().toString();
+                        }
+
+                        //finding the length of longest suffix
+                        for(i=0;i<min;i++) {
+                            for(j=1;j<(array.length);j++)
+                                if(array[j].charAt(i)!=array[j-1].charAt(i))
+                                    break;
+                            if(j!=array.length) break;
+                        }
+                    }
+
+                    var y = (CartesianPoint) nodeType.get(iotPath.get(0)).getVal2().getHost();
+                    substring_starts_at = i;
+                    network = iotPath.get(0).substring(iotPath.get(0).length()-substring_starts_at);
+                    if (!network.startsWith("@")) {
+                        if (!network.contains("@"))
+                            throw new RuntimeException("Error: we expect that the common suffix starts with @");
+                        int atSign = network.lastIndexOf('@');
+                        network = network.substring(atSign);
+                        substring_starts_at = iotPath.get(0).length()-atSign;
+                    }
+                    network = network.substring(1);;
+                    for (i = 0, N = iotPath.size(); i<N; i++) {
+                        iotPath.set(i, iotPath.get(i).substring(0, iotPath.get(i).length()-substring_starts_at));
+                    }
+                    var iotConnectToMel = iotPath.get(0)+".*";
+
+                    // Setting the path to the IoT Device
+                    paths_for_network.put(network, iotPath);
+
+                    // Sending the IoT device who should they contact!
+                    var payload = new PayloadForIoTAgent(iotConnectToMel, y.getX(), y.getY());
+                    var message = new MessageWithPayload<PayloadForIoTAgent>();
+                    message.setSOURCE(getName());
+                    message.setDESTINATION(Collections.singletonList(iotName));
+                    message.setPayload(payload);
+                    publishMessage(message);
+                }
+
+                for (var distinctPaths : paths_for_network.asMap().entrySet()) {
+                    var network = distinctPaths.getKey();
+                    networks.get(network);
+                    for (var path : distinctPaths.getValue()) {
+
+                    }
+                }
+//                System.out.println(paths_for_network);
             }
         }
     }

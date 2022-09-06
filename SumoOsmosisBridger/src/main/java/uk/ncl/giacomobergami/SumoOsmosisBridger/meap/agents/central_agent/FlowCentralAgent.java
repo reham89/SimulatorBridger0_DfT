@@ -1,6 +1,6 @@
-package uk.ncl.giacomobergami.SumoOsmosisBridger.meap.agents;
+package uk.ncl.giacomobergami.SumoOsmosisBridger.meap.agents.central_agent;
 
-import org.cloudbus.agent.CentralAgent;
+import uk.ncl.giacomobergami.SumoOsmosisBridger.meap.agents.AbstractNetworkAgentPolicy;
 
 public class FlowCentralAgent extends GeneralCentralAgent {
     public FlowCentralAgent() {

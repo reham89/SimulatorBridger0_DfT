@@ -10,4 +10,6 @@ public interface Agent {
     default void setAgentProgram(Object program) {
         System.out.println("Program set to: " + program.toString());
     }
+    double getCurrentTime();
+    void setCurrentTime(double lastMAPEloop);
 }

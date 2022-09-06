@@ -1,13 +1,9 @@
-package uk.ncl.giacomobergami.SumoOsmosisBridger.meap.agents;
+package uk.ncl.giacomobergami.SumoOsmosisBridger.meap.agents.device_agent;
 
-import com.google.common.collect.HashMultimap;
 import org.cloudbus.agent.CentralAgent;
-import org.cloudbus.cloudsim.edge.core.edge.EdgeDataCenter;
-import org.cloudbus.cloudsim.edge.core.edge.EdgeDevice;
 import uk.ncl.giacomobergami.SumoOsmosisBridger.meap.messages.MessageWithPayload;
 import uk.ncl.giacomobergami.SumoOsmosisBridger.meap.messages.PayloadFromIoTAgent;
 import uk.ncl.giacomobergami.utils.gir.SquaredCartesianDistanceFunction;
-import uk.ncl.giacomobergami.utils.structures.ImmutablePair;
 
 import java.util.Collections;
 import java.util.Comparator;

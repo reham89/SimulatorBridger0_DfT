@@ -41,7 +41,7 @@ import static org.cloudbus.osmosis.core.OsmoticTags.GENERATE_OSMESIS_WITH_RESOLU
 **/
 
 public class OsmoticBroker extends DatacenterBroker {
-	public EdgeSDNController edgeController;
+//	public EdgeSDNController edgeController;
 	public List<Cloudlet> edgeletList = new ArrayList<>();
 	public List<OsmoticAppDescription> appList;
 	public Map<String, Integer> iotDeviceNameToId = new HashMap<>();
@@ -60,7 +60,9 @@ public class OsmoticBroker extends DatacenterBroker {
 	private IoTEntityGenerator ioTEntityGenerator;
 	private double deltaVehUpdate;
 
-	public OsmoticBroker(String name, AtomicInteger edgeLetId, AtomicInteger flowId) {
+	public OsmoticBroker(String name,
+						 AtomicInteger edgeLetId,
+						 AtomicInteger flowId) {
 		super(name);
 		this.edgeLetId = edgeLetId;
 		this.flowId = flowId;
@@ -68,95 +70,84 @@ public class OsmoticBroker extends DatacenterBroker {
 		brokerID = this.getId();
 	}
 
-	public EdgeSDNController getEdgeSDNController() {
-		return edgeController;
-	}
-	public void setEdgeSDNController(EdgeSDNController controller) {
-		this.edgeController = controller;
-	}
-
 	@Override
 	public void startEntity() {
 		super.startEntity();
 	}
 
-
-//	public static Collection<OsmoticAppDescription> currentlyAvailableApps = Collections.emptyList();
-
 	@Override
 	public void processEvent(SimEvent ev) {
-		//Update simulation time in the AgentBroker
-		AgentBroker.getInstance().updateTime(MainEventManager.clock());
-		//Execute MAPE loop at time interval
-		AgentBroker.getInstance().executeMAPE(MainEventManager.clock());
 		double chron = MainEventManager.clock();
 
+		var ab = AgentBroker.getInstance();
 
-//		if (appList != null) {
-//			currentlyAvailableApps = appList
-//					.stream()
-//					.filter(x -> {
-//						var t = MainEventManager.clock();
-//						return (x.getAppStartTime() <= t) && (t < x.getStopDataGenerationTime());
-//					}).toList();
-//		}
+		//Update simulation time in the AgentBroker
+		ab.updateTime(chron);
+
+		//Execute MAPE loop at time interval
+		ab.executeMAPE(chron);
+
+		// Updates the IoT Device with the
 		iotDeviceNameToObject.forEach((id, obj) -> {
 			ioTEntityGenerator.updateIoTDevice(obj, chron, chron+deltaVehUpdate);
 		});
 
 		switch (ev.getTag()) {
+			case CloudSimTags.RESOURCE_CHARACTERISTICS_REQUEST:
+				this.processResourceCharacteristicsRequest(ev);
+				break;
 
+			case CloudSimTags.RESOURCE_CHARACTERISTICS:
+				this.processResourceCharacteristics(ev);
+				break;
 
-		case CloudSimTags.RESOURCE_CHARACTERISTICS_REQUEST:
-			this.processResourceCharacteristicsRequest(ev);
-			break;
-			
-		case CloudSimTags.RESOURCE_CHARACTERISTICS:
-			this.processResourceCharacteristics(ev);
-			break;
-			
-		case CloudSimTags.VM_CREATE_ACK:
-			this.processVmCreate(ev);			
-			break;
+			case CloudSimTags.VM_CREATE_ACK:
+				this.processVmCreate(ev);
+				break;
 
-		case GENERATE_OSMESIS_WITH_RESOLUTION: {
-			OsmoticAppDescription app = (OsmoticAppDescription) ev.getData();
-			var melId = getVmIdByName(app.getMELName());
-			int vmIdInCloud = this.getVmIdByName(app.getVmName());
-			app.setMelId(melId);
-			int edgeDatacenterId = this.getDatacenterIdByVmId(melId);
-			app.setEdgeDcId(edgeDatacenterId);
-			app.setEdgeDatacenterName(this.getDatacenterNameById(edgeDatacenterId));
-			int cloudDatacenterId = this.getDatacenterIdByVmId(vmIdInCloud);
-			app.setCloudDcId(cloudDatacenterId);
-			app.setCloudDatacenterName(this.getDatacenterNameById(cloudDatacenterId));
-			// After this set up. then we can generate the osmesis!
-		}
-		case OsmoticTags.GENERATE_OSMESIS:
-			generateIoTData(ev);
-			break;
-			
-		case OsmoticTags.Transmission_ACK:
-			askMelToProccessData(ev);
-			break;
-			
-		case CloudSimTags.CLOUDLET_RETURN:
-			processCloudletReturn(ev);
-			break;
-			
-		case OsmoticTags.Transmission_SDWAN_ACK:
-			askCloudVmToProccessData(ev);
-			break;
-				
-		case CloudSimTags.END_OF_SIMULATION: // just printing
-			this.shutdownEntity();
-			break;
+			case GENERATE_OSMESIS_WITH_RESOLUTION: {
+				// Registering an app that was determined dynamically
+				OsmoticAppDescription app = (OsmoticAppDescription) ev.getData();
+				int melId=-1;
+				if (!melRouting.test(app.getMELName())){
+					melId = getVmIdByName(app.getMELName());
+				}
+				app.setMelId(melId);
+				int vmIdInCloud = this.getVmIdByName(app.getVmName());
+				int edgeDatacenterId = this.getDatacenterIdByVmId(melId);
+				app.setEdgeDcId(edgeDatacenterId);
+				app.setEdgeDatacenterName(this.getDatacenterNameById(edgeDatacenterId));
+				int cloudDatacenterId = this.getDatacenterIdByVmId(vmIdInCloud);
+				app.setCloudDcId(cloudDatacenterId);
+				app.setCloudDatacenterName(this.getDatacenterNameById(cloudDatacenterId));
+				this.appList.add(app);
+				// After this set up. then we can generate the osmesis!
+			}
+			case OsmoticTags.GENERATE_OSMESIS:
+				generateIoTData(ev);
+				break;
 
-		case OsmoticTags.ROUTING_MEL_ID_RESOLUTION:
-			this.melResolution(ev);
+			case OsmoticTags.Transmission_ACK:
+				askMelToProccessData(ev);
+				break;
 
-		default:
-			break;
+			case CloudSimTags.CLOUDLET_RETURN:
+				processCloudletReturn(ev);
+				break;
+
+			case OsmoticTags.Transmission_SDWAN_ACK:
+				askCloudVmToProccessData(ev);
+				break;
+
+			case CloudSimTags.END_OF_SIMULATION: // just printing
+				this.shutdownEntity();
+				break;
+
+			case OsmoticTags.ROUTING_MEL_ID_RESOLUTION:
+				this.melResolution(ev);
+
+			default:
+				break;
 		}
 	}
 
@@ -371,9 +362,9 @@ public class OsmoticBroker extends DatacenterBroker {
 				if (!melRouting.test(app.getMELName())){
 					melId = getVmIdByName(app.getMELName());
 				}
+				app.setMelId(melId);
 				int vmIdInCloud = this.getVmIdByName(app.getVmName());
 				app.setIoTDeviceId(iotDeviceID);
-				app.setMelId(melId);				
 				int edgeDatacenterId = this.getDatacenterIdByVmId(melId);		
 				app.setEdgeDcId(edgeDatacenterId);
 				app.setEdgeDatacenterName(this.getDatacenterNameById(edgeDatacenterId));				

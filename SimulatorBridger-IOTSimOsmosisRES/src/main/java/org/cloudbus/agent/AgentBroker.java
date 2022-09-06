@@ -245,14 +245,17 @@ public class AgentBroker {
     public void executeMAPE(){
         //Monitor & Analyze
         for(Agent agent: agentsDC.values()){
+            agent.setCurrentTime(lastMAPEloop);
             agent.monitor();
             agent.analyze();
         }
         for(Agent agent: agentsDevices.values()){
+            agent.setCurrentTime(lastMAPEloop);
             agent.monitor();
             agent.analyze();
         }
         if (ca != null) {
+            ca.setCurrentTime(lastMAPEloop);
             ca.monitor();
             ca.analyze();
         }

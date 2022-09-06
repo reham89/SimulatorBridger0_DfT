@@ -11,9 +11,7 @@ public class DCAgent extends AbstractAgent {
         this.osmesisDatacenter = osmesisDatacenter;
     }
 
-    public DCAgent() {
-        //This is necessary for dynamic agent instance creation.
-    }
+    public DCAgent() { }
 
     public void setOsmesisDatacenter(OsmoticDatacenter osmesisDatacenter) {
         this.osmesisDatacenter = osmesisDatacenter;
@@ -27,24 +25,12 @@ public class DCAgent extends AbstractAgent {
         this.energyController = energyController;
     }
 
-
     @Override
-    public void monitor() {
-
-    }
-
+    public void monitor() { }
     @Override
-    public void analyze() {
-
-    }
-
+    public void analyze() { }
     @Override
-    public void plan() {
-
-    }
-
+    public void plan()    { }
     @Override
-    public void execute() {
-
-    }
+    public void execute() { }
 }

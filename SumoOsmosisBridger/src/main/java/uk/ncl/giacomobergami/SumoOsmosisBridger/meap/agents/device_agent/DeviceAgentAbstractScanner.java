@@ -10,7 +10,7 @@
  *
  */
 
-package uk.ncl.giacomobergami.SumoOsmosisBridger.meap.agents;
+package uk.ncl.giacomobergami.SumoOsmosisBridger.meap.agents.device_agent;
 
 import org.cloudbus.agent.AgentBroker;
 import org.cloudbus.agent.DeviceAgent;
@@ -102,7 +102,7 @@ public class DeviceAgentAbstractScanner extends DeviceAgent {
                 OsmoticAppDescription app = new OsmoticAppDescription(appName, appID, DataRate, StopDataGenerationTime, ioTDeviceName, ioTDeviceOutput, MELName, osmesisEdgeletSize, MELOutput, vmName, osmesisCloudletSize, StartDataGenerationTime);
                 int iotDeviceID = getIoTDevice().getId();
                 app.setIoTDeviceId(iotDeviceID);
-//                getIoTDevice().schedule(OsmoticBroker.brokerID, 0.0, OsmoticTags.GENERATE_OSMESIS_WITH_RESOLUTION, app);
+                getIoTDevice().schedule(OsmoticBroker.brokerID, 0.0, OsmoticTags.GENERATE_OSMESIS_WITH_RESOLUTION, app);
             }
         }
 

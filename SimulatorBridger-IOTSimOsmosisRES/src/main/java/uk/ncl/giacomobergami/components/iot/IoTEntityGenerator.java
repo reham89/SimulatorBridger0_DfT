@@ -19,6 +19,7 @@ public class IoTEntityGenerator {
     final TreeMap<String, IoT> timed_iots;
     final IoTGlobalConfiguration conf;
 
+
     public static class IoTGlobalConfiguration {
         public String networkType;
         public String communicationProtocol;
@@ -136,8 +137,4 @@ public class IoTEntityGenerator {
                 }).collect(Collectors.toList());
     }
 
-    public static void main(String[] args) {
-        new IoTEntityGenerator(new File("/home/giacomo/IdeaProjects/SimulatorBridger/stats/test_vehicle.json"),
-                new File("/home/giacomo/IdeaProjects/SimulatorBridger/iot_generators.yaml"));
-    }
 }

@@ -1,4 +1,4 @@
-package uk.ncl.giacomobergami.SumoOsmosisBridger.meap.agents;
+package uk.ncl.giacomobergami.SumoOsmosisBridger.meap.agents.device_agent;
 
 import org.cloudbus.agent.CentralAgent;
 import uk.ncl.giacomobergami.SumoOsmosisBridger.meap.messages.MessageWithPayload;
