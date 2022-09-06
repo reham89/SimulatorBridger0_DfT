@@ -128,7 +128,7 @@ public class Topology {
 		return nodeLinks.values();
 	}
 
-	public List<Link> getNodeTONodelinks(NetworkNIC srcNode, NetworkNIC destNode) {
+	public List<Link> getNodeToNodeLinks(NetworkNIC srcNode, NetworkNIC destNode) {
 		return nTnlinks.get(srcNode, destNode);
 	}
     public void setTopology(List<CloudDatacenter> datacentres, SDNController wanController) {    	

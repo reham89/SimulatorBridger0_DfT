@@ -9,6 +9,7 @@ import uk.ncl.giacomobergami.SumoOsmosisBridger.meap.messages.MessageWithPayload
 import uk.ncl.giacomobergami.SumoOsmosisBridger.meap.messages.PayloadForIoTAgent;
 import uk.ncl.giacomobergami.SumoOsmosisBridger.meap.messages.PayloadFromIoTAgent;
 import uk.ncl.giacomobergami.components.iot.IoTDevice;
+import uk.ncl.giacomobergami.components.sdn_routing.MaximumFlowRoutingPolicy;
 import uk.ncl.giacomobergami.traffic_orchestrator.solver.MinCostMaxFlow;
 import uk.ncl.giacomobergami.utils.gir.CartesianPoint;
 import uk.ncl.giacomobergami.utils.gir.SquaredCartesianDistanceFunction;
@@ -295,10 +296,12 @@ public class AbstractNetworkAgent extends AbstractAgent {
 
                 for (var distinctPaths : paths_for_network.asMap().entrySet()) {
                     var network = distinctPaths.getKey();
-                    networks.get(network);
-                    for (var path : distinctPaths.getValue()) {
-
+                    var network_routing = networks.get(network).getSdnController().getSdnRoutingPoloicy();
+                    if (network_routing instanceof MaximumFlowRoutingPolicy) {
+                        var actualNetworkRouting = (MaximumFlowRoutingPolicy)network_routing;
+                        actualNetworkRouting.setNewPaths(distinctPaths.getValue());
                     }
+
                 }
 //                System.out.println(paths_for_network);
             }

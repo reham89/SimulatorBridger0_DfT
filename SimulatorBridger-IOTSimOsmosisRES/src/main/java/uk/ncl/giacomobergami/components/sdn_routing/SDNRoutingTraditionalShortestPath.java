@@ -18,9 +18,7 @@ import java.util.Map;
 
 import org.cloudbus.cloudsim.sdn.Link;
 import org.cloudbus.cloudsim.sdn.NetworkNIC;
-import org.cloudbus.cloudsim.sdn.SDNHost;
 import org.cloudbus.osmosis.core.Flow;
-import org.cloudbus.osmosis.core.SDNRoutingTable;
 
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
@@ -54,21 +52,21 @@ public class SDNRoutingTraditionalShortestPath extends SDNRoutingPolicy {
 	 * You must create a routing table if there is no previous communication between srcVm and destVm
 	 */
 	
-	public List<NetworkNIC> getRoute(Flow pkt){
-		//List<Node> routeFound = route.get(srcHost, destHost);
-		List<NetworkNIC> routeFound = path.get(pkt);
-		if(routeFound != null)
-			return routeFound;
-		
-		return null;
-	}
-	public List<Link> getLinks(Flow pkt){
-		List<Link> linksFound = links.get(pkt);
-		if(linksFound != null)
-			return linksFound;
-		
-		return null;
-	}
+//	public List<NetworkNIC> getRoute(Flow pkt){
+//		//List<Node> routeFound = route.get(srcHost, destHost);
+//		List<NetworkNIC> routeFound = path.get(pkt);
+//		if(routeFound != null)
+//			return routeFound;
+//
+//		return null;
+//	}
+//	public List<Link> getLinks(Flow pkt){
+//		List<Link> linksFound = links.get(pkt);
+//		if(linksFound != null)
+//			return linksFound;
+//
+//		return null;
+//	}
 
 
 	
@@ -138,18 +136,13 @@ public class SDNRoutingTraditionalShortestPath extends SDNRoutingPolicy {
 		}
 	}
 	private int getDistanceWeight(NetworkNIC srcNode, NetworkNIC destNode){
-		List<Link> links = topology.getNodeTONodelinks(srcNode, destNode);		
+		List<Link> links = topology.getNodeToNodeLinks(srcNode, destNode);
 
 		if(links == null)
 			return 0;
 		
 		selectedLink.put(srcNode, destNode, links.get(0)); // you must store this one and return it to the SDN controller 
 		return 1;
-	}
-	
-	@Override
-	public NetworkNIC getNode(SDNHost srcHost, NetworkNIC node, SDNHost desthost, String destApp) {
-		return null;
 	}
 
 	@Override
@@ -195,6 +188,7 @@ public class SDNRoutingTraditionalShortestPath extends SDNRoutingPolicy {
 		return routeBuilt;		
 	}
 
+	@Override
 	public List<NetworkNIC> getRoute(int source, int dest){
 		List<NetworkNIC> routeFound = path2.get(source, dest);
 		if(routeFound != null)
@@ -209,12 +203,6 @@ public class SDNRoutingTraditionalShortestPath extends SDNRoutingPolicy {
 		if(linksFound != null)
 			return linksFound;
 		
-		return null;
-	}
-
-	@Override
-	public List<SDNRoutingTable> constructRoutes(NetworkNIC node, NetworkNIC desthost, NetworkNIC srcHost) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 

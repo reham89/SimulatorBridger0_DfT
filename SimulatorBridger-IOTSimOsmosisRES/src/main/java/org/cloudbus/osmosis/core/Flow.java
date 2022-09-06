@@ -90,7 +90,12 @@ public class Flow {
 	private double sourceBw; 	
 	private double destBw;
 
-	public Flow(String vmNameSrc, String vmNameDest, int source, int destination, int flowId, String flowType) {		
+	public Flow(String vmNameSrc,
+				String vmNameDest,
+				int source,
+				int destination,
+				int flowId,
+				String flowType) {
 		this.appNameSrc = vmNameSrc;
 		this.appNameDest = vmNameDest;
 		this.source = source;

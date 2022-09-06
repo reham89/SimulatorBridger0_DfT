@@ -153,31 +153,12 @@ public class SDNController extends NetworkOperatingSystem {
 			 */
 			desthost = this.getGateway(); 
 			flow.setLabelPlace("outside");
-		} 
-
-		List<NetworkNIC> route = new ArrayList<>();				
+		}
 		NetworkNIC srcHost = findSDNHost(srcVm);
-		
-		if (srcHost == null)			
-		{			
+		if (srcHost == null) {
 			srcHost = this.getGateway(); // packets coming from outside the datacenter			
-		} 
-		
-		route = sdnRoutingPolicy.buildRoute(srcHost, desthost, flow);
-				
-		NetworkNIC currentNode = null;
-		NetworkNIC nextNode = null;
-
-		int iterate = route.size()-1;
-		for(int i = iterate; i >= 0; i--){
-			currentNode = route.get(i); 
-			if(currentNode.equals(desthost)){
-				break;
-			}else{
-				nextNode = route.get(i-1);	
-			}			
-//			currentNode.addRoute(srcVm, dstVm, flowId, nextNode);
-		}	
+		}
+		sdnRoutingPolicy.buildRoute(srcHost, desthost, flow);
 		return true;			
 	}
 	 	

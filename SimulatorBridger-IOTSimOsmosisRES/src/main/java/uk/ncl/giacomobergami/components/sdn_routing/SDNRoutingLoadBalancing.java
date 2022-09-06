@@ -29,7 +29,7 @@ import com.google.common.collect.Table;
 
 
 import org.cloudbus.osmosis.core.Flow;
-import org.cloudbus.osmosis.core.SDNRoutingTable;
+
 /**
  * 
  * @author Khaled Alwasel
@@ -146,7 +146,7 @@ public class SDNRoutingLoadBalancing extends SDNRoutingPolicy {
 		}
 	}
 	private int getDistanceWeight(NetworkNIC srcNode, NetworkNIC destNode){
-		List<Link> links = topology.getNodeTONodelinks(srcNode, destNode);		
+		List<Link> links = topology.getNodeToNodeLinks(srcNode, destNode);
 		if(links == null)
 			return 0;
 		
@@ -154,7 +154,7 @@ public class SDNRoutingLoadBalancing extends SDNRoutingPolicy {
 	}
 	
 	private double getBwWeight(NetworkNIC srcNode, NetworkNIC destNode){			
-		List<Link> links = topology.getNodeTONodelinks(srcNode, destNode);
+		List<Link> links = topology.getNodeToNodeLinks(srcNode, destNode);
 		double bw = 0;
 		Link linkWithHighestBW = null;	
 		// links == null, then nodes are not adjacent! 
@@ -184,11 +184,11 @@ public class SDNRoutingLoadBalancing extends SDNRoutingPolicy {
 	}
 
 	
-	@Override
-	public NetworkNIC getNode(SDNHost srcHost, NetworkNIC node, SDNHost desthost, String destApp) {
-		return null;
-	}
-
+//	@Override
+//	public NetworkNIC getNode(SDNHost srcHost, NetworkNIC node, SDNHost desthost, String destApp) {
+//		return null;
+//	}
+//
 
 	@Override
 	public List<NetworkNIC> buildRoute(NetworkNIC srcHost,
@@ -258,11 +258,11 @@ public class SDNRoutingLoadBalancing extends SDNRoutingPolicy {
 		return routeBuilt;		
 	}
 
-	@Override
-	public List<SDNRoutingTable> constructRoutes(NetworkNIC node, NetworkNIC desthost, NetworkNIC srcHost) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+//	@Override
+//	public List<SDNRoutingTable> constructRoutes(NetworkNIC node, NetworkNIC desthost, NetworkNIC srcHost) {
+//		// TODO Auto-generated method stub
+//		return null;
+//	}
 
 
 	

@@ -39,12 +39,19 @@ public abstract class SDNRoutingPolicy {
 	protected Topology topology;
 	private String policyName;
 
-	public abstract NetworkNIC getNode(SDNHost srcHost, NetworkNIC node, SDNHost desthost, String destApp);
+	public NetworkNIC inefficientNodeByName(String name) {
+		for (var node : nodeList) {
+			if (node.getName().equals(name))
+				return node;
+		}
+		return null;
+	}
+//	public abstract NetworkNIC getNode(SDNHost srcHost, NetworkNIC node, SDNHost desthost, String destApp);
 	public abstract void updateSDNNetworkGraph();	
 	public abstract List<NetworkNIC> buildRoute(NetworkNIC srcHost, NetworkNIC destHost, Flow pkt);
 	public abstract List<NetworkNIC> getRoute(int source, int dest);
 	public abstract List<Link> getLinks(int source, int dest);
-	public abstract  List<SDNRoutingTable> constructRoutes(NetworkNIC node, NetworkNIC desthost, NetworkNIC srcHost);
+//	public abstract List<SDNRoutingTable> constructRoutes(NetworkNIC node, NetworkNIC desthost, NetworkNIC srcHost);
 
 	public String getPolicyName() {
 		return policyName;
