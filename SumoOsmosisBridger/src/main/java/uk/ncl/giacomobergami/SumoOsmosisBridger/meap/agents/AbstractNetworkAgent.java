@@ -18,7 +18,16 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 public class AbstractNetworkAgent extends AbstractAgent {
-    public AbstractNetworkAgent() {}
+    private final AbstractAgent actualAgent;
+
+    /**
+     *
+     * @param actualAgent   Setting the actual agent which is going to receive the messages,
+     *                      so the messages can be "drained" from him.
+     */
+    public AbstractNetworkAgent(AbstractAgent actualAgent) {
+        this.actualAgent = actualAgent;
+    }
     private static final SquaredCartesianDistanceFunction f = SquaredCartesianDistanceFunction.getInstance();
 
     private AbstractNetworkAgentPolicy policy;
@@ -34,7 +43,8 @@ public class AbstractNetworkAgent extends AbstractAgent {
 
     @Override
     public void plan() {
-        var messagesFromIoTDevices = getReceivedMessages(x -> ((MessageWithPayload<PayloadFromIoTAgent>)x).getPayload());
+        var messagesFromIoTDevices = actualAgent.getReceivedMessages(x -> ((MessageWithPayload<PayloadFromIoTAgent>)x).getPayload());
+        if (messagesFromIoTDevices.isEmpty()) return;
         HashMap<String, IoTDevice> devices = new HashMap<>();
         HashMultimap<String, PayloadFromIoTAgent> payloadMap = HashMultimap.create();
         for (var x : messagesFromIoTDevices) {
@@ -109,8 +119,8 @@ public class AbstractNetworkAgent extends AbstractAgent {
                         if (dst == null)
                             throw new RuntimeException("Unresolved node: "+edge.dst());
                         // A disambiguated name contains the nome name as well as its network's name
-                        var actualSrcDisambiguatedName = edge.src()+"@"+net.getKey();
-                        var actualDstDisambiguatedName = edge.dst()+"@"+net.getKey();
+                        var actualSrcDisambiguatedName = edge.src().getName()+"@"+net.getKey();
+                        var actualDstDisambiguatedName = edge.dst().getName()+"@"+net.getKey();
                         name_to_id.computeIfAbsent(actualSrcDisambiguatedName, k -> {
                             id_to_name.add(k);
                             nodeType.put(k, src);
@@ -162,8 +172,8 @@ public class AbstractNetworkAgent extends AbstractAgent {
                         if (dst == null)
                             throw new RuntimeException("Unresolved node: "+edge.dst());
                         // A disambiguated name contains the nome name as well as its network's name
-                        var actualSrcDisambiguatedName = edge.src()+"@"+net.getKey();
-                        var actualDstDisambiguatedName = edge.dst()+"@"+net.getKey();
+                        var actualSrcDisambiguatedName = edge.src().getName()+"@"+net.getKey();
+                        var actualDstDisambiguatedName = edge.dst().getName()+"@"+net.getKey();
                         var srcId = name_to_id.get(actualSrcDisambiguatedName);
                         var dstId = name_to_id.get(actualDstDisambiguatedName);
                         if ((src.index() == dst.index()) && (src.getT() == NetworkNodeType.type.Host)) {

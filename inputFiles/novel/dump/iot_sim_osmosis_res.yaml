@@ -37,12 +37,10 @@ OsmesisBroker: "OsmesisBroker"
 num_user: 0
 mel_switch_policy: "uk.ncl.giacomobergami.SumoOsmosisBridger.osmotic.mel_routing.MELNearestDistanceSwitch"
 terminate_simulation_at: 0.0
-simulationStartTime: null
-RES_CONFIG_FILE: null
-AGENT_CONFIG_FILE: "/home/giacomo/IdeaProjects/SimulatorBridger/inputFiles/novel/dump/agent_config.json"
+simulationStartTime: "20160504:0000"
 iot_traces: "/home/giacomo/IdeaProjects/SimulatorBridger/inputFiles/novel/test_vehicle.json"
 simulation_step: 1.0
 ioTSpecsFile: "iot.csv"
 osmesisBroker: "OsmesisBroker"
 res_CONFIG_FILE: null
-agent_CONFIG_FILE: null
+agent_CONFIG_FILE: "/home/giacomo/IdeaProjects/SimulatorBridger/inputFiles/novel/dump/agent_config.json"

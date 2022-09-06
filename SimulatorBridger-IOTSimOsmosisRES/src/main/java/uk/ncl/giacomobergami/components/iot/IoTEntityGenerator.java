@@ -27,6 +27,7 @@ public class IoTEntityGenerator {
         public double battery_sensing_rate;
         public double battery_sending_rate;
         public String ioTClassName;
+        public double signalRange;
     }
 
     public IoTEntityGenerator(TreeMap<String, IoT> timed_scc,
@@ -120,6 +121,7 @@ public class IoTEntityGenerator {
                         iot.endX = (int) minNext.x;
                         iot.endY = (int) minNext.y;
                     }
+                    iot.signalRange = conf.signalRange;
                     iot.associatedEdge = null;
                     iot.networkType = conf.networkType;
                     iot.velocity = min.speed;

@@ -77,6 +77,7 @@ public class RES_example6 {
         agentBroker.setDcAgentClass(provider.getDCAgentClass());
         agentBroker.setDeviceAgentClass(provider.getDeviceAgentClass());
         agentBroker.setAgentMessageClass(provider.getAgentMessageClass());
+        agentBroker.setCentralAgentClass(provider.getCentralAgentClass());
 
         //Simulation is not started yet thus there is not any MELs.
         //Links for Agents between infrastructure elements.

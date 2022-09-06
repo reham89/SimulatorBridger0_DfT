@@ -356,7 +356,8 @@ public class GlobalConfigurationSettings {
 
 
     @JsonIgnore
-    public List<IoTDevice> getIoTDevices(OsmoticBroker broker, List<IoTDeviceTabularConfiguration> input) {
+    public List<IoTDevice> getIoTDevices(OsmoticBroker broker,
+                                         List<IoTDeviceTabularConfiguration> input) {
         return input.stream()
                 .map(curr -> {
                     IoTDevice newInstance = IoTGeneratorFactory.generateFacade(curr.asLegacyConfiguration(), conf.flowId);

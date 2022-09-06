@@ -23,11 +23,15 @@ public class DeviceAgentGlobalScanner extends DeviceAgentAbstractScanner {
     public void analyze() {
         // Asking the global agent who I should now communicate with
         super.analyze();
-        var message = new MessageWithPayload<PayloadFromIoTAgent>();
-        message.setSOURCE(getIoTDevice().getName());
-        message.setDESTINATION(central_agent_singleton);
-        message.setPayload(new PayloadFromIoTAgent(getIoTDevice(), ls));
-        publishMessage(message);
+        if ((ls != null) && (!ls.isEmpty())) {
+            // sending a message only if I have to communicate to someone
+            var message = new MessageWithPayload<PayloadFromIoTAgent>();
+            message.setSOURCE(getIoTDevice().getName());
+            message.setDESTINATION(central_agent_singleton);
+            message.setPayload(new PayloadFromIoTAgent(getIoTDevice(), ls));
+            publishMessage(message);
+        }
+
     }
 
 

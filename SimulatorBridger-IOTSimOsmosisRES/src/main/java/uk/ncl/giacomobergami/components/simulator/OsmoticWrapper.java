@@ -178,6 +178,7 @@ public class OsmoticWrapper {
                 agentBroker.setDcAgentClass(provider.getDCAgentClass());
                 agentBroker.setDeviceAgentClass(provider.getDeviceAgentClass());
                 agentBroker.setAgentMessageClass(provider.getAgentMessageClass());
+                agentBroker.setCentralAgentClass(provider.getCentralAgentClass());
             } catch (ClassNotFoundException e) {
                 e.printStackTrace();
                 return true;
@@ -211,6 +212,8 @@ public class OsmoticWrapper {
             if (conf.simulationStartTime != null && (!conf.simulationStartTime.isEmpty())) {
                 agentBroker.setSimulationStartTime(conf.simulationStartTime);
             }
+
+            agentBroker.initializeCentralAgentIfRequired();
         }
         return false;
     }

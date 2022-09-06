@@ -26,6 +26,7 @@ public class AgentBroker {
     //Osmotic Agents are uniquely recognized by name
     private Map<String,DCAgent> agentsDC = new HashMap<>();
     private Map<String,DeviceAgent> agentsDevices = new HashMap<>();
+    private CentralAgent ca;
 
     public Stream<OsmoticDatacenter> getOsmoticDataCentersStream() {
         return agentsDC.values().stream().map(x-> x.osmesisDatacenter);
@@ -43,6 +44,7 @@ public class AgentBroker {
     private boolean agentsAvailable = false;
 
     private void updateEnergyControllersTime(){
+        if (energyControllers != null)
         for (EnergyController controller: energyControllers.values()){
             controller.setCurrentTime(simulationCurrentTime);
         }
@@ -138,16 +140,14 @@ public class AgentBroker {
             dcAgent.setOsmesisDatacenter(dc);
             dcAgent.setName(dcName);
 
-            if (energyControllers.containsKey(dcName)){
+            if ((energyControllers != null) && energyControllers.containsKey(dcName)){
                 dcAgent.setEnergyController(energyControllers.get(dcName));
             } else {
                 dcAgent.setEnergyController(null);
             }
 
             agentsDC.put(dcName,dcAgent);
-        } catch (InstantiationException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
+        } catch (InstantiationException | IllegalAccessException e) {
             e.printStackTrace();
         }
     }
@@ -159,9 +159,7 @@ public class AgentBroker {
             deviceAgent.setIoTDevice(device);
             deviceAgent.setName(deviceName);
             agentsDevices.put(deviceName, deviceAgent);
-        } catch (InstantiationException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
+        } catch (InstantiationException | IllegalAccessException e) {
             e.printStackTrace();
         }
     }
@@ -170,9 +168,7 @@ public class AgentBroker {
         AgentMessage message = null;
         try {
             message = (AgentMessage) agentMessageClass.newInstance();
-        } catch (InstantiationException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
+        } catch (InstantiationException | IllegalAccessException e) {
             e.printStackTrace();
         }
         return message;
@@ -200,7 +196,12 @@ public class AgentBroker {
             return agentsDC.get(name);
         } else if (agentsDevices.containsKey(name)){
             return agentsDevices.get(name);
-        } else return null;
+        } else if (name.equals(CentralAgent.CENTRAL_AGENT_NAME)) {
+            if (ca == null)
+                initializeCentralAgentIfRequired();
+            return ca;
+        } else
+            return null;
     }
 
     public void distributeMessage(AgentMessage message){
@@ -251,10 +252,18 @@ public class AgentBroker {
             agent.monitor();
             agent.analyze();
         }
+        if (ca != null) {
+            ca.monitor();
+            ca.analyze();
+        }
 
         //Message passing between agents
 
         //Plan & Execute
+        if (ca != null) {
+            ca.plan();
+            ca.execute();
+        }
         for(Agent agent: agentsDC.values()){
             agent.plan();
             agent.execute();
@@ -267,5 +276,15 @@ public class AgentBroker {
 
     public void setEnergyControllers(Map<String, EnergyController> energyControllers) {
         this.energyControllers = energyControllers;
+    }
+
+    public void initializeCentralAgentIfRequired() {
+        if ((this.centralAgentClass != null) && (ca == null)) {
+            try {
+                ca = (CentralAgent) centralAgentClass.newInstance();
+            } catch (InstantiationException | IllegalAccessException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }
