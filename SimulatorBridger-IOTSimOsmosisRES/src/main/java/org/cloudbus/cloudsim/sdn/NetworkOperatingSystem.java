@@ -43,7 +43,6 @@ public abstract class NetworkOperatingSystem extends SimEntity {
 	protected String physicalTopologyFileName; 
 	protected Topology topology;
 
-//	protected Hashtable<String, Channel> channelTable;
 	protected List<Host> hosts;
 	protected List<SDNHost> sdnhosts;
 	protected List<Switch> switches= new ArrayList<Switch>();
@@ -63,8 +62,7 @@ public abstract class NetworkOperatingSystem extends SimEntity {
 	public static int timeUnit = 1;	// 1: sec, 1000: msec
 
 	public NetworkOperatingSystem(String name) {
-		super(name);				
-//		this.channelTable = new Hashtable<String, Channel>();		
+		super(name);
 	}
 	
 	public static double getMinTimeBetweenNetworkEvents() {
@@ -93,65 +91,10 @@ public abstract class NetworkOperatingSystem extends SimEntity {
 		int tag = ev.getTag();
 		
 		switch(tag){
-//			case OsmosisTags.SDN_INTERNAL_EVENT: 
-//				internalFlowProcess(); 
-//				break;
-
 			default:
 				System.out.println("NOS --> Unknown event received by "+super.getName()+". Tag:"+ev.getTag());
 		}
-	}	
-
-//	protected void internalFlowProcess() {
-//		if(updateFlowProcessing()) {
-//			sendInternalEvent();
-//		}
-//	}
-	
-//	protected void sendInternalEvent() {
-//		CloudSim.cancelAll(getId(), new PredicateType(OsmosisTags.SDN_INTERNAL_EVENT));
-//		if(channelTable.size() != 0) {
-//			// More to process. Send event again		
-//			double delay = this.nextFinishTime();		
-//			//Log.printLine(CloudSim.clock() + ": " + getName() + ".sendInternalEvent(): next finish time: "+ delay);
-//			System.out.println(this.getName() + " khaled: " + CloudSim.clock());
-//			send(this.getId(), delay, OsmosisTags.SDN_INTERNAL_EVENT);
-//		}		
-//	}
-//
-//	private double nextFinishTime() {
-//		double earliestEft = Double.POSITIVE_INFINITY;
-//		for(Channel ch:channelTable.values()){
-//			
-//			double eft = ch.nextFinishTime();
-//			if (eft<earliestEft){
-//				earliestEft=eft;
-//			}
-//		}
-		
-//		if(earliestEft == Double.POSITIVE_INFINITY) {
-//			throw new IllegalArgumentException("NOS.nextFinishTime(): next finish time is infinite!");
-//		}
-//		return earliestEft;
-//		
-//	}
-
-//	public boolean updateFlowProcessing() {		
-//		boolean needSendEvent = false;			
-//		LinkedList<Channel> completeChannels = new LinkedList<Channel>();
-//		for(Channel ch:channelTable.values()){
-//			boolean isCompleted = ch.updateFlowProcessing();						
-//			needSendEvent = needSendEvent || isCompleted;
-//			completeChannels.add(ch);
-//		}
-//		
-//		if(completeChannels.size() != 0) {
-//			updateChannel();
-//			processCompleteFlows(completeChannels);		
-//		}
-//
-//		return needSendEvent;
-//	}
+	}
 	
 	protected void processCompleteFlows(List<Channel> channels){}
 		
@@ -161,62 +104,6 @@ public abstract class NetworkOperatingSystem extends SimEntity {
 	public Map<String, Integer> getFlowNameIdTable() {
 		return this.flowNameIdTable;
 	}
-	
-//	protected Channel findChannel(int from, int to, int channelId) {
-//		// check if there is a pre-configured channel for this application
-//		Channel channel = channelTable.get(getKey(from,to, channelId));
-//
-//		if (channel == null) {
-//			//there is no channel for specific flow, find the default channel for this link
-//			channel = channelTable.get(getKey(from,to));
-//		}
-//		return channel;
-//	}
-	
-//	protected void addChannel(int src, int dst, int chId, Channel ch) {
-//		this.channelTable.put(getKey(src, dst, chId), ch);		
-//		ch.initialize();
-//		adjustAllChannels(); // all channel get an equal among of BW   		
-//	}
-	
-//	private Channel removeChannel(String key) {
-//		Channel ch = this.channelTable.remove(key);		
-//		ch.terminate();
-//		adjustAllChannels();	
-//		return ch;
-//	}
-//		
-//	protected void adjustAllChannels() {
-//		for(Channel ch:this.channelTable.values()) {
-//			ch.adjustSharedBandwidthAlongLink();				
-//		}
-//	}
-//		
-//	private void updateChannel() {
-//		List<String> removeCh = new ArrayList<String>();  
-//		for(String key:this.channelTable.keySet()) {
-//			Channel ch = this.channelTable.get(key);
-//			if(ch.getActiveTransmissionNum() == 0) {
-//				// No more job in channel. Delete
-//				removeCh.add(key);
-//			}
-//		}
-//		
-//		for(String key:removeCh) {
-//			removeChannel(key);
-//		}
-//	}
-//	
-//	private String getKey(int origin, int destination) {
-//		return origin+"-"+destination;
-//	}
-//	
-//	protected String getKey(int origin, int destination, int appId) {
-//		//System.out.println(getKey(origin,destination)+"-"+appId); 
-//		// value --> 4-5--1
-//		return getKey(origin,destination)+"-"+appId;
-//	}
-
 
 
 	public List<Host> getHostList() {
@@ -254,7 +141,6 @@ public abstract class NetworkOperatingSystem extends SimEntity {
 				return sdnhost;
 			}
 		}
-		//System.err.println("NOS.findSDNHost: Host is not found for VM:"+ vmId);
 		return null;
 	}
 	

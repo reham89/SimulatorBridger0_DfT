@@ -49,7 +49,7 @@ public class Switch extends SimEntity implements NetworkNIC{
 	}
 
 
-	ArrayList<Link> links = new ArrayList<Link>();
+	ArrayList<Link> links = new ArrayList<>();
 
 	ForwardingTable forwardingTable;
 
@@ -147,16 +147,16 @@ public class Switch extends SimEntity implements NetworkNIC{
 		this.utilizationHistories.add(new HistoryEntry(time, totalActivePorts));
 	}
 	private double calculatePower(int numActivePort) {
-		double power = POWER_CONSUMPTION_IDLE + POWER_CONSUMPTION_PER_ACTIVE_PORT * numActivePort;
-		return power;
+//		double power = POWER_CONSUMPTION_IDLE + POWER_CONSUMPTION_PER_ACTIVE_PORT * numActivePort;
+		return POWER_CONSUMPTION_IDLE + POWER_CONSUMPTION_PER_ACTIVE_PORT * numActivePort;
 	}
 	private int getTotalActivePorts() {
-		int num = 0;
-		for(Link l:this.links) {
-			if(l.isActive())
-				num++;
-		}
-		return num;
+		return  (int)this.links.stream().filter(Link::isActive).count();
+//		for(Link l:this.links) {
+//			if(l.isActive())
+//				num++;
+//		}
+//		return num;
 	}
 	
 	/******* Routeable interface implementation methods ******/
@@ -166,33 +166,33 @@ public class Switch extends SimEntity implements NetworkNIC{
 		return super.getId();
 	}
 	
-	@Override
-	public void clearVMRoutingTable(){
-		this.forwardingTable.clear();
-	}
+//	@Override
+//	public void clearVMRoutingTable(){
+//		this.forwardingTable.clear();
+//	}
+//
+//	@Override
+//	public void addRoute(int src, int dest, int flowId, NetworkNIC to){
+//		this.forwardingTable.addRule(src, dest, flowId, to);
+//	}
 	
-	@Override
-	public void addRoute(int src, int dest, int flowId, NetworkNIC to){
-		this.forwardingTable.addRule(src, dest, flowId, to);
-	}
+//	@Override
+//	public NetworkNIC getVMRoute(int src, int dest, int flowId){
+//		NetworkNIC route= this.forwardingTable.getRoute(src, dest, flowId);
+//		if(route == null) {
+////			this.printVMRoute();
+//			System.err.println("SDNSwitch.getRoute() ERROR: Cannot find route:" +
+//					NetworkOperatingSystem.debugVmIdName.get(src) + "->"+
+//					NetworkOperatingSystem.debugVmIdName.get(dest) + ", flow ="+flowId);
+//		}
+//
+//		return route;
+//	}
 	
-	@Override
-	public NetworkNIC getVMRoute(int src, int dest, int flowId){
-		NetworkNIC route= this.forwardingTable.getRoute(src, dest, flowId);
-		if(route == null) {
-//			this.printVMRoute();
-			System.err.println("SDNSwitch.getRoute() ERROR: Cannot find route:" + 
-					NetworkOperatingSystem.debugVmIdName.get(src) + "->"+
-					NetworkOperatingSystem.debugVmIdName.get(dest) + ", flow ="+flowId);
-		}
-			
-		return route;
-	}
-	
-	@Override
-	public void removeVMRoute(int src, int dest, int flowId){
-		forwardingTable.removeRule(src, dest, flowId);
-	}
+//	@Override
+//	public void removeVMRoute(int src, int dest, int flowId){
+//		forwardingTable.removeRule(src, dest, flowId);
+//	}
 
 	
 	public String toString() {
@@ -200,29 +200,29 @@ public class Switch extends SimEntity implements NetworkNIC{
 	}
 
 
-	@Override
-	public NetworkNIC updateVMRoute(int srcVM, int destVM, int flowId, NetworkNIC to) {
-		// TODO Auto-generated method stub
-		this.forwardingTable.addRule(srcVM, destVM, flowId, to);
-		return null;
-	}
+//	@Override
+//	public NetworkNIC updateVMRoute(int srcVM, int destVM, int flowId, NetworkNIC to) {
+//		// TODO Auto-generated method stub
+//		this.forwardingTable.addRule(srcVM, destVM, flowId, to);
+//		return null;
+//	}
 
-	@Override
-	public void setAdjancentNodes(List<NetworkNIC> nodes) {
-		// TODO Auto-generated method stub
-		adjuNodes.addAll(nodes);
-	}
-
-	@Override
-	public List<NetworkNIC> getAdjancentNodes() {
-		return this.adjuNodes;
-		
-	}
-
-	@Override
-	public void addRoute(NetworkNIC srcHost, NetworkNIC desthost, int flowId, NetworkNIC nextNode) {
-		// TODO Auto-generated method stub
-		this.forwardingTable.addRule(srcHost.getAddress(), desthost.getAddress(), flowId, nextNode);
-	}
+//	@Override
+//	public void setAdjancentNodes(List<NetworkNIC> nodes) {
+//		// TODO Auto-generated method stub
+//		adjuNodes.addAll(nodes);
+//	}
+//
+//	@Override
+//	public List<NetworkNIC> getAdjancentNodes() {
+//		return this.adjuNodes;
+//
+//	}
+//
+//	@Override
+//	public void addRoute(NetworkNIC srcHost, NetworkNIC desthost, int flowId, NetworkNIC nextNode) {
+//		// TODO Auto-generated method stub
+//		this.forwardingTable.addRule(srcHost.getAddress(), desthost.getAddress(), flowId, nextNode);
+//	}
 
 }

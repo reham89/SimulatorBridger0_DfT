@@ -62,9 +62,9 @@ public class Channel {
 			if(link != null){
 				link.addChannel(this);
 			} 
-			from.updateNetworkUtilization();
+//			from.updateNetworkUtilization();
 		} 
-		nodes.get(nodes.size()-1).updateNetworkUtilization();
+//		nodes.get(nodes.size()-1).updateNetworkUtilization();
 	}	
 	
 //	public void initialize() {
@@ -90,9 +90,9 @@ public class Channel {
 				link.removeChannel(this);
 			}
 			NetworkNIC node = nodes.get(i);
-			node.updateNetworkUtilization();
+//			node.updateNetworkUtilization();
 		}
-		nodes.get(nodes.size()-1).updateNetworkUtilization();
+//		nodes.get(nodes.size()-1).updateNetworkUtilization();
 	}
 	
 	public Map<Double, Double> getBwChangesLogMap() {

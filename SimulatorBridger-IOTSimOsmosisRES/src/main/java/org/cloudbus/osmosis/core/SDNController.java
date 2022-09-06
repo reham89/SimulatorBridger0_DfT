@@ -109,7 +109,7 @@ public class SDNController extends NetworkOperatingSystem {
 									
 		if(srchost.equals(dsthost)) {
 			Log.printLine(MainEventManager.clock() + ": " + getName() + ": Source SDN Host is same as destination. No need for routing!");
-			srchost.addRoute(srcVm, dstVm, flowId, dsthost);
+//			srchost.addRoute(srcVm, dstVm, flowId, dsthost);
 			List<NetworkNIC> listNodes = new ArrayList<>();
 			listNodes.add(srchost);			
 			getSdnSchedulingPolicy().setAppFlowStartTime(flow, flow.getSubmitTime()); // no transmission
@@ -120,27 +120,28 @@ public class SDNController extends NetworkOperatingSystem {
 		route = sdnRoutingPolicy.getRoute(flow.getOrigin(), flow.getDestination());
 		if(route == null){			
 			buildSDNForwardingTableVmBased(srcVm, dstVm, flowId, flow);
-		}
-		
-		NetworkNIC destinationHhost = findSDNHost(dstVm);
-		if(destinationHhost == null){
 			List<NetworkNIC> endToEndRoute = sdnRoutingPolicy.getRoute(flow.getOrigin(), flow.getDestination());
-			flow.setNodeOnRouteList(endToEndRoute);
-			
-			List<Link> links = sdnRoutingPolicy.getLinks(flow.getOrigin(), flow.getDestination());
-			flow.setLinkList(links);
-
-//			System.out.println("==>"+CloudSim.getEntityName(this.getWanOorchestrator().getId()));
-			sendNow(this.getWanController().getId(), OsmoticTags.BUILD_ROUTE, flow);
-			return;
+			if (route != null) {
+				if (!endToEndRoute.equals(route))
+					throw new RuntimeException("Unvalid assumption!");
+			}
+			route = endToEndRoute;
 		}
-
-		List<NetworkNIC> endToEndRoute = sdnRoutingPolicy.getRoute(flow.getOrigin(), flow.getDestination());
-		flow.setNodeOnRouteList(endToEndRoute);		
+		flow.setNodeOnRouteList(route);
 		List<Link> links = sdnRoutingPolicy.getLinks(flow.getOrigin(), flow.getDestination());
 		flow.setLinkList(links);
 
-		sendNow(this.getWanOorchestrator().getId(), OsmoticTags.START_TRANSMISSION, flow);
+		if(findSDNHost(dstVm) == null){
+			sendNow(this.getWanController().getId(),
+					OsmoticTags.BUILD_ROUTE,
+					flow);
+		} else {
+			sendNow(this.getWanOorchestrator().getId(),
+					OsmoticTags.START_TRANSMISSION,
+					flow);
+		}
+
+
 	}
 		 
 	protected boolean buildSDNForwardingTableVmBased(int srcVm, int dstVm, int flowId, Flow flow) {
@@ -175,7 +176,7 @@ public class SDNController extends NetworkOperatingSystem {
 			}else{
 				nextNode = route.get(i-1);	
 			}			
-			currentNode.addRoute(srcVm, dstVm, flowId, nextNode);
+//			currentNode.addRoute(srcVm, dstVm, flowId, nextNode);
 		}	
 		return true;			
 	}

@@ -103,10 +103,9 @@ public class SDWANController extends SDNController {
 		
 		if (srchost != null)			
 		{		
-			List<NetworkNIC> route = new ArrayList<>();	
-			route = sdnRoutingPolicy.getRoute(flow.getOrigin(), flow.getDestination());
-			if(route == null){			
-				buildSDNForwardingTableVmBased(srchost, dsthost, flowId, flow);
+			List<NetworkNIC> route = sdnRoutingPolicy.getRoute(flow.getOrigin(), flow.getDestination());
+			if(route == null){
+				sdnRoutingPolicy.buildRoute(srchost, dsthost, flow);
 			}
 				 												
 			List<NetworkNIC> endToEndRoute = sdnRoutingPolicy.getRoute(flow.getOrigin(), flow.getDestination());
@@ -116,30 +115,27 @@ public class SDWANController extends SDNController {
 			flow.setLinkList(links);
 			
 			sendNow(destDC.getSdnController().getId(), OsmoticTags.BUILD_ROUTE, flow);
-			return;			
 												
 		} 		 	
 	}
 
-	protected boolean buildSDNForwardingTableVmBased(NetworkNIC srcHost, NetworkNIC desthost, int flowId, Flow flow) {		
-
-		List<NetworkNIC> route = new ArrayList<>();					
-		route = sdnRoutingPolicy.buildRoute(srcHost, desthost, flow);
-		NetworkNIC currentNode = null;
-		NetworkNIC nextNode = null;
-
-		int iterate = route.size()-1;
-		for(int i = iterate; i >= 0; i--){
-			currentNode = route.get(i); 
-			if(currentNode.equals(desthost)){
-				break;
-			}else{
-				nextNode = route.get(i-1);	
-			}			
-			currentNode.addRoute(srcHost, desthost, flowId, nextNode);
-		}	
-		return true;			
-	}
+//	protected boolean buildSDNForwardingTableVmBased(NetworkNIC srcHost, NetworkNIC desthost, Flow flow) {
+//		sdnRoutingPolicy.buildRoute(srcHost, desthost, flow);
+////		NetworkNIC currentNode = null;
+////		NetworkNIC nextNode = null;
+////
+////		int iterate = route.size()-1;
+////		for(int i = iterate; i >= 0; i--){
+////			currentNode = route.get(i);
+////			if(currentNode.equals(desthost)){
+////				break;
+////			}else{
+////				nextNode = route.get(i-1);
+////			}
+//////			currentNode.addRoute(srcHost, desthost, flowId, nextNode);
+////		}
+////		return true;
+//	}
 
 	public void initSdWANTopology(List<SwitchEntity> switchEntites,
 								  Collection<LinkEntity> linkEntites,

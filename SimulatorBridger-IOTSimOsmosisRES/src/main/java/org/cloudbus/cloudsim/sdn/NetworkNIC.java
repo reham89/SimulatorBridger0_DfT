@@ -26,19 +26,19 @@ public interface NetworkNIC {
 	int getAddress();
 //	public long getBandwidth();
 	
-	public void clearVMRoutingTable();
-	public void addRoute(int srcVM, int destVM, int flowId, NetworkNIC to);	
-	public NetworkNIC getVMRoute(int srcVM, int destVM, int flowId);	
-	public void removeVMRoute(int srcVM, int destVM, int flowId);	
+//	public void clearVMRoutingTable();
+//	public void addRoute(int srcVM, int destVM, int flowId, NetworkNIC to);
+//	public NetworkNIC getVMRoute(int srcVM, int destVM, int flowId);
+//	public void removeVMRoute(int srcVM, int destVM, int flowId);
 
-	public void addLink(Link l);
-	public void setAdjancentNodes(List<NetworkNIC> nodes);
-	public List<NetworkNIC> getAdjancentNodes();
-	public void updateNetworkUtilization();
+//	public void addLink(Link l);
+//	public void setAdjancentNodes(List<NetworkNIC> nodes);
+//	public List<NetworkNIC> getAdjancentNodes();
+//	public void updateNetworkUtilization();
 	
-	public NetworkNIC updateVMRoute(int srcVM, int destVM, int flowId, NetworkNIC to);
+//	public NetworkNIC updateVMRoute(int srcVM, int destVM, int flowId, NetworkNIC to);
 
 	String getName();
 
-	public void addRoute(NetworkNIC srcHost, NetworkNIC desthost, int flowId, NetworkNIC nextNode);
+//	public void addRoute(NetworkNIC srcHost, NetworkNIC desthost, int flowId, NetworkNIC nextNode);
 }

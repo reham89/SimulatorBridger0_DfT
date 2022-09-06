@@ -65,69 +65,66 @@ public class SDNHost extends SimEntity implements NetworkNIC {
 		return super.getId();
 	}
 
-	@Override
-	public void clearVMRoutingTable(){
-		this.forwardingTable.clear();
-	}
+//	@Override
+//	public void clearVMRoutingTable(){
+//		this.forwardingTable.clear();
+//	}
 
-	@Override
-	public void addRoute(int src, int dest, int flowId, NetworkNIC to){
-		forwardingTable.addRule(src, dest, flowId, to);
-	}
+//	@Override
+//	public void addRoute(int src, int dest, int flowId, NetworkNIC to){
+//		forwardingTable.addRule(src, dest, flowId, to);
+//	}
+//
+//	@Override
+//	public NetworkNIC getVMRoute(int src, int dest, int flowId){
+//		NetworkNIC route= this.forwardingTable.getRoute(src, dest, flowId);
+//		if(route == null) {
+//			System.err.println("SDNHost: ERROR: Cannot find route:" + src + "->"+dest + ", flow ="+flowId);
+//		}
+//		return route;
+//	}
 	
-	@Override
-	public NetworkNIC getVMRoute(int src, int dest, int flowId){
-		NetworkNIC route= this.forwardingTable.getRoute(src, dest, flowId);
-		if(route == null) {
-			System.err.println("SDNHost: ERROR: Cannot find route:" + src + "->"+dest + ", flow ="+flowId);
-		}
-		return route;
-	}
-	
-	@Override
-	public void removeVMRoute(int src, int dest, int flowId){
-		forwardingTable.removeRule(src, dest, flowId);
-	}
+//	@Override
+//	public void removeVMRoute(int src, int dest, int flowId){
+//		forwardingTable.removeRule(src, dest, flowId);
+//	}
 
 	
 	public String toString() {
 		return "SDNHost: "+this.getName();
 	}
 
-	@Override
-	public void addLink(Link l) {
-		// TODO Auto-generated method stub
-		
-	}
+//	@Override
+//	public void addLink(Link l) {
+//		// TODO Auto-generated method stub
+//
+//	}
 
-	@Override
-	public void updateNetworkUtilization() {
-		// TODO Auto-generated method stub
-		
-	}
+//	@Override
+//	public void updateNetworkUtilization() {
+//		// TODO Auto-generated method stub
+//
+//	}
 
-	@Override
-	public NetworkNIC updateVMRoute(int srcVM, int destVM, int flowId, NetworkNIC to) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+//	@Override
+//	public NetworkNIC updateVMRoute(int srcVM, int destVM, int flowId, NetworkNIC to) {
+//		// TODO Auto-generated method stub
+//		return null;
+//	}
 
-	@Override
-	public void setAdjancentNodes(List<NetworkNIC> nodes) {
-		// TODO Auto-generated method stub
-		adjuNodes.addAll(nodes);
-	}
+//	@Override
+//	public void setAdjancentNodes(List<NetworkNIC> nodes) {
+//		// TODO Auto-generated method stub
+//		adjuNodes.addAll(nodes);
+//	}
 
-	@Override
-	public List<NetworkNIC> getAdjancentNodes() {
-		return this.adjuNodes;
-		
-	}
+//	@Override
+//	public List<NetworkNIC> getAdjancentNodes() {
+//		return this.adjuNodes;
+//
+//	}
 
-	@Override
-	public void addRoute(NetworkNIC srcHost, NetworkNIC desthost, int flowId, NetworkNIC nextNode) {
-		// TODO Auto-generated method stub
-		
-	}
+//	@Override
+//	public void addRoute(NetworkNIC srcHost, NetworkNIC desthost, int flowId, NetworkNIC nextNode) { }
 
 }

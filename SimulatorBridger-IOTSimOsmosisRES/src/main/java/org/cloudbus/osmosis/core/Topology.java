@@ -95,8 +95,8 @@ public class Topology {
 		nodeLinks.put(fromNode, l);
 		nodeLinks.put(toNode, l);
 		
-		fromNode.addLink(l);
-		toNode.addLink(l);
+//		fromNode.addLink(l);
+//		toNode.addLink(l);
 
 		if(nTnlinks.get(fromNode, toNode)== null){
 			nodeLinkLists = new ArrayList<Link>(); 			
