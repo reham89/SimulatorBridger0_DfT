@@ -42,8 +42,7 @@ public abstract class IoTDevice extends SimEntity implements CartesianPoint {
 	public static int cloudLetId = 0;
 	private double runningTime = 0;
 	protected Battery battery;
-	private EdgeNetworkInfo networkModel;	
-//	private MovingPolicy movingPolicy;
+	private EdgeNetworkInfo networkModel;
 	public Mobility mobility;
 	int connectingEdgeDeviceId = -1;
 	private boolean enabled;
@@ -66,7 +65,7 @@ public abstract class IoTDevice extends SimEntity implements CartesianPoint {
 	String associatedEdge;
 
 	private OsmoticRoutingTable routingTable = new OsmoticRoutingTable();
-	private DeviceAgent osmoticDeviceAgent;
+//	private DeviceAgent osmoticDeviceAgent;
 
 	private List<Flow> flowList = new ArrayList<>(); 
 	
@@ -101,12 +100,10 @@ public abstract class IoTDevice extends SimEntity implements CartesianPoint {
 
 		// Mobility Setting
 		this.mobility = new Mobility(onta.getMobilityEntity());
-
 	}
 	
 	@Override
-	public void startEntity() {		
-	}
+	public void startEntity() {}
 
 	public String getAssociatedEdge() {
 		return associatedEdge;
@@ -154,15 +151,7 @@ public abstract class IoTDevice extends SimEntity implements CartesianPoint {
 	
 	public Battery getBattery() {
 		return this.battery;
-	}	
-
-//	public MovingPolicy getMovingPolicy() {
-//		return this.movingPolicy;
-//	}
-//
-//	public void setMovingPolicy(MovingPolicy movingPolicy) {
-//		this.movingPolicy = movingPolicy;
-//	}
+	}
 
 	public void setEdgeDeviceId(int id) {
 		this.connectingEdgeDeviceId = id;
@@ -177,7 +166,6 @@ public abstract class IoTDevice extends SimEntity implements CartesianPoint {
 	}
 
 	public void setEnabled(boolean enabled) {
-
 		this.enabled = enabled;
 	}
 	
@@ -230,14 +218,12 @@ public abstract class IoTDevice extends SimEntity implements CartesianPoint {
 		datacenterId = app.getEdgeDcId();					
 		int id = flowId.getAndIncrement() ;
 		Flow flow  = new Flow(this.getName(),app.getMELName(), this.getId(), melId, id, null);
-		//Flow flow  = new Flow(this.getName(),mel_name, this.getId(), melId, id, null);
 		flow.setOsmesisAppId(app.getAppID());
 		flow.setAppName(app.getAppName());		
 		flow.addPacketSize(app.getIoTDeviceOutputSize());
 		flow.setSubmitTime(MainEventManager.clock());
 		flow.setDatacenterId(datacenterId);
 		flow.setOsmesisEdgeletSize(app.getOsmesisEdgeletSize());
-//		LegacyTopologyBuilder.flowId++;
 		flowList.add(flow);
 		
 		return flow;

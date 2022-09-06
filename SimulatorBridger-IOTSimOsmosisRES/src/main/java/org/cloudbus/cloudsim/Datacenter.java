@@ -14,6 +14,7 @@ import org.cloudbus.cloudsim.core.SimEvent;
 import org.cloudbus.osmosis.core.OsmoticBroker;
 import uk.ncl.giacomobergami.components.allocation_policy.VmAllocationPolicy;
 import uk.ncl.giacomobergami.components.cloudlet_scheduler.CloudletScheduler;
+import uk.ncl.giacomobergami.components.loader.SubNetworkConfiguration;
 
 import java.util.*;
 
@@ -1312,7 +1313,11 @@ public class Datacenter extends SimEntity {
 		checkCloudletCompletion();
 	}
 
-	
-	
-	
+	private SubNetworkConfiguration net;
+	public void setNetworkInformation(SubNetworkConfiguration subNetworkConfiguration) {
+		this.net = subNetworkConfiguration;
+	}
+	public SubNetworkConfiguration getNet() {
+		return net;
+	}
 }

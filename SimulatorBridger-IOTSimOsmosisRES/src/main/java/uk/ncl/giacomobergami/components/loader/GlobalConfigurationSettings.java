@@ -169,20 +169,6 @@ public class GlobalConfigurationSettings {
     }
 
     public static OsmoticAppDescription asLegacyApp(WorkloadCSV novel) {
-        /*
-        String appName,
-								 int appID,
-								 double DataRate,
-								 double StopDataGenerationTime,
-								 String ioTDeviceName,
-								 long ioTDeviceOutput,
-								 String MELName,
-								 long osmesisEdgeletSize,
-								 long MELOutput,
-								 String vmName,
-								 long osmesisCloudletSize,
-								 double StartDataGenerationTime
-         */
         return new OsmoticAppDescription(novel.OsmesisApp,
                 (int)novel.ID, novel.DataRate_Sec, novel.StopDataGeneration_Sec,
                 novel.IoTDevice,(long)novel.IoTDeviceOutputData_Mb, novel.MELName, novel.getOsmesisEdgelet_MI(), novel.MELOutputData_Mb, novel.VmName, novel.getOsmesisCloudlet_MI(), novel.getStartDataGenerationTime_Sec());

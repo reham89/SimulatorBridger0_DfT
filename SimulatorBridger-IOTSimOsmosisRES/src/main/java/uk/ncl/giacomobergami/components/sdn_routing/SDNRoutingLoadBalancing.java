@@ -249,11 +249,8 @@ public class SDNRoutingLoadBalancing extends SDNRoutingPolicy {
 				}		
 			}
 		}
-		
-//		System.out.println(bandwidth);
-		//List<Node> routeBuilt = biuldRoute(previousNode, srcHost, destHost);
+
 		List<NetworkNIC> routeBuilt = biuldRoute(previousNode, srcHost, destHost, pkt);
-//		System.out.println(routeBuilt);
 		this.nodeGraphDistance = null;
 		this.nodeGraphBandwidth = null;
 		return routeBuilt;		

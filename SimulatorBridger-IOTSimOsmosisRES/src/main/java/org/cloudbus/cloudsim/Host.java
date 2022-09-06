@@ -666,7 +666,6 @@ public class Host implements Comparable<Host> {
 
 	@Override
 	public int compareTo(Host o) {
-
 		if (this.remainingCapacity == o.remainingCapacity)
 			return 0;
 		else if (remainingCapacity > o.remainingCapacity)

@@ -1,0 +1,9 @@
+{
+  "DCAgentClassName": "uk.ncl.giacomobergami.SumoOsmosisBridger.meap.agents.FlowDataCenterAgent",
+  "DeviceAgentClassName": "uk.ncl.giacomobergami.SumoOsmosisBridger.meap.agents.DeviceAgentGlobalScanner",
+  "CentralAgentClassName": "uk.ncl.giacomobergami.SumoOsmosisBridger.meap.agents.FlowCentralAgent",
+  "AgentMessageClassName": "uk.ncl.giacomobergami.SumoOsmosisBridger.meap.messages.MessageWithPayload",
+  "MAPEInterval": 0.01,
+  "TopologyLinks": [
+  ]
+}

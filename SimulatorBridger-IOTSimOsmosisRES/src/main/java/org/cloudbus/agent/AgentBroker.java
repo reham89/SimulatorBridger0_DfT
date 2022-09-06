@@ -7,6 +7,8 @@ import org.cloudbus.res.config.AppConfig;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class AgentBroker {
     //Singleton pattern
@@ -24,6 +26,10 @@ public class AgentBroker {
     //Osmotic Agents are uniquely recognized by name
     private Map<String,DCAgent> agentsDC = new HashMap<>();
     private Map<String,DeviceAgent> agentsDevices = new HashMap<>();
+
+    public Stream<OsmoticDatacenter> getOsmoticDataCentersStream() {
+        return agentsDC.values().stream().map(x-> x.osmesisDatacenter);
+    }
 
     //Agents classes
     private Class dcAgentClass;

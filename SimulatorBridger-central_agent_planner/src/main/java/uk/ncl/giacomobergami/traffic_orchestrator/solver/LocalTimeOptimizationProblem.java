@@ -219,10 +219,10 @@ public class LocalTimeOptimizationProblem {
     }
 
     private IntermediateSolution computeRanking(double k1,
-                                                                                    double k2,
-                                                                                    boolean ignoreCubic,
-                                                                                    ImmutablePair<Map<TimedIoT, TimedEdge>, Map<TimedIoT, TimedEdge>> pair,
-                                                                                    boolean updateAfterRunning) {
+                                                double k2,
+                                                boolean ignoreCubic,
+                                                ImmutablePair<Map<TimedIoT, TimedEdge>, Map<TimedIoT, TimedEdge>> pair,
+                                                boolean updateAfterRunning) {
         var firstCommunication = pair.getLeft();
         var alpha = pair.getRight();
 
@@ -264,7 +264,7 @@ public class LocalTimeOptimizationProblem {
 
         int vertexSize = counter.get();
         int[][] capacity = new int[vertexSize][vertexSize];
-        int[][] cost = new int[vertexSize][vertexSize];
+        double[][] cost = new double[vertexSize][vertexSize];
         for (var rsu1 : this.tInfo.tls) {
             var sq1 = rsu1.communication_radius * rsu1.communication_radius;
             var r1 = rsus.get(rsu1);
@@ -309,7 +309,7 @@ public class LocalTimeOptimizationProblem {
             capacity[initialSource][vehId] = 1;
 
             // The communication cost is proportional to the distance of the two nodes
-            cost[vehId][rsuId] = (int) Math.round(k1 * f.getDistance(assoc.getKey(), assoc.getValue()) + k2);
+            cost[vehId][rsuId] = (k1 * f.getDistance(assoc.getKey(), assoc.getValue()) + k2);
             // No cost for starting from the bogus node
             cost[initialSource][vehId] = 0;
         }

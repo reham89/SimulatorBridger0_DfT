@@ -16,6 +16,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.cloudbus.cloudsim.Log;
 import org.cloudbus.cloudsim.core.predicates.Predicate;
@@ -35,6 +36,12 @@ import org.cloudbus.cloudsim.core.predicates.PredicateNone;
  * @since CloudSim Toolkit 1.0
  */
 public class MainEventManager {
+	private static AtomicInteger incrAppId = new AtomicInteger(1);
+
+	public static Integer getNewAppId() {
+		return incrAppId.getAndIncrement();
+	}
+
 	public static int handling_event_number = 0;
 
 	/** The Constant CLOUDSIM_VERSION_STRING. */

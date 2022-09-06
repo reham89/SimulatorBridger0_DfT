@@ -102,16 +102,15 @@ public class SDNController extends NetworkOperatingSystem {
 		NetworkNIC srchost = findSDNHost(srcVm);
 		NetworkNIC dsthost = findSDNHost(dstVm);
 		int flowId = flow.getFlowId();
-		System.out.println(srchost+"-->"+dsthost);
-
 		if (srchost == null)  {
 			srchost = this.getGateway(); // packets coming from outside the datacenter			
-		} 
+		}
+		System.out.println(srchost+"-->"+dsthost);
 									
 		if(srchost.equals(dsthost)) {
 			Log.printLine(MainEventManager.clock() + ": " + getName() + ": Source SDN Host is same as destination. No need for routing!");
 			srchost.addRoute(srcVm, dstVm, flowId, dsthost);
-			List<NetworkNIC> listNodes = new ArrayList<NetworkNIC>();					
+			List<NetworkNIC> listNodes = new ArrayList<>();
 			listNodes.add(srchost);			
 			getSdnSchedulingPolicy().setAppFlowStartTime(flow, flow.getSubmitTime()); // no transmission
 			return;
@@ -119,7 +118,6 @@ public class SDNController extends NetworkOperatingSystem {
 
 		List<NetworkNIC> route;
 		route = sdnRoutingPolicy.getRoute(flow.getOrigin(), flow.getDestination());
-		
 		if(route == null){			
 			buildSDNForwardingTableVmBased(srcVm, dstVm, flowId, flow);
 		}

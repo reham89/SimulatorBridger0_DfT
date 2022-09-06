@@ -23,6 +23,7 @@ import org.cloudbus.cloudsim.DatacenterCharacteristics;
 import org.cloudbus.cloudsim.Host;
 import org.cloudbus.cloudsim.Pe;
 import org.cloudbus.cloudsim.Storage;
+import org.cloudbus.cloudsim.sdn.NetworkNIC;
 import uk.ncl.giacomobergami.components.allocation_policy.VmAllocationPolicy;
 import org.cloudbus.cloudsim.VmScheduler;
 import org.cloudbus.cloudsim.core.SimEvent;
@@ -126,7 +127,11 @@ public abstract class OsmoticDatacenter extends Datacenter{
 		return newHost;		
 	}
 
-	public void setGateway(Switch gateway) {		
+	public Topology getTopology() {
+		return topology;
+	}
+
+	public void setGateway(Switch gateway) {
 		this.gateway = gateway;
 	}	
 	
@@ -154,4 +159,22 @@ public abstract class OsmoticDatacenter extends Datacenter{
 		this.sdnhosts = sdnhosts;
 	}
 
+	public NetworkNodeType resolveNode(NetworkNIC node) {
+		var name = node.getName();
+		if ((gateway != null) && (gateway.getName().equals(name))) {
+			return NetworkNodeType.gateway(gateway);
+		}
+		if ((sdnController != null) && (sdnController.getName().equals(name))) {
+			return NetworkNodeType.controller(sdnController);
+		}
+		for (var host : sdnhosts) {
+			if (host.getName().equals(name))
+				return NetworkNodeType.host(host);
+		}
+		for (var switch_ : switches) {
+			if (switch_.getName().equals(name))
+				return NetworkNodeType.switch_(switch_);
+		}
+		return null;
+	}
 }

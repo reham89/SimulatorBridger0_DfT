@@ -30,6 +30,8 @@ import uk.ncl.giacomobergami.components.loader.GlobalConfigurationSettings;
 import uk.ncl.giacomobergami.components.mel_routing.MELSwitchPolicy;
 import uk.ncl.giacomobergami.utils.asthmatic.WorkloadCSV;
 
+import static org.cloudbus.osmosis.core.OsmoticTags.GENERATE_OSMESIS_WITH_RESOLUTION;
+
 /**
  * 
  * @author Khaled Alwasel
@@ -78,7 +80,8 @@ public class OsmoticBroker extends DatacenterBroker {
 		super.startEntity();
 	}
 
-	public static Collection<OsmoticAppDescription> currentlyAvailableApps = Collections.emptyList();
+
+//	public static Collection<OsmoticAppDescription> currentlyAvailableApps = Collections.emptyList();
 
 	@Override
 	public void processEvent(SimEvent ev) {
@@ -89,19 +92,21 @@ public class OsmoticBroker extends DatacenterBroker {
 		double chron = MainEventManager.clock();
 
 
-		if (appList != null) {
-			currentlyAvailableApps = appList
-					.stream()
-					.filter(x -> {
-						var t = MainEventManager.clock();
-						return (x.getAppStartTime() <= t) && (t < x.getStopDataGenerationTime());
-					}).toList();
-		}
+//		if (appList != null) {
+//			currentlyAvailableApps = appList
+//					.stream()
+//					.filter(x -> {
+//						var t = MainEventManager.clock();
+//						return (x.getAppStartTime() <= t) && (t < x.getStopDataGenerationTime());
+//					}).toList();
+//		}
 		iotDeviceNameToObject.forEach((id, obj) -> {
 			ioTEntityGenerator.updateIoTDevice(obj, chron, chron+deltaVehUpdate);
 		});
 
 		switch (ev.getTag()) {
+
+
 		case CloudSimTags.RESOURCE_CHARACTERISTICS_REQUEST:
 			this.processResourceCharacteristicsRequest(ev);
 			break;
@@ -113,7 +118,20 @@ public class OsmoticBroker extends DatacenterBroker {
 		case CloudSimTags.VM_CREATE_ACK:
 			this.processVmCreate(ev);			
 			break;
-			
+
+		case GENERATE_OSMESIS_WITH_RESOLUTION: {
+			OsmoticAppDescription app = (OsmoticAppDescription) ev.getData();
+			var melId = getVmIdByName(app.getMELName());
+			int vmIdInCloud = this.getVmIdByName(app.getVmName());
+			app.setMelId(melId);
+			int edgeDatacenterId = this.getDatacenterIdByVmId(melId);
+			app.setEdgeDcId(edgeDatacenterId);
+			app.setEdgeDatacenterName(this.getDatacenterNameById(edgeDatacenterId));
+			int cloudDatacenterId = this.getDatacenterIdByVmId(vmIdInCloud);
+			app.setCloudDcId(cloudDatacenterId);
+			app.setCloudDatacenterName(this.getDatacenterNameById(cloudDatacenterId));
+			// After this set up. then we can generate the osmesis!
+		}
 		case OsmoticTags.GENERATE_OSMESIS:
 			generateIoTData(ev);
 			break;
@@ -160,8 +178,7 @@ public class OsmoticBroker extends DatacenterBroker {
 		if (melRouting.test(melName)){
 			// Using a policy for determining the next MEL
 			String melInstanceName = melRouting.apply(actualIoT, melName, this);
-			if (melInstanceName == null)
-				return;
+			if (melInstanceName == null) return;
 			flow.setAppNameDest(melInstanceName);
 			mel_id = getVmIdByName(melInstanceName); //name of VM
 
@@ -303,6 +320,7 @@ public class OsmoticBroker extends DatacenterBroker {
 		}
 		return map.values();
 	}
+
 	public EdgeDevice resolveEdgeDeviceFromId(String hostId) {
 		for (var cp : mapVmsToDatacenter.entrySet()) {
 			for (var vmOrMel : cp.getValue()) {
@@ -402,13 +420,12 @@ public class OsmoticBroker extends DatacenterBroker {
 	}
 
 	public void mapVmNameToId(Map<String, Integer> melNameToIdList) {
-	this.iotVmIdByName.putAll(melNameToIdList);		
+		this.iotVmIdByName.putAll(melNameToIdList);
 	}
 	
 	public int getVmIdByName(String name){
 		return this.iotVmIdByName.get(name);
 	}
-
 
 	public void setDatacenters(List<OsmoticDatacenter> osmesisDatacentres) {
 		this.datacenters = osmesisDatacentres;		

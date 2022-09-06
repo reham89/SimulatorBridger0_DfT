@@ -4,6 +4,7 @@ import org.cloudbus.cloudsim.core.MainEventManager;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 public abstract class AbstractAgent implements Agent {
     private List<AgentMessage> inQueue = new ArrayList<>();
@@ -30,6 +31,14 @@ public abstract class AbstractAgent implements Agent {
     public List<AgentMessage> getReceivedMessages(){
         List<AgentMessage> messages = new ArrayList<>();
         inQueue.forEach(msg -> messages.add(msg));
+        inQueue.clear();
+        return messages;
+    }
+
+
+    public <v> List<v> getReceivedMessages(Function<AgentMessage, v> f){
+        List<v> messages = new ArrayList<>();
+        inQueue.forEach(msg -> messages.add(f.apply(msg)));
         inQueue.clear();
         return messages;
     }

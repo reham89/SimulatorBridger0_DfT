@@ -93,6 +93,7 @@ public class SubNetworkConfiguration {
             loc_datacentre.setVmList(vmList);
             loc_datacentre.setDCAndAddVMsToSDNHosts();
             loc_datacentre.getVmAllocationPolicy().setUpVmTopology(loc_datacentre.getHosts());
+            loc_datacentre.setNetworkInformation(this);
             return loc_datacentre;
         } catch (Exception e) {
             e.printStackTrace();
@@ -140,6 +141,7 @@ public class SubNetworkConfiguration {
         broker.mapVmNameToId(datacenter.getVmNameToIdList());
         datacenter.getVmAllocationPolicy().setUpVmTopology(hostList);
         datacenter.getSdnController().addVmsToSDNhosts(MELList);
+        datacenter.setNetworkInformation(this);
         return datacenter;
     }
 

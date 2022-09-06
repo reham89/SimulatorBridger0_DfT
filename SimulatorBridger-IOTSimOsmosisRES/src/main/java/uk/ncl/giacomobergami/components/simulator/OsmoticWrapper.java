@@ -305,21 +305,21 @@ public class OsmoticWrapper {
 
         // Getting configuration from json and entering classes to Agent Broker
         if (agentBrokerageInitFails()) return init;
-
         allocateOrClearDataStructures(calendar);
 
-        osmoticBroker = conf.newBroker(); // TODO: new OsmoticBroker(conf.OsmesisBroker, edgeLetId);
+        osmoticBroker = conf.newBroker();
         MELSwitchPolicy melSwitchPolicy = MELRoutingPolicyGeneratorFacade.generateFacade(conf.mel_switch_policy);
         osmoticBroker.setMelRouting(melSwitchPolicy);
         conf.buildTopologyForSimulator(osmoticBroker);
 
         OsmosisOrchestrator conductor = new OsmosisOrchestrator();
         List<SDNController> controllers = new ArrayList<>();
-        for(OsmoticDatacenter osmesisDC : conf.conf.osmesisDatacentres){
+        for(OsmoticDatacenter osmesisDC : conf.conf.osmesisDatacentres) {
             osmoticBroker.submitVmList(osmesisDC.getVmList(), osmesisDC.getId());
             controllers.add(osmesisDC.getSdnController());
             osmesisDC.getSdnController().setWanOorchestrator(conductor);
         }
+
         controllers.add(conf.sdWanController);
         conductor.setSdnControllers(controllers);
         appList = osmoticBroker.submitWorkloadCSVApps(conf.apps);

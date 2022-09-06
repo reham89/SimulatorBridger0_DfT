@@ -55,4 +55,7 @@ public class OsmoticTags {
 	public static final int ROUTING_MEL_TABLE_LOOKUP = Osmosis_BASE + 27;
 	public static final int ROUTING_MEL_ID_RESOLUTION = Osmosis_BASE + 28;
 
+	public static final int GENERATE_OSMESIS_WITH_RESOLUTION = Osmosis_BASE + 29;
+	public static final int TEMPORAL_TICK_FOR_GENERATING_APP = Osmosis_BASE + 30;
+
 }

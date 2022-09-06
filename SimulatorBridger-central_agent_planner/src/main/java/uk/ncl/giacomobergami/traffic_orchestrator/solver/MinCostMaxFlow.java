@@ -22,11 +22,12 @@ public class MinCostMaxFlow {
 
 	// Stores the cost per
 	// unit flow of each edge
-	int cost[][];
+	double cost[][];
 
 	// Stores the distance from each node
 	// and picked edges for each node
-	int dad[], dist[], pi[];
+	int dad[];
+	double dist[], pi[];
 
 	static final int INF
 		= Integer.MAX_VALUE / 2 - 1;
@@ -62,7 +63,7 @@ public class MinCostMaxFlow {
 				if (flow[k][src] != 0) {
 
 					// Obtain the total value
-					int val
+					double val
 						= dist[src] + pi[src]
 						- pi[k] - cost[k][src];
 
@@ -77,7 +78,7 @@ public class MinCostMaxFlow {
 
 				if (flow[src][k] < cap[src][k]) {
 
-					int val = dist[src] + pi[src]
+					double val = dist[src] + pi[src]
 							- pi[k] + cost[src][k];
 
 					// If dist[k] is > minimum value
@@ -107,9 +108,9 @@ public class MinCostMaxFlow {
 		return found[sink];
 	}
 
-	HashMap<ImmutablePair<Integer, Integer>, List<Integer>> map = null;
+	public HashMap<ImmutablePair<Integer, Integer>, List<Integer>> map = null;
 	HashSet<Integer> vis  = null;
-	int[] d = null;
+	double[] d = null;
 	boolean[] b = null;
 	int[] T = null;
 
@@ -120,7 +121,7 @@ public class MinCostMaxFlow {
 		if (vis == null) vis = new HashSet<>();
 		if (T == null) T = new int[N];
 		if (b == null) b = new boolean[N];
-		if (d == null) d = new int[N];
+		if (d == null) d = new double[N];
 		if (!vis.add(r)) return; // Not performing any computation if we arlready performed the
 		// shortest path on this at some point
 		
@@ -174,7 +175,7 @@ public class MinCostMaxFlow {
 		}
 	}
 
-	class Result {
+	public class Result {
 		public double total_flow;
 		public double total_cost;
 		public Set<List<Integer>> minedPaths;
@@ -208,8 +209,7 @@ public class MinCostMaxFlow {
 	}
 
 	// Function to obtain the maximum Flow
-	Result getMaxFlow(int[][] cap, int[][] cost,
-					  int src, int sink) {
+	public Result getMaxFlow(int[][] cap, double[][] cost, int src, int sink) {
 
 		this.cap = cap;
 		this.cost = cost;
@@ -217,9 +217,9 @@ public class MinCostMaxFlow {
 		N = cap.length;
 		found = new boolean[N];
 		flow = new int[N][N];
-		dist = new int[N + 1];
+		dist = new double[N + 1];
 		dad = new int[N];
-		pi = new int[N];
+		pi = new double[N];
 
 		Result result = new Result(0,0);
 

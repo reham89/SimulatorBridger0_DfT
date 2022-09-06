@@ -23,6 +23,11 @@ public class MELNearestDistanceSwitch extends RoundRobinMELSwitchPolicy {
     }
 
     @Override
+    public boolean test(String s) {
+        return (s.equals("*")) || super.test(s);
+    }
+
+    @Override
     public List<String> getCandidateMELsFromPattern(String pattern, OsmoticBroker self) {
         if (pattern.equals("*")) {
             return new ArrayList<>(self.iotVmIdByName.keySet());

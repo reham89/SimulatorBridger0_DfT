@@ -1,5 +1,7 @@
 package org.cloudbus.cloudsim.edge.core.edge;
 
+import uk.ncl.giacomobergami.utils.gir.CartesianPoint;
+
 public class Mobility {
 	public boolean movable;
 	public double velocity;
@@ -44,7 +46,7 @@ public class Mobility {
 
 	}
 
-	public static class Location{
+	public static class Location implements CartesianPoint {
 		public double x;
 		public double y;
 		public double z;
@@ -54,6 +56,16 @@ public class Mobility {
 			this.y = y;
 			this.z = z;
 
+		}
+
+		@Override
+		public double getX() {
+			return x;
+		}
+
+		@Override
+		public double getY() {
+			return y;
 		}
 	}
 }

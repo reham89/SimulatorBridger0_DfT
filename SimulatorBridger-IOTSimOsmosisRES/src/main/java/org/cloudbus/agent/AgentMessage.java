@@ -37,11 +37,9 @@ public class AgentMessage {
     public void setDESTINATION(Collection<String> DESTINATION) {
         this.DESTINATION = DESTINATION;
     }
-
     public Collection<String> getDESTINATION() {
         return DESTINATION;
     }
-
     public void setTIMESTAMP(double TIMESTAMP) {
         this.TIMESTAMP = TIMESTAMP;
     }
