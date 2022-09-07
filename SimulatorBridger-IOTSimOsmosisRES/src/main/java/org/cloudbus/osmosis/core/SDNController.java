@@ -105,7 +105,7 @@ public class SDNController extends NetworkOperatingSystem {
 		if (srchost == null)  {
 			srchost = this.getGateway(); // packets coming from outside the datacenter			
 		}
-		System.out.println(srchost+"-->"+dsthost);
+//		System.out.println(srchost+"-->"+dsthost);
 									
 		if(srchost.equals(dsthost)) {
 			Log.printLine(MainEventManager.clock() + ": " + getName() + ": Source SDN Host is same as destination. No need for routing!");

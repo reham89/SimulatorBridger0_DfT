@@ -316,6 +316,8 @@ public class CloudSimTags {
 
 	public static final int launchMapTasks = 72;
 	public static final int EXECUTE_REDUCER = 73;
+
+	public static final int MAPE_WAKEUP_FOR_COMMUNICATION = BASE + 74;
 	
 	/** Private Constructor */
 	private CloudSimTags() {

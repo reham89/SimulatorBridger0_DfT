@@ -40,7 +40,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public abstract class IoTDevice extends SimEntity implements CartesianPoint {
 	public static int cloudLetId = 0;
-	private double runningTime = 0;
+	public boolean transmit;
+    private double runningTime = 0;
 	protected Battery battery;
 	private EdgeNetworkInfo networkModel;
 	public Mobility mobility;

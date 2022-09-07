@@ -30,6 +30,7 @@ import uk.ncl.giacomobergami.components.loader.GlobalConfigurationSettings;
 import uk.ncl.giacomobergami.components.mel_routing.MELSwitchPolicy;
 import uk.ncl.giacomobergami.utils.asthmatic.WorkloadCSV;
 
+import static org.cloudbus.cloudsim.core.CloudSimTags.MAPE_WAKEUP_FOR_COMMUNICATION;
 import static org.cloudbus.osmosis.core.OsmoticTags.GENERATE_OSMESIS_WITH_RESOLUTION;
 
 /**
@@ -52,6 +53,7 @@ public class OsmoticBroker extends DatacenterBroker {
 	public static List<WorkflowInfo> workflowTag = new ArrayList<>();
 	public List<OsmoticDatacenter> datacenters = new ArrayList<>();
 	private final AtomicInteger edgeLetId;
+	public boolean isWakeupStartSet;
 
 	//private Map<String, Integer> roundRobinMelMap = new HashMap<>();
 
@@ -68,6 +70,7 @@ public class OsmoticBroker extends DatacenterBroker {
 		this.flowId = flowId;
 		this.appList = new ArrayList<>();		
 		brokerID = this.getId();
+		isWakeupStartSet = false;
 	}
 
 	@Override
@@ -78,8 +81,27 @@ public class OsmoticBroker extends DatacenterBroker {
 	@Override
 	public void processEvent(SimEvent ev) {
 		double chron = MainEventManager.clock();
-
 		var ab = AgentBroker.getInstance();
+
+		if (!isWakeupStartSet) {
+			for (Double forcedWakeUpTime :
+					ioTEntityGenerator.collectionOfWakeUpTimes()) {
+				double time = forcedWakeUpTime - chron;
+				if (time > 0.0) {
+					schedule(OsmoticBroker.brokerID, time, MAPE_WAKEUP_FOR_COMMUNICATION, null);
+				}
+			}
+			isWakeupStartSet = true;
+		}
+
+		if (ev.getTag() == MAPE_WAKEUP_FOR_COMMUNICATION) {
+			System.out.println("WakeUp Call @"+chron);
+		}
+
+		// Updates the IoT Device with the geo-location information
+		iotDeviceNameToObject.forEach((id, obj) -> {
+			ioTEntityGenerator.updateIoTDevice(obj, chron, chron+deltaVehUpdate);
+		});
 
 		//Update simulation time in the AgentBroker
 		ab.updateTime(chron);
@@ -87,10 +109,7 @@ public class OsmoticBroker extends DatacenterBroker {
 		//Execute MAPE loop at time interval
 		ab.executeMAPE(chron);
 
-		// Updates the IoT Device with the
-		iotDeviceNameToObject.forEach((id, obj) -> {
-			ioTEntityGenerator.updateIoTDevice(obj, chron, chron+deltaVehUpdate);
-		});
+
 
 		switch (ev.getTag()) {
 			case CloudSimTags.RESOURCE_CHARACTERISTICS_REQUEST:

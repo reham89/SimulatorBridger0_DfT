@@ -61,26 +61,43 @@ public class IoTEntityGenerator {
         }
     }
 
+    public Collection<Double> collectionOfWakeUpTimes() {
+        HashSet<Double> set = new HashSet<>();
+        for (var x : timed_iots.values()) {
+            x.dynamicInformation.keySet().stream().min(Comparator.naturalOrder()).ifPresent(set::add);
+            set.add(x.program.startCommunicatingAtSimulationTime);
+        }
+        return set;
+    }
+
     public void updateIoTDevice(@Input @Output IoTDevice toUpdateWithTime,
                                 @Input double simTimeLow,
                                 @Input double simTimeUp) {
         var ls = timed_iots.get(toUpdateWithTime.getName());
-        var times = new TreeSet<>(ls.dynamicInformation.keySet());
-        Double expectedLow = times.contains(simTimeLow) ? ((Double) simTimeLow) : times.lower(simTimeLow);
-        var dist = simTimeUp - simTimeLow;
-        if ((expectedLow != null) && (expectedLow <= simTimeUp)) {
-            var expObj = ls.dynamicInformation.get(expectedLow);
-            toUpdateWithTime.mobility.range.beginX = (int) (toUpdateWithTime.mobility.location.x = expObj.x);
-            toUpdateWithTime.mobility.range.beginY = (int) (toUpdateWithTime.mobility.location.y = expObj.y);
-            toUpdateWithTime.mobility.location.y = ls.dynamicInformation.get(expectedLow).y;
-            toUpdateWithTime.mobility.location.x = ls.dynamicInformation.get(expectedLow).x;
-            Double expectedUp = simTimeUp + dist;
-            expectedUp = times.contains(expectedUp) ? expectedUp : times.lower(expectedUp);
-            if (expectedUp != null) {
-                expObj = ls.dynamicInformation.get(expectedUp);
-                toUpdateWithTime.mobility.range.endX = (int) expObj.x;
-                toUpdateWithTime.mobility.range.endY = (int) expObj.y;
+        if ((simTimeLow >= ls.program.startCommunicatingAtSimulationTime)) {
+            var times = new TreeSet<>(ls.dynamicInformation.keySet());
+            Double expectedLow = times.contains(simTimeLow) ? ((Double) simTimeLow) : times.lower(simTimeLow);
+            var dist = simTimeUp - simTimeLow;
+            if ((expectedLow != null) && (expectedLow <= simTimeUp)) {
+                toUpdateWithTime.transmit = true;
+//                System.out.println(toUpdateWithTime.getName()+" Transmitting at "+expectedLow);
+                var expObj = ls.dynamicInformation.get(expectedLow);
+                toUpdateWithTime.mobility.range.beginX = (int) (toUpdateWithTime.mobility.location.x = expObj.x);
+                toUpdateWithTime.mobility.range.beginY = (int) (toUpdateWithTime.mobility.location.y = expObj.y);
+                toUpdateWithTime.mobility.location.y = ls.dynamicInformation.get(expectedLow).y;
+                toUpdateWithTime.mobility.location.x = ls.dynamicInformation.get(expectedLow).x;
+                Double expectedUp = simTimeUp + dist;
+                expectedUp = times.contains(expectedUp) ? expectedUp : times.lower(expectedUp);
+                if (expectedUp != null) {
+                    expObj = ls.dynamicInformation.get(expectedUp);
+                    toUpdateWithTime.mobility.range.endX = (int) expObj.x;
+                    toUpdateWithTime.mobility.range.endY = (int) expObj.y;
+                }
+            } else {
+                toUpdateWithTime.transmit = false;
             }
+        } else {
+            toUpdateWithTime.transmit = false;
         }
     }
 

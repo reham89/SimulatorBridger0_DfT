@@ -45,13 +45,15 @@ public class DeviceAgentAbstractScanner extends DeviceAgent {
     @Override
     public void monitor() {
         super.monitor();
-
         if (ls != null) ls.clear();
 
         // TODO: doing this if and only if the device is going to communicate with the device now
 
         // Monitoring the neighbouring nodes
         var iot = getIoTDevice();
+        // Returning if the agent, at this current time, is not scheduled for transmission
+        if (!iot.transmit) return;
+
         ls = AgentBroker
                 .getInstance()
                 .getOsmoticDataCentersStream()
