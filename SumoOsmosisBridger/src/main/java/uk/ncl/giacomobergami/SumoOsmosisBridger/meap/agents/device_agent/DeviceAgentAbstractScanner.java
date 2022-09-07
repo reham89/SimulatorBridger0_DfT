@@ -99,7 +99,7 @@ public class DeviceAgentAbstractScanner extends DeviceAgent {
                 String MELName = payload.MELName;
                 long osmesisEdgeletSize = 250;
                 long MELOutput = 70;
-                String vmName = "VM_1";
+                String vmName = "VM_"+((appID % 10)+1);
                 long osmesisCloudletSize = 200;
                 OsmoticAppDescription app = new OsmoticAppDescription(appName, appID, DataRate, StopDataGenerationTime, ioTDeviceName, ioTDeviceOutput, MELName, osmesisEdgeletSize, MELOutput, vmName, osmesisCloudletSize, StartDataGenerationTime);
                 int iotDeviceID = getIoTDevice().getId();

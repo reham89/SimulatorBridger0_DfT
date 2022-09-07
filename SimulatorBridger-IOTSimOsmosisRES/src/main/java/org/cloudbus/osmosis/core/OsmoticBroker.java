@@ -141,6 +141,14 @@ public class OsmoticBroker extends DatacenterBroker {
 				app.setCloudDatacenterName(this.getDatacenterNameById(cloudDatacenterId));
 				this.appList.add(app);
 				// After this set up. then we can generate the osmesis!
+				if((MainEventManager.clock() >= app.getStartDataGenerationTime()) &&
+						(MainEventManager.clock() < app.getStopDataGenerationTime()) &&
+						!app.getIsIoTDeviceDied()){
+					System.out.println(app.getIoTDeviceName()+" starts sending via "+app.getMELName()+" at "+MainEventManager.clock());
+					sendNow(app.getIoTDeviceId(), OsmoticTags.SENSING, app);
+					// Not sending a new event again, as the communication now is one-shot
+				}
+				break;
 			}
 			case OsmoticTags.GENERATE_OSMESIS:
 				generateIoTData(ev);
@@ -434,7 +442,10 @@ public class OsmoticBroker extends DatacenterBroker {
 	}
 	
 	public int getVmIdByName(String name){
-		return this.iotVmIdByName.get(name);
+		Integer val = this.iotVmIdByName.get(name);
+		if (val == null)
+			throw new RuntimeException("ERROR ON: "+name);
+		return val;
 	}
 
 	public void setDatacenters(List<OsmoticDatacenter> osmesisDatacentres) {

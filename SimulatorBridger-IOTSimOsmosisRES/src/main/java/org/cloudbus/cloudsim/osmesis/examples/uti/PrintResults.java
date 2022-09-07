@@ -69,8 +69,9 @@ public class PrintResults {
 				if(app.getAppID() == workflowTag.getAppId()){
 					tags.add(workflowTag);
 				}
-			}			
-			printAppStat(app, tags);
+			}
+			if (!tags.isEmpty())
+				printAppStat(app, tags);
 			tags.clear();
 		}
 		printAppWorkflowConfigration(appList);
@@ -120,20 +121,14 @@ public class PrintResults {
 		double SimluationTime = 0;
 		double appTotalRunningTmie = 0;
 		
-
-		
 		StartTime = app.getAppStartTime();
-		if (tags.isEmpty()) {
-			System.err.println("ERROR WITH APP: " + appName);
-			return;
-		}
 		EndTime = tags.get(tags.size()-1).getCloudLet().getFinishTime();
 		SimluationTime = EndTime - StartTime;			
 		
 		WorkflowInfo firstWorkflow = tags.get(0);
-		WorkflowInfo secondWorkflow = tags.get(1);
+		WorkflowInfo secondWorkflow = tags.size() > 1 ? tags.get(1) : null;
 		
-		if(firstWorkflow.getFinishTime() > secondWorkflow.getSartTime()){
+		if((secondWorkflow != null) && (firstWorkflow.getFinishTime() > secondWorkflow.getSartTime())) {
 			appTotalRunningTmie = EndTime - StartTime;			
 		} else {
 			for(WorkflowInfo workflowTag : tags){
@@ -185,6 +180,7 @@ public class PrintResults {
 	}
 	
 	public void printOsmesisApp(List<WorkflowInfo> tags) {
+		if ((tags == null) || (tags.isEmpty())) return;
 		Log.printLine();				
 		Log.printLine("=========================== Osmesis App Results ========================");
 		Log.printLine(String.format("%1s %11s %18s %17s %17s %19s %20s %35s %37s %21s %29s %29s %33s %21s %23s %28s %20s %30s %25s %10s"
