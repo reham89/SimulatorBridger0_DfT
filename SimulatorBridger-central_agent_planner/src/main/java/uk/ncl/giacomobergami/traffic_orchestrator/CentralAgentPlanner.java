@@ -1,3 +1,24 @@
+/*
+ * CentralAgentPlanner.java
+ * This file is part of SimulatorBridger-central_agent_planner
+ *
+ * Copyright (C) 2022 - Giacomo Bergami
+ *
+ * SimulatorBridger-central_agent_planner is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * SimulatorBridger-central_agent_planner is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with SimulatorBridger-central_agent_planner. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+
 package uk.ncl.giacomobergami.traffic_orchestrator;
 
 import com.google.common.collect.Multimaps;
@@ -95,47 +116,6 @@ public class CentralAgentPlanner {
         return ReconstructNetworkInformation.fromFiles(new File(conf2.RSUCsvFile+"_timed_scc.json").getAbsoluteFile(),
                 new File(conf2.RSUCsvFile+"_neighboursChange.json").getAbsoluteFile(),
                 new File(conf.RSUCsvFile) );
-//        Gson gson = new Gson();
-//        Type sccType = new TypeToken<TreeMap<Double, List<List<String>>>>() {}.getType();
-//        Type networkType = new TypeToken<HashMap<String, ImmutablePair<ImmutablePair<Double, List<String>>, List<ClusterDifference<String>>>>>() {}.getType();
-//        BufferedReader reader1 = null, reader2 = null;
-//        try {
-//            reader1 = new BufferedReader(new FileReader());
-//            reader2 = new BufferedReader(new FileReader());
-//        } catch (FileNotFoundException e) {
-//            e.printStackTrace();
-//            System.exit(1);
-//        }
-//        HashMap<String, ImmutablePair<ImmutablePair<Double, List<String>>, List<ClusterDifference<String>>>>
-//                adjacencyListVariationInTime =  gson.fromJson(reader2, networkType);
-//        TreeMap<Double, List<List<String>>>
-//                timed_scc = gson.fromJson(reader1, sccType);
-//        try {
-//            reader1.close();
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//            System.exit(1);
-//        }
-//        var reader3 = rsum.beginCSVRead();
-//        HashMap<String, Edge> finalLS = new HashMap<>();
-//        {
-//            HashMap<String, HashMap<Double, TimedEdge>> ls = new HashMap<>();
-//            while (reader3.hasNext()) {
-//                var curr = reader3.next();
-//                ls.computeIfAbsent(curr.id, s -> new HashMap<>()).put(curr.simtime, curr);
-//            }
-//            try {
-//                reader3.close();
-//            } catch (Exception e) {
-//                e.printStackTrace();
-//            }
-//            for (var x : ls.entrySet()) {
-//                finalLS.put(x.getKey(), new Edge(x.getValue(), null));
-//            }
-//        }
-//        return new ReconstructNetworkInformation(adjacencyListVariationInTime,
-//                                                 timed_scc,
-//                                                 finalLS);
     }
 
     protected TreeMap<Double, List<TimedIoT>> readIoT() {
