@@ -341,11 +341,11 @@ public class GlobalConfigurationSettings {
         return self;
     }
 
-    public void initLog() {
-        if (saveLogToFile) {
-            LogUtil.initLog(LogUtil.Level.valueOf(logLevel.toUpperCase()), logFilePath, saveLogToFile, append);
-        }
-    }
+//    public void initLog() {
+//        if (saveLogToFile) {
+////            LogUtil.initLog(LogUtil.Level.valueOf(logLevel.toUpperCase()), logFilePath, saveLogToFile, append);
+//        }
+//    }
 
     @JsonIgnore
     public List<IoTDeviceTabularConfiguration> getIoTConfigurations() {
@@ -379,7 +379,9 @@ public class GlobalConfigurationSettings {
     }
 
     public SDWANController asSDWANControllerWithNoInitializedTopology(List<Switch> datacenterGateways) {
-        return new SDWANController(sdwan.controller_name, sdwan.controllercontroller_trafficPolicy, sdwan.controllercontroller_routingPolicy, datacenterGateways);
+        return new SDWANController(sdwan.controller_name,
+                                   sdwan.controllercontroller_trafficPolicy,
+                                   sdwan.controllercontroller_routingPolicy);
     }
 
     public Map<String, Collection<LegacyConfiguration.LinkEntity>> readLinksFromFile() {
@@ -417,7 +419,7 @@ public class GlobalConfigurationSettings {
         var iot = getIoTDevices(broker, iotDevices);
 
         // Log Initialization
-        initLog();
+//        initLog();
 
         // WAN Network
         if  ((!global_network_links.containsKey("sdwan")) ||

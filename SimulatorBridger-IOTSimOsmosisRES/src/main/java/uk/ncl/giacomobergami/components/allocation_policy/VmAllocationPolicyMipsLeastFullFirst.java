@@ -71,7 +71,7 @@ public class VmAllocationPolicyMipsLeastFullFirst extends VmAllocationPolicyComb
 			}
 			
 			if(idx==-1) {
-				System.err.println("Cannot assign the VM to any host:"+tries+"/"+numHosts);
+				logger.error("Cannot assign the VM to any host:"+tries+"/"+numHosts);
 				return false;
 			}
 			

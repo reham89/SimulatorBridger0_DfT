@@ -14,6 +14,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.cloudbus.cloudsim.lists.PeList;
 import org.cloudbus.cloudsim.provisioners.PeProvisioner;
 
@@ -27,6 +29,8 @@ import org.cloudbus.cloudsim.provisioners.PeProvisioner;
  * @since CloudSim Toolkit 1.0
  */
 public class VmSchedulerTimeShared extends VmScheduler {
+
+	protected static Logger logger = LogManager.getRootLogger();
 
 	/** The mips map requested. */
 	private Map<String, List<Double>> mipsMapRequested;
@@ -149,7 +153,7 @@ public class VmSchedulerTimeShared extends VmScheduler {
 							break;
 						}
 						if (!peIterator.hasNext()) {
-							Log.printConcatLine("There is no enough MIPS (", mips, ") to accommodate VM ", vmUid);
+							logger.error("There is no enough MIPS (", mips, ") to accommodate VM ", vmUid);
 							// System.exit(0);
 						}
 						pe = peIterator.next();

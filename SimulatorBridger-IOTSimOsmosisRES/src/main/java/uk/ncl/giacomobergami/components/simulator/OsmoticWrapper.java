@@ -1,25 +1,42 @@
+/*
+ * OsmoticWrapper.java
+ * This file is part of SimulatorBridger-IOTSimOsmosisRES
+ *
+ * Copyright (C) 2022 - Giacomo Bergami
+ *
+ * SimulatorBridger-IOTSimOsmosisRES is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * SimulatorBridger-IOTSimOsmosisRES is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with SimulatorBridger-IOTSimOsmosisRES. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package uk.ncl.giacomobergami.components.simulator;
 
 import org.cloudbus.agent.AgentBroker;
 import org.cloudbus.agent.config.AgentConfigLoader;
 import org.cloudbus.agent.config.AgentConfigProvider;
 import org.cloudbus.agent.config.TopologyLink;
-import org.cloudbus.cloudsim.Log;
 import org.cloudbus.cloudsim.core.MainEventManager;
 import org.cloudbus.cloudsim.edge.core.edge.LegacyConfiguration;
 import org.cloudbus.cloudsim.edge.utils.LogUtil;
-import org.cloudbus.cloudsim.osmesis.examples.uti.LogPrinter;
 import org.cloudbus.cloudsim.osmesis.examples.uti.PrintResults;
 import org.cloudbus.cloudsim.osmesis.examples.uti.RESPrinter;
-import org.cloudbus.cloudsim.sdn.Switch;
 import org.cloudbus.osmosis.core.*;
 import org.cloudbus.res.EnergyController;
 import org.cloudbus.res.config.AppConfig;
 import org.cloudbus.res.dataproviders.res.RESResponse;
 import uk.ncl.giacomobergami.components.iot.IoTEntityGenerator;
 import uk.ncl.giacomobergami.components.loader.GlobalConfigurationSettings;
-import uk.ncl.giacomobergami.components.mel_routing.MELSwitchPolicy;
 import uk.ncl.giacomobergami.components.mel_routing.MELRoutingPolicyGeneratorFacade;
+import uk.ncl.giacomobergami.components.mel_routing.MELSwitchPolicy;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -226,66 +243,53 @@ public class OsmoticWrapper {
 
     public void legacy_log() {
         if (finished) {
-            LogUtil.simulationFinished();
+            LogUtil.logger.trace("Simulation finished...");
             PrintResults pr = new PrintResults();
-            pr.printOsmesisNetwork(appList);
-
-            Log.printLine();
+            pr.collectNetworkData(appList);
 
             for(OsmoticDatacenter osmesisDC : topologyBuilder.getOsmesisDatacentres()){
-                List<Switch> switchList = osmesisDC.getSdnController().getSwitchList();
-                LogPrinter.printEnergyConsumption(osmesisDC.getName(), osmesisDC.getSdnhosts(), switchList, runTime);
-                Log.printLine();
+                pr.collectDataCenterData(osmesisDC.getName(),
+                        osmesisDC.getSdnhosts(),
+                        osmesisDC.getSdnController().getSwitchList(),
+                        runTime);
             }
 
-            Log.printLine();
-            LogPrinter.printEnergyConsumption(topologyBuilder.getSdWanController().getName(), null, topologyBuilder.getSdWanController().getSwitchList(), runTime);
-            Log.printLine();
-            Log.printLine("Simulation Finished!");
-
-            Log.printLine();
-            Log.printLine("Post-mortem RES energy analysis!");
+            pr.collectDataCenterData(topologyBuilder.getSdWanController().getName(), null, topologyBuilder.getSdWanController().getSwitchList(), runTime);
 
             if (energyControllers != null) {
                 RESPrinter res_printer = new RESPrinter();
-                res_printer.postMortemAnalysis(energyControllers, conf.simulationStartTime, true,1, appList);
+                res_printer.postMortemAnalysis(energyControllers,
+                                                conf.simulationStartTime,
+                                   true,
+                                       1,
+                                                appList);
             }
-            //res_printer.postMortemAnalysis(energyControllers,simulationStartTime, false, 36);
-            //res_printer.postMortemAnalysis(energyControllers,"20160901:0000", false, 36);
-            Log.printLine("End of RES analysis!");
+            LogUtil.logger.trace("End of RES analysis!");
         }
     }
 
 
     public void log(GlobalConfigurationSettings conf) {
         if (finished) {
-            LogUtil.simulationFinished();
+            LogUtil.logger.trace("Simulation finished...");
             PrintResults pr = new PrintResults();
-            pr.printOsmesisNetwork(appList);
-
-            Log.printLine();
+            pr.collectNetworkData(appList);
 
             for(OsmoticDatacenter osmesisDC : conf.conf.osmesisDatacentres){
-                List<Switch> switchList = osmesisDC.getSdnController().getSwitchList();
-                LogPrinter.printEnergyConsumption(osmesisDC.getName(), osmesisDC.getSdnhosts(), switchList, runTime);
-                Log.printLine();
+                pr.collectDataCenterData(osmesisDC.getName(),
+                        osmesisDC.getSdnhosts(),
+                        osmesisDC.getSdnController().getSwitchList(),
+                        runTime);
             }
 
-            Log.printLine();
-            LogPrinter.printEnergyConsumption(conf.sdWanController.getName(), null, conf.sdWanController.getSwitchList(), runTime);
-            Log.printLine();
-            Log.printLine("Simulation Finished!");
-
-            Log.printLine();
-            Log.printLine("Post-mortem RES energy analysis!");
+            pr.collectDataCenterData(conf.sdWanController.getName(), null, conf.sdWanController.getSwitchList(), runTime);
 
             if (energyControllers != null) {
                 RESPrinter res_printer = new RESPrinter();
                 res_printer.postMortemAnalysis(energyControllers, conf.simulationStartTime, true,1, appList);
             }
-            //res_printer.postMortemAnalysis(energyControllers,simulationStartTime, false, 36);
-            //res_printer.postMortemAnalysis(energyControllers,"20160901:0000", false, 36);
-            Log.printLine("End of RES analysis!");
+
+            pr.dumpCSV(new File("log_osmosis_results"));
         }
     }
 

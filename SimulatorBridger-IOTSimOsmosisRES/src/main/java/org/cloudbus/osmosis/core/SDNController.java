@@ -105,11 +105,10 @@ public class SDNController extends NetworkOperatingSystem {
 		if (srchost == null)  {
 			srchost = this.getGateway(); // packets coming from outside the datacenter			
 		}
-//		System.out.println(srchost+"-->"+dsthost);
+		logger.trace(srchost+"-->"+dsthost);
 									
 		if(srchost.equals(dsthost)) {
-			Log.printLine(MainEventManager.clock() + ": " + getName() + ": Source SDN Host is same as destination. No need for routing!");
-//			srchost.addRoute(srcVm, dstVm, flowId, dsthost);
+			logger.debug(MainEventManager.clock() + ": " + getName() + ": Source SDN Host is same as destination. No need for routing!");
 			List<NetworkNIC> listNodes = new ArrayList<>();
 			listNodes.add(srchost);			
 			getSdnSchedulingPolicy().setAppFlowStartTime(flow, flow.getSubmitTime()); // no transmission

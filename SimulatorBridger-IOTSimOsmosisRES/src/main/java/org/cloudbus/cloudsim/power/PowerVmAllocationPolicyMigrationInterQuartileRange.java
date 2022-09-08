@@ -119,8 +119,7 @@ public class PowerVmAllocationPolicyMigrationInterQuartileRange extends
 	 */
 	protected void setSafetyParameter(double safetyParameter) {
 		if (safetyParameter < 0) {
-			Log.printConcatLine("The safety parameter cannot be less than zero. The passed value is: ",
-					safetyParameter);
+			logger.error("The safety parameter cannot be less than zero. The passed value is: "+ safetyParameter);
 			System.exit(0);
 		}
 		this.safetyParameter = safetyParameter;

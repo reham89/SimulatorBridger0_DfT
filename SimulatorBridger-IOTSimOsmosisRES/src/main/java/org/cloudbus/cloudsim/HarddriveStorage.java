@@ -12,6 +12,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.cloudbus.cloudsim.distributions.ContinuousDistribution;
 
 /**
@@ -29,6 +31,8 @@ import org.cloudbus.cloudsim.distributions.ContinuousDistribution;
  * @since CloudSim Toolkit 1.0
  */
 public class HarddriveStorage implements Storage {
+
+	public static Logger logger = LogManager.getRootLogger();
 
 	/** a list storing the names of all the files on the harddrive. */
 	private List<String> nameList;
@@ -356,7 +360,7 @@ public class HarddriveStorage implements Storage {
 		// check first whether file name is valid or not
 		FileSIM obj = null;
 		if (fileName == null || fileName.length() == 0) {
-			Log.printConcatLine(name, ".getFile(): Warning - invalid " + "file name.");
+			logger.warn(name+".getFile(): Warning - invalid " + "file name.");
 			return obj;
 		}
 
@@ -450,13 +454,13 @@ public class HarddriveStorage implements Storage {
 	private boolean isFileValid(FileSIM file, String methodName) {
 
 		if (file == null) {
-			Log.printConcatLine(name, ".", methodName, ": Warning - the given file is null.");
+			logger.warn(name+ "."+ methodName+ ": Warning - the given file is null.");
 			return false;
 		}
 
 		String fileName = file.getName();
 		if (fileName == null || fileName.length() == 0) {
-			Log.printConcatLine(name, "." + methodName, ": Warning - invalid file name.");
+			logger.warn(name+ "."+ methodName+  ": Warning - invalid file name.");
 			return false;
 		}
 
@@ -482,7 +486,7 @@ public class HarddriveStorage implements Storage {
 
 		// check the capacity
 		if (file.getSize() + currentSize > capacity) {
-			Log.printConcatLine(name, ".addFile(): Warning - not enough space to store ", file.getName());
+			logger.warn(name+".addFile(): Warning - not enough space to store ", file.getName());
 			return result;
 		}
 
@@ -512,7 +516,7 @@ public class HarddriveStorage implements Storage {
 	public double addFile(List<FileSIM> list) {
 		double result = 0.0;
 		if (list == null || list.isEmpty()) {
-			Log.printConcatLine(name, ".addFile(): Warning - list is empty.");
+			logger.warn(name+ ".addFile(): Warning - list is empty.");
 			return result;
 		}
 
@@ -607,7 +611,7 @@ public class HarddriveStorage implements Storage {
 	public boolean contains(String fileName) {
 		boolean result = false;
 		if (fileName == null || fileName.length() == 0) {
-			Log.printConcatLine(name, ".contains(): Warning - invalid file name");
+			logger.warn(name+".contains(): Warning - invalid file name");
 			return result;
 		}
 		// check each file in the list

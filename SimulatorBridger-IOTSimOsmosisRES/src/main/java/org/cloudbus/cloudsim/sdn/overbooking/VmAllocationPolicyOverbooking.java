@@ -166,7 +166,7 @@ public class VmAllocationPolicyOverbooking extends VmAllocationPolicy implements
 		}
 		if(maxNumHostsUsed < numHostsUsed)
 			maxNumHostsUsed = numHostsUsed;
-		Log.printLine("Number of online hosts:"+numHostsUsed + ", max was ="+maxNumHostsUsed);
+		logger.info("Number of online hosts:"+numHostsUsed + ", max was ="+maxNumHostsUsed);
 	}
 	public int getMaxNumHostsUsed() { return maxNumHostsUsed;}
 
@@ -327,9 +327,9 @@ public class VmAllocationPolicyOverbooking extends VmAllocationPolicy implements
 			getUsedPes().put(vm.getUid(), requiredPes);
 			getFreePes().set(idx, getFreePes().get(idx) - requiredPes);
 
-			Log.formatLine(
+			logger.info(String.format(
 					"%.2f: VM #" + vm.getId() + " has been allocated to the host #" + host.getId(),
-					MainEventManager.clock());
+					MainEventManager.clock()));
 			return true;
 		}
 

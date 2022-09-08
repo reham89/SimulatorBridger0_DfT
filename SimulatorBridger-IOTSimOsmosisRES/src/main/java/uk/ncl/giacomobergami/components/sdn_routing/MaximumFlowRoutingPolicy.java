@@ -1,3 +1,23 @@
+/*
+ * MaximumFlowRoutingPolicy.java
+ * This file is part of SimulatorBridger-IOTSimOsmosisRES
+ *
+ * Copyright (C) 2022 - Giacomo Bergami
+ *
+ * SimulatorBridger-IOTSimOsmosisRES is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * SimulatorBridger-IOTSimOsmosisRES is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with SimulatorBridger-IOTSimOsmosisRES. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package uk.ncl.giacomobergami.components.sdn_routing;
 
 import com.google.common.collect.HashBasedTable;
@@ -13,11 +33,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class MaximumFlowRoutingPolicy extends SDNRoutingPolicy{
+public class MaximumFlowRoutingPolicy extends SDNRoutingPolicy {
     @Override @Deprecated
-    public void updateSDNNetworkGraph() {
-        throw new RuntimeException("Unexpected method call!");
-    }
+    public void updateSDNNetworkGraph() { throw new RuntimeException("Unexpected method call!"); }
+
 
     Table<Integer, Integer, List<NetworkNIC>> table = HashBasedTable.create();
     Table<Integer, Integer, List<Link>> linkTable = HashBasedTable.create();
@@ -29,38 +48,37 @@ public class MaximumFlowRoutingPolicy extends SDNRoutingPolicy{
                                        NetworkNIC destHost,
                                        Flow pkt) {
         var attempt = table.get(pkt.getOrigin(), pkt.getDestination());
-        if (attempt != null)
-            return attempt;
+        if (attempt != null) {
+            var mostUpdated = table2.get(srcHost.getName(), destHost.getName());
+            if ((mostUpdated != null) && !mostUpdated.equals(attempt)) {
+                table.put(pkt.getOrigin(), pkt.getDestination(), mostUpdated);
+                linkTable.put(pkt.getOrigin(), pkt.getDestination(), linkTable2.get(srcHost.getName(), destHost.getName()));
+                return mostUpdated;
+            } else
+                return attempt;
+        }
         attempt = table2.get(srcHost.getName(), destHost.getName());
         if ((attempt == null) || (attempt.isEmpty()))
-            throw new RuntimeException("ERROR: path was unexpectedly missing!");
+            throw new RuntimeException("ERROR: path was unexpectedly missing! "+srcHost+"-->"+destHost+" @"+pkt);
         table.put(pkt.getOrigin(), pkt.getDestination(), attempt);
         linkTable.put(pkt.getOrigin(), pkt.getDestination(), linkTable2.get(srcHost.getName(), destHost.getName()));
         return attempt;
     }
 
     @Override
-    public List<NetworkNIC> getRoute(int source, int dest) {
-        return table.get(source, dest);
-    }
+    public List<NetworkNIC> getRoute(int source, int dest) { return table.get(source, dest); }
 
     @Override
-    public List<Link> getLinks(int source, int dest) {
-        return linkTable.get(source, dest);
-    }
+    public List<Link> getLinks(int source, int dest) { return linkTable.get(source, dest); }
 
-    public void setNewPaths(Collection<List<String>> value) {
-        table.clear();
-        table2.clear();
-        linkTable.clear();
-        linkTable2.clear();
+    public void setNewPaths(Collection<List<String>> value, SDNRoutingPolicy actualPolicy) {
         for (var path : value) {
             List<Link> linkList = new ArrayList<>();
-            var ls = path.stream().map(this::inefficientNodeByName).collect(Collectors.toList());
+            var ls = path.stream().map(actualPolicy::inefficientNodeByName).collect(Collectors.toList());
             for (int i = 0, N = ls.size()-1; i<N; i++) {
                 var srcNode = ls.get(i);
                 var destNode = ls.get(i+1);
-                List<Link> links = topology.getNodeToNodeLinks(ls.get(i), ls.get(i+1));
+                List<Link> links = actualPolicy.topology.getNodeToNodeLinks(ls.get(i), ls.get(i+1));
                 if ((links == null) || (links.size() < 1)) {
                     throw new RuntimeException("ERROR: expected link between " + ls.get(i)+" and "+ls.get(i+1));
                 }
@@ -92,5 +110,9 @@ public class MaximumFlowRoutingPolicy extends SDNRoutingPolicy{
             linkTable2.put(path.get(0), path.get(path.size()-1), linkList);
             table2.put(path.get(0), path.get(path.size()-1), ls);
         }
+    }
+
+    public void setNewPaths(Collection<List<String>> value) {
+        setNewPaths(value, this);
     }
 }

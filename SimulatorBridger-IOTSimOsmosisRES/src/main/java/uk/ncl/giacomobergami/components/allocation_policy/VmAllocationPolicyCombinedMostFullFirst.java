@@ -18,6 +18,10 @@ import org.cloudbus.cloudsim.Vm;
 import org.cloudbus.cloudsim.core.MainEventManager;
 import org.cloudbus.cloudsim.sdn.power.PowerUtilizationMaxHostInterface;
 
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 /**
  * VM Allocation Policy - BW and Compute combined, MFF.
  * When select a host to create a new VM, this policy chooses 
@@ -27,6 +31,9 @@ import org.cloudbus.cloudsim.sdn.power.PowerUtilizationMaxHostInterface;
  * @since CloudSimSDN 1.0
  */
 public class VmAllocationPolicyCombinedMostFullFirst extends VmAllocationPolicy implements PowerUtilizationMaxHostInterface {
+
+
+	protected static Logger logger = LogManager.getRootLogger();
 
 	protected double hostTotalMips;
 	protected double hostTotalBw;
@@ -48,8 +55,7 @@ public class VmAllocationPolicyCombinedMostFullFirst extends VmAllocationPolicy 
 
 	/**
 	 * Creates the new VmAllocationPolicySimple object.
-	 * 
-	 * @param list the list
+	 *
 	 * @pre $none
 	 * @post $none
 	 */
@@ -74,9 +80,9 @@ public class VmAllocationPolicyCombinedMostFullFirst extends VmAllocationPolicy 
 		}
 		// hostTotalMips = CPUs * MIPS --> 16 * 4000 = 64000... host can process up to 64000 mips/seecond 
 		hostTotalMips = getHostList().get(0).getTotalMips();
-		System.out.println("Create a policy object and intiate " + hostTotalMips);
+		logger.info("Create a policy object and intiate " + hostTotalMips);
 		hostTotalBw =  getHostList().get(0).getBw();
-		System.out.println("Create a policy" + hostTotalBw);
+		logger.info("Create a policy" + hostTotalBw);
 	
 		// this is the total CPU a host has... 
 		hostTotalPes =  getHostList().get(0).getNumberOfPes();
@@ -112,7 +118,7 @@ public class VmAllocationPolicyCombinedMostFullFirst extends VmAllocationPolicy 
 		long requiredBw = (long) vm.getCurrentRequestedBw();
 
 		boolean result = false;
-		System.out.println("VmAllocationPolicy Class: Allocate Host for VM# " + vm.getId());
+		logger.info("VmAllocationPolicy Class: Allocate Host for VM# " + vm.getId());
 		double[] freeResources = new double[numHosts];
 		for (int i = 0; i < numHosts; i++) {
 			double mipsFreePercent = (double)getFreeMips().get(i) / this.hostTotalMips; 
@@ -169,7 +175,7 @@ public class VmAllocationPolicyCombinedMostFullFirst extends VmAllocationPolicy 
 		}
 		
 		if(!result) {
-			System.err.println("VmAllocationPolicy: WARNING:: Cannot create VM!!!!");
+			logger.error("VmAllocationPolicy: WARNING:: Cannot create VM!!!!");
 		}
 		logMaxNumHostsUsed();
 		return result;
@@ -186,7 +192,7 @@ public class VmAllocationPolicyCombinedMostFullFirst extends VmAllocationPolicy 
 		}
 		if(maxNumHostsUsed < numHostsUsed)
 			maxNumHostsUsed = numHostsUsed;
-		Log.printLine("Number of online hosts:"+numHostsUsed + ", max was ="+maxNumHostsUsed);
+		logger.info("Number of online hosts:"+numHostsUsed + ", max was ="+maxNumHostsUsed);
 	}
 	public int getMaxNumHostsUsed() { return maxNumHostsUsed;}
 
@@ -347,9 +353,9 @@ public class VmAllocationPolicyCombinedMostFullFirst extends VmAllocationPolicy 
 			getUsedPes().put(vm.getUid(), requiredPes);
 			getFreePes().set(idx, getFreePes().get(idx) - requiredPes);
 
-			Log.formatLine(
-					"%.2f: VM #" + vm.getId() + " has been allocated to the host #" + host.getId(),
-					MainEventManager.clock());
+
+			logger.info(String.format("%.2f: VM #" + vm.getId() + " has been allocated to the host #" + host.getId(),
+					MainEventManager.clock()));
 			return true;
 		}
 

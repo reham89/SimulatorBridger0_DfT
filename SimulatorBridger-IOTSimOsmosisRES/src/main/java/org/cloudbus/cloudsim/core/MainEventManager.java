@@ -8,6 +8,8 @@
 
 package org.cloudbus.cloudsim.core;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -38,6 +40,7 @@ import org.cloudbus.cloudsim.core.predicates.PredicateNone;
 public class MainEventManager {
 	private static AtomicInteger incrAppId = new AtomicInteger(1);
 
+	public static Logger logger = LogManager.getRootLogger();
 	public static Integer getNewAppId() {
 		return incrAppId.getAndIncrement();
 	}
@@ -133,12 +136,9 @@ public class MainEventManager {
 
 			// set all the above entity IDs
 			cisId = cis.getId();
-		} catch (IllegalArgumentException s) {
-			Log.printLine("CloudSim.init(): The simulation has been terminated due to an unexpected error");
-			Log.printLine(s.getMessage());
-		} catch (Exception e) {
-			Log.printLine("CloudSim.init(): The simulation has been terminated due to an unexpected error");
-			Log.printLine(e.getMessage());
+		} catch (Exception s) {
+			logger.fatal("CloudSim.init(): The simulation has been terminated due to an unexpected error");
+			logger.fatal(s.getMessage());
 		}
 	}
 
@@ -191,7 +191,7 @@ public class MainEventManager {
 	 * @post $none
 	 */
 	public static double startSimulation() throws NullPointerException {
-		Log.printConcatLine("Starting CloudSim version ", CLOUDSIM_VERSION_STRING);
+		logger.trace("Starting CloudSim version "+ CLOUDSIM_VERSION_STRING);
 		try {
 			double clock = legacy_run();
 
@@ -238,7 +238,7 @@ public class MainEventManager {
 	 */
 	public static boolean terminateSimulation() {
 		running = false;
-		printMessage("Simulation: Reached termination time.");
+		logger.trace("Simulation: Reached termination time.");
 		return true;
 	}
 
@@ -359,7 +359,7 @@ public class MainEventManager {
 	 * start of the simulation.
 	 */
 	protected static void initialize() {
-		Log.printLine("Initialising...");
+		logger.trace("Initialising...");
 		if (entities == null) entities = new ArrayList<>(); else entities.clear();
 		if (entitiesByName == null) entitiesByName = new LinkedHashMap<>(); else entitiesByName.clear();
 		if (future == null) future = new FutureQueue(); else future.clear();
@@ -511,7 +511,7 @@ public class MainEventManager {
 		if (e == null) {
 			throw new IllegalArgumentException("Adding null entity.");
 		} else {
-			printMessage("Adding: " + e.getName());
+			logger.info("Adding: " + e.getName());
 		}
 		e.startEntity();
 	}
@@ -564,7 +564,7 @@ public class MainEventManager {
 		} else {
 			queue_empty = true;
 			running = false;
-			printMessage("Simulation: No more future events");
+			logger.trace("Simulation: No more future events");
 		}
 
 		return queue_empty;
@@ -574,7 +574,7 @@ public class MainEventManager {
 	 * Internal method used to stop the simulation. This method should <b>not</b> be used directly.
 	 */
 	public static void runStop() {
-		printMessage("Simulation completed.");
+		logger.trace("Simulation completed.");
 	}
 
 	/**
@@ -836,7 +836,7 @@ public class MainEventManager {
 			ent.startEntity();
 		}
 
-		printMessage("Entities started.");
+		logger.trace("Entities started.");
 	}
 
 	/**
@@ -1023,14 +1023,6 @@ public class MainEventManager {
 		abruptTerminate = true;
 	}
 
-	/**
-	 * Prints a message about the progress of the simulation.
-	 * 
-	 * @param message the message
-	 */
-	private static void printMessage(String message) {
-		Log.printLine(message);
-	}
 
 	/**
 	 * Checks if is paused.

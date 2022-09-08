@@ -10,6 +10,7 @@ package org.cloudbus.cloudsim.sdn;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 
 /**
@@ -112,6 +113,19 @@ public class Link {
 		
 		return false;
 		
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+		Link link = (Link) o;
+		return Objects.equals(highOrder, link.highOrder) && Objects.equals(lowOrder, link.lowOrder);
+	}
+
+	@Override
+	public int hashCode() {
+		return src().hashCode()^ dst().hashCode();
 	}
 	
 }

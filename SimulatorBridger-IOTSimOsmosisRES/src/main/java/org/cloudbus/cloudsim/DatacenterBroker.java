@@ -207,83 +207,8 @@ public class DatacenterBroker extends SimEntity  {
 //
 //
 //	}
-	
-	
-	
-	/**
-	 * Extended function for allocating cloudlets to vms
-	 * that aim to minimize the total execution time.
-	 */
-	public void bindCloudletsToVmsTimeAwared(){
-		int cloudletNum=cloudletList.size();
-	
-		int vmNum=vmsCreatedList.size();
-		
-	
-		double[][] time=new double[cloudletNum][vmNum];
-		
-		//Sort cloudletList in dsc, vm in asc
-		Collections.sort(cloudletList,new CloudletComparator());
-		Collections.sort(vmsCreatedList,new VmComparator());
-		
-		////////////////////////////For test//////////////////////////////////
-		System.out.println("///////////For test///////////////");
-		for(int i=0;i<cloudletNum;i++){
-			System.out.print(cloudletList.get(i).getCloudletId()+":"+cloudletList.get(i).getCloudletLength()+" ");
-		}
-		System.out.println();
-		for(int i=0;i<vmNum;i++){
-			System.out.print(vmList.get(i).getId()+":"+vmsCreatedList.get(i).getMips()+" ");
-		}
-		System.out.println();
-		System.out.println("//////////////////////////////////");
-		//////////////////////////////////////////////////////////////////////
-		
-		for(int i=0;i<cloudletNum;i++){
-			for(int j=0;j<vmNum;j++){
-				time[i][j]=
-					(double)cloudletList.get(i).getCloudletLength()/vmsCreatedList.get(j).getMips();
-				
-				//System.out.print(time[i][j]+" ");   //For test
-			}
-			//System.out.println();   //For test
-		}
-		
-		double[] vmLoad=new double[vmNum];
-		int[] vmTasks=new int[vmNum]; //The number of tasks running on the specific vm
-		double minLoad=0;
-		int idx=0;
-		
-		//Allocate the first cloudlet to the fastest vm
-		vmLoad[vmNum-1]=time[0][vmNum-1];
-		vmTasks[vmNum-1]=1;
-		cloudletList.get(0).setVmId(vmsCreatedList.get(vmNum-1).getId());
-		
-		for(int i=1;i<cloudletNum;i++){
-			minLoad=vmLoad[vmNum-1]+time[i][vmNum-1];
-			idx=vmNum-1;
-			for(int j=vmNum-2;j>=0;j--){
-				if(vmLoad[j]==0){
-					if(minLoad>=time[i][j])idx=j;
-					break;
-				}
-				
-				if(minLoad>vmLoad[j]+time[i][j]){
-					minLoad=vmLoad[j]+time[i][j];
-					idx=j;
-				}
-				//Load balance
-				else if(minLoad==vmLoad[j]+time[i][j]&&vmTasks[j]<vmTasks[idx])idx=j;
-			}
-			vmLoad[idx]+=time[i][idx];
-			vmTasks[idx]++;
-			cloudletList.get(i).setVmId(vmsCreatedList.get(idx).getId());
-		}
-	}
-	
-	
-	
-	
+
+
 	/**
 	 * Custom class for sorting cloudletList according to their MIs
 	 */
@@ -366,10 +291,9 @@ public class DatacenterBroker extends SimEntity  {
 			// checks whether this Cloudlet has finished or not
 			if (cl.isFinished()) {
 				String name = MainEventManager.getEntityName(cl.getUserId());
-				Log.printConcatLine(getName(), ": Warning - Cloudlet #", cl.getCloudletId(), " owned by ", name,
+				logger.warn(getName()+ ": Warning - Cloudlet #"+ cl.getCloudletId()+ " owned by "+name+
 						" is already completed/finished.");
-				Log.printLine("Therefore, it is not being executed again");
-				Log.printLine();
+				logger.warn("Therefore, it is not being executed again");
 
 				// NOTE: If a Cloudlet has finished, then it won't be processed.
 				// So, if ack is required, this method sends back a result.
@@ -428,11 +352,13 @@ public class DatacenterBroker extends SimEntity  {
 
 			}
 		} catch (ClassCastException c) {
-			Log.printLine(getName() + ".processCloudletSubmit(): " + "ClassCastException error.");
-			c.printStackTrace();
+			logger.error(getName() + ".processCloudletSubmit(): " + "ClassCastException error.");
+			for (var x : c.getStackTrace())
+				logger.error(x);
 		} catch (Exception e) {
-			Log.printLine(getName() + ".processCloudletSubmit(): " + "Exception error.");
-			e.printStackTrace();
+			logger.error(getName() + ".processCloudletSubmit(): " + "Exception error.");
+			for (var x : e.getStackTrace())
+				logger.error(x);
 		}
 
 		checkCloudletCompletion();
@@ -587,7 +513,7 @@ public class DatacenterBroker extends SimEntity  {
 		host.removeMigratingInVm(vm);
 		boolean result = getVmAllocationPolicy().allocateHostForVm(vm, host);
 		if (!result) {
-			Log.printLine("[Datacenter.processVmMigrate] VM allocation to the destination host failed");
+			logger.fatal("[Datacenter.processVmMigrate] VM allocation to the destination host failed");
 			System.exit(0);
 		}
 
@@ -604,8 +530,8 @@ public class DatacenterBroker extends SimEntity  {
 			sendNow(ev.getSource(), CloudSimTags.VM_CREATE_ACK, data);
 		}
 
-		Log.formatLine("%.2f: Migration of VM #%d to Host #%d is completed", MainEventManager.clock(), vm.getId(),
-				host.getId());
+		logger.info(String.format("%.2f: Migration of VM #%d to Host #%d is completed", MainEventManager.clock(), vm.getId(),
+				host.getId()));
 		vm.setInMigration(false);
 	}
 
@@ -664,13 +590,13 @@ public class DatacenterBroker extends SimEntity  {
 				status = getVmAllocationPolicy().getHost(vmId, userId).getVm(vmId, userId).getCloudletScheduler()
 						.getCloudletStatus(cloudletId);
 			} catch (Exception e) {
-				Log.printConcatLine(getName(), ": Error in processing CloudSimTags.CLOUDLET_STATUS");
-				Log.printLine(e.getMessage());
+				logger.error(getName()+ ": Error in processing CloudSimTags.CLOUDLET_STATUS");
+				logger.error(e.getMessage());
 				return;
 			}
 		} catch (Exception e) {
-			Log.printConcatLine(getName(), ": Error in processing CloudSimTags.CLOUDLET_STATUS");
-			Log.printLine(e.getMessage());
+			logger.error(getName()+  ": Error in processing CloudSimTags.CLOUDLET_STATUS");
+			logger.error(e.getMessage());
 			return;
 		}
 
@@ -835,10 +761,10 @@ public class DatacenterBroker extends SimEntity  {
 			// checks whether this Cloudlet has finished or not
 			if (cl.isFinished()) {
 				String name = MainEventManager.getEntityName(cl.getUserId());
-				Log.printConcatLine(getName(), ": Warning - Cloudlet #", cl.getCloudletId(), " owned by ", name,
+				logger.warn(getName()+ ": Warning - Cloudlet #"+ cl.getCloudletId()+ " owned by "+ name+
 						" is already completed/finished.");
-				Log.printLine("Therefore, it is not being executed again");
-				Log.printLine();
+				logger.warn("Therefore, it is not being executed again");
+
 
 				// NOTE: If a Cloudlet has finished, then it won't be processed.
 				// So, if ack is required, this method sends back a result.
@@ -898,11 +824,11 @@ public class DatacenterBroker extends SimEntity  {
 
 			}
 		} catch (ClassCastException c) {
-			Log.printLine(getName() + ".processCloudletSubmit(): " + "ClassCastException error.");
-			c.printStackTrace();
+			logger.error(getName() + ".processCloudletSubmit(): " + "ClassCastException error.");
+			for (var x : c.getStackTrace()) logger.error(x);
 		} catch (Exception e) {
-			Log.printLine(getName() + ".processCloudletSubmit(): " + "Exception error.");
-			e.printStackTrace();
+			logger.error(getName() + ".processCloudletSubmit(): " + "Exception error.");
+			for (var x : e.getStackTrace()) logger.error(x);
 		}
 
 		checkCloudletCompletion();
@@ -951,13 +877,13 @@ public class DatacenterBroker extends SimEntity  {
 				userId = cl.getUserId();
 				vmId = cl.getVmId();
 			} catch (Exception e) {
-				Log.printConcatLine(super.getName(), ": Error in processing Cloudlet");
-				Log.printLine(e.getMessage());
+				logger.error(super.getName()+ ": Error in processing Cloudlet");
+				logger.error(e.getMessage());
 				return;
 			}
 		} catch (Exception e) {
-			Log.printConcatLine(super.getName(), ": Error in processing a Cloudlet.");
-			Log.printLine(e.getMessage());
+			logger.error(super.getName()+ ": Error in processing a Cloudlet.");
+			logger.error(e.getMessage());
 			return;
 		}
 
@@ -1104,7 +1030,7 @@ public class DatacenterBroker extends SimEntity  {
 	protected void processResourceCharacteristicsRequest(SimEvent ev) {
 		setDatacenterIdsList(MainEventManager.getCloudResourceList());
 		setDatacenterCharacteristicsList(new HashMap<Integer, DatacenterCharacteristics>());
-		Log.printLine(MainEventManager.clock() + ": " + getName() + ": Cloud Resource List received with "
+		logger.info(MainEventManager.clock() + ": " + getName() + ": Cloud Resource List received with "
 				+ getDatacenterIdsList().size() + " resource(s)");
 
 		for (Integer datacenterId : getDatacenterIdsList()) {
@@ -1129,7 +1055,7 @@ public class DatacenterBroker extends SimEntity  {
 			getVmsToDatacentersMap().put(vmId, datacenterId);
 			getVmsCreatedList().add(VmList.getById(getVmList(), vmId));
 			
-			Log.printLine(MainEventManager.clock() + ": " + getName() + ": VM #" + vmId
+			logger.info(MainEventManager.clock() + ": " + getName() + ": VM #" + vmId
 					+ " has been created in " + datacenterName + 
 					", Host #"
 					+ VmList.getById(getVmsCreatedList(), vmId).getHost().getId());
@@ -1139,7 +1065,7 @@ public class DatacenterBroker extends SimEntity  {
 			VmList.getById(getVmList(), vmId).setVmState(1);			
 			
 		} else {
-			Log.printLine(MainEventManager.clock() + ": " + getName() + ": Creation of VM #" + vmId
+			logger.info(MainEventManager.clock() + ": " + getName() + ": Creation of VM #" + vmId
 					+ " failed in Datacenter #" + datacenterId);
 		}
 
@@ -1179,7 +1105,7 @@ public class DatacenterBroker extends SimEntity  {
 	protected void processCloudletReturn(SimEvent ev, boolean round) {
 		Cloudlet cloudlet = (Cloudlet) ev.getData();						
 		getCloudletReceivedList().add(cloudlet);
-		Log.printLine(MainEventManager.clock() + ": " + getName() + ": Cloudlet " + cloudlet.getCloudletId()
+		logger.info(MainEventManager.clock() + ": " + getName() + ": Cloudlet " + cloudlet.getCloudletId()
 				+ " received");			
 	}
 
@@ -1193,11 +1119,11 @@ public class DatacenterBroker extends SimEntity  {
 	 */
 	protected void processOtherEvent(SimEvent ev) {
 		if (ev == null) {
-			Log.printLine(getName() + ".processOtherEvent(): " + "Error - an event is null.");
+			logger.error(getName() + ".processOtherEvent(): " + "Error - an event is null.");
 			return;
 		}
 
-		Log.printLine(getName() + ".processOtherEvent(): "
+		logger.error(getName() + ".processOtherEvent(): "
 				+ "Error - event unknown by this DatacenterBroker.");
 	}
 
@@ -1218,9 +1144,9 @@ public class DatacenterBroker extends SimEntity  {
 		for (int i = 0; i < numberVMperDC; i++) {
 			Vm vm = getVmList().get(vmRequestNum);
 			if (!getVmsToDatacentersMap().containsKey(vm.getId())) {
-				Log.printLine(MainEventManager.clock() + ": " + getName() + ": Trying to Create VM #" + vm.getId()
+				logger.info(MainEventManager.clock() + ": " + getName() + ": Trying to Create VM #" + vm.getId()
 						+ " in " + datacenterName);
-				System.out.println(MainEventManager.clock() + ": " + getName() + ": Trying to Create VM #" + vm.getId()
+				logger.trace(MainEventManager.clock() + ": " + getName() + ": Trying to Create VM #" + vm.getId()
 				+ " in " + datacenterName);
 				sendNow(datacenterId, CloudSimTags.VM_CREATE_ACK, vm);
 				vmRequestNum++;
@@ -1252,13 +1178,13 @@ public class DatacenterBroker extends SimEntity  {
 			} else { // submit to the specific vm
 				vm = VmList.getById(getVmsCreatedList(), cloudlet.getVmId());
 				if (vm == null) { // vm was not created
-					Log.printLine(MainEventManager.clock() + ": " + getName() + ": Postponing execution of cloudlet "
+				logger.info(MainEventManager.clock() + ": " + getName() + ": Postponing execution of cloudlet "
 							+ cloudlet.getCloudletId() + ": bount VM not available");
 					continue;
 				}
 			}
 
-			Log.printLine(MainEventManager.clock() + ": " + getName() + ": Sending cloudlet "
+			logger.info(MainEventManager.clock() + ": " + getName() + ": Sending cloudlet "
 					+ cloudlet.getCloudletId() + " to VM #" + vm.getId());
 			
 			
@@ -1299,7 +1225,7 @@ public class DatacenterBroker extends SimEntity  {
 	 */
 	protected void clearDatacenters() {
 		for (Vm vm : getVmsCreatedList()) {
-			Log.printLine(MainEventManager.clock() + ": " + getName() + ": Destroying VM #" + vm.getId());
+			logger.info(MainEventManager.clock() + ": " + getName() + ": Destroying VM #" + vm.getId());
 			
 			sendNow(getVmsToDatacentersMap().get(vm.getId()), CloudSimTags.VM_DESTROY, vm);
 			
@@ -1325,7 +1251,7 @@ public class DatacenterBroker extends SimEntity  {
 	 */
 	@Override
 	public void shutdownEntity() {
-		Log.printLine(getName() + " is shutting down...");
+		logger.trace(getName() + " is shutting down...");
 	}
 
 	/*
@@ -1334,7 +1260,7 @@ public class DatacenterBroker extends SimEntity  {
 	 */
 	@Override
 	public void startEntity() {
-		Log.printLine(getName() + " is starting...");
+		logger.trace(getName() + " is starting...");
 		schedule(getId(), 0, CloudSimTags.RESOURCE_CHARACTERISTICS_REQUEST);
 	}
 

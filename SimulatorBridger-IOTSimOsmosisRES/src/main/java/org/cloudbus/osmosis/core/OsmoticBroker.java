@@ -83,6 +83,7 @@ public class OsmoticBroker extends DatacenterBroker {
 		double chron = MainEventManager.clock();
 		var ab = AgentBroker.getInstance();
 
+		// Setting up the forced times when the simulator has to wake up, as new messages have to be sent
 		if (!isWakeupStartSet) {
 			for (Double forcedWakeUpTime :
 					ioTEntityGenerator.collectionOfWakeUpTimes()) {
@@ -95,7 +96,7 @@ public class OsmoticBroker extends DatacenterBroker {
 		}
 
 		if (ev.getTag() == MAPE_WAKEUP_FOR_COMMUNICATION) {
-			System.out.println("WakeUp Call @"+chron);
+			logger.trace("WakeUp Call @"+chron);
 		}
 
 		// Updates the IoT Device with the geo-location information
@@ -131,6 +132,9 @@ public class OsmoticBroker extends DatacenterBroker {
 				if (!melRouting.test(app.getMELName())){
 					melId = getVmIdByName(app.getMELName());
 				}
+				if(app.getAppStartTime() == -1){
+					app.setAppStartTime(MainEventManager.clock());
+				}
 				app.setMelId(melId);
 				int vmIdInCloud = this.getVmIdByName(app.getVmName());
 				int edgeDatacenterId = this.getDatacenterIdByVmId(melId);
@@ -144,7 +148,7 @@ public class OsmoticBroker extends DatacenterBroker {
 				if((MainEventManager.clock() >= app.getStartDataGenerationTime()) &&
 						(MainEventManager.clock() < app.getStopDataGenerationTime()) &&
 						!app.getIsIoTDeviceDied()){
-					System.out.println(app.getIoTDeviceName()+" starts sending via "+app.getMELName()+" at "+MainEventManager.clock());
+					logger.info(app.getIoTDeviceName()+" starts sending via "+app.getMELName()+" at "+MainEventManager.clock());
 					sendNow(app.getIoTDeviceId(), OsmoticTags.SENSING, app);
 					// Not sending a new event again, as the communication now is one-shot
 				}
@@ -199,7 +203,6 @@ public class OsmoticBroker extends DatacenterBroker {
 			if (melInstanceName == null) return;
 			flow.setAppNameDest(melInstanceName);
 			mel_id = getVmIdByName(melInstanceName); //name of VM
-
 			//dynamic mapping to datacenter
 			int edgeDatacenterId = this.getDatacenterIdByVmId(mel_id);
 			flow.setDatacenterId(edgeDatacenterId);

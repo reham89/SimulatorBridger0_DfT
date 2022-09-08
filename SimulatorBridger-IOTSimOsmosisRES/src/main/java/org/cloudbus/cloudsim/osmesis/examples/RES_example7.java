@@ -128,18 +128,18 @@ public class RES_example7 {
 
         LogUtil.simulationFinished();
         PrintResults pr = new PrintResults();
-        pr.printOsmesisNetwork();
+        pr.collectNetworkData();
 
         Log.printLine();
 
         for(OsmoticDatacenter osmesisDC : topologyBuilder.getOsmesisDatacentres()){
             List<Switch> switchList = osmesisDC.getSdnController().getSwitchList();
-            LogPrinter.printEnergyConsumption(osmesisDC.getName(), osmesisDC.getSdnhosts(), switchList, startTime);
+            LogPrinter.collect(osmesisDC.getName(), osmesisDC.getSdnhosts(), switchList, startTime);
             Log.printLine();
         }
 
         Log.printLine();
-        LogPrinter.printEnergyConsumption(topologyBuilder.getSdWanController().getName(), null, topologyBuilder.getSdWanController().getSwitchList(), startTime);
+        LogPrinter.collect(topologyBuilder.getSdWanController().getName(), null, topologyBuilder.getSdWanController().getSwitchList(), startTime);
         Log.printLine();
         Log.printLine("Simulation Finished!");
 

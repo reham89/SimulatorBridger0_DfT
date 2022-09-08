@@ -37,7 +37,9 @@ public class MELNearestDistanceSwitch extends RoundRobinMELSwitchPolicy {
     }
 
     @Override
-    public String apply(IoTDevice ioTDevice, String melName, OsmoticBroker self) {
+    public String apply(IoTDevice ioTDevice,
+                        String melName,
+                        OsmoticBroker self) {
         double minimumDistance = Double.MAX_VALUE;
         EdgeDevice minimumHost = null;
         var hosts = self.selectVMFromHostPredicate();

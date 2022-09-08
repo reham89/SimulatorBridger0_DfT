@@ -18,6 +18,8 @@ import uk.ncl.giacomobergami.components.loader.SubNetworkConfiguration;
 
 import java.util.*;
 
+import static org.cloudbus.cloudsim.core.MainEventManager.getEntityName;
+
 /**
  * Datacenter class is a CloudResource whose hostList are virtualized. It deals
  * with processing of VM queries (i.e., handling of VMs) instead of processing
@@ -66,8 +68,6 @@ public class Datacenter extends SimEntity {
 	 * @param storageList        a LinkedList of storage elements, for data
 	 *                           simulation
 	 * @param vmAllocationPolicy the vmAllocationPolicy
-	 * @param switches
-	 * @param sdncontroller
 	 * @throws Exception This happens when one of the following scenarios occur:
 	 *                   <ul>
 	 *                   <li>creating this entity before initializing CloudSim
@@ -332,10 +332,8 @@ public class Datacenter extends SimEntity {
 		file.setMasterCopy(true); // set the file into a master copy
 		int sentFrom = ((Integer) pack[1]).intValue(); // get sender ID
 
-		/******
-		 * // DEBUG Log.printLine(super.get_name() + ".addMasterFile(): " +
-		 * file.getName() + " from " + CloudSim.getEntityName(sentFrom));
-		 *******/
+		logger.trace(getName() + ".addMasterFile(): " +
+				file.getName() + " from " + getEntityName(sentFrom));
 
 		Object[] data = new Object[3];
 		data[0] = file.getName();
@@ -401,13 +399,13 @@ public class Datacenter extends SimEntity {
 				status = getVmAllocationPolicy().getHost(vmId, userId).getVm(vmId, userId).getCloudletScheduler()
 						.getCloudletStatus(cloudletId);
 			} catch (Exception e) {
-				Log.printConcatLine(getName(), ": Error in processing CloudSimTags.CLOUDLET_STATUS");
-				Log.printLine(e.getMessage());
+				logger.error(getName()+": Error in processing CloudSimTags.CLOUDLET_STATUS");
+				logger.error(e.getMessage());
 				return;
 			}
 		} catch (Exception e) {
-			Log.printConcatLine(getName(), ": Error in processing CloudSimTags.CLOUDLET_STATUS");
-			Log.printLine(e.getMessage());
+			logger.error(getName()+": Error in processing CloudSimTags.CLOUDLET_STATUS");
+			logger.error(e.getMessage());
 			return;
 		}
 
@@ -431,7 +429,7 @@ public class Datacenter extends SimEntity {
 	 */
 	protected void processOtherEvent(SimEvent ev) {
 		if (ev == null) {
-			Log.printConcatLine(getName(), ".processOtherEvent(): Error - an event is null.");
+			logger.error(getName()+ ".processOtherEvent(): Error - an event is null.");
 		}
 	}
 
@@ -445,11 +443,9 @@ public class Datacenter extends SimEntity {
 	 * @pre ev != null
 	 * @post $none
 	 */
-	protected void processVmCreate(SimEvent ev, boolean ack) {			
-		
+	protected void processVmCreate(SimEvent ev, boolean ack) {
 		Vm vm = (Vm) ev.getData();
-		
-		System.out.println(this.getName() + " is trying to allocate Vm #" + vm.getId() + " on any given host");
+		logger.info(this.getName() + " is trying to allocate Vm #" + vm.getId() + " on any given host");
 
 		boolean result = getVmAllocationPolicy().allocateHostForVm(vm);
 
@@ -533,7 +529,7 @@ public class Datacenter extends SimEntity {
 		host.removeMigratingInVm(vm);
 		boolean result = getVmAllocationPolicy().allocateHostForVm(vm, host);
 		if (!result) {
-			Log.printLine("[Datacenter.processVmMigrate] VM allocation to the destination host failed");
+			logger.error("[Datacenter.processVmMigrate] VM allocation to the destination host failed");
 			System.exit(0);
 		}
 
@@ -550,8 +546,9 @@ public class Datacenter extends SimEntity {
 			sendNow(ev.getSource(), CloudSimTags.VM_CREATE_ACK, data);
 		}
 
-		Log.formatLine("%.2f: Migration of VM #%d to Host #%d is completed", MainEventManager.clock(), vm.getId(),
-				host.getId());
+		logger.info(String.format("%.2f: Migration of VM #%d to Host #%d is completed", MainEventManager.clock(), vm.getId(),
+				host.getId())
+		);
 		vm.setInMigration(false);
 	}
 
@@ -584,13 +581,13 @@ public class Datacenter extends SimEntity {
 				userId = cl.getUserId();
 				vmId = cl.getVmId();
 			} catch (Exception e) {
-				Log.printConcatLine(super.getName(), ": Error in processing Cloudlet");
-				Log.printLine(e.getMessage());
+				logger.error(super.getName(), ": Error in processing Cloudlet");
+				logger.error(e.getMessage());
 				return;
 			}
 		} catch (Exception e) {
-			Log.printConcatLine(super.getName(), ": Error in processing a Cloudlet.");
-			Log.printLine(e.getMessage());
+			logger.error(super.getName(), ": Error in processing a Cloudlet.");
+			logger.error(e.getMessage());
 			return;
 		}
 
@@ -716,11 +713,11 @@ public class Datacenter extends SimEntity {
 		try {
 			// checks whether this Cloudlet has finished or not
 			if (cl.isFinished()) {
-				String name = MainEventManager.getEntityName(cl.getUserId());
-				Log.printConcatLine(getName(), ": Warning - Cloudlet #", cl.getCloudletId(), " owned by ", name,
+				String name = getEntityName(cl.getUserId());
+				logger.warn(getName()+ ": Warning - Cloudlet #"+ cl.getCloudletId()+ " owned by "+ name+
 						" is already completed/finished.");
-				Log.printLine("Therefore, it is not being executed again");
-				Log.printLine();
+				logger.warn("Therefore, it is not being executed again");
+				logger.warn("\n");
 
 				// NOTE: If a Cloudlet has finished, then it won't be processed.
 				// So, if ack is required, this method sends back a result.
@@ -780,11 +777,15 @@ public class Datacenter extends SimEntity {
 
 			}
 		} catch (ClassCastException c) {
-			Log.printLine(getName() + ".processCloudletSubmit(): " + "ClassCastException error.");
-			c.printStackTrace();
+			logger.error(getName() + ".processCloudletSubmit(): " + "ClassCastException error.");
+			for (StackTraceElement stackTraceElement : c.getStackTrace()) {
+				logger.error(stackTraceElement);
+			}
 		} catch (Exception e) {
-			Log.printLine(getName() + ".processCloudletSubmit(): " + "Exception error.");
-			e.printStackTrace();
+			logger.error(getName() + ".processCloudletSubmit(): " + "Exception error.");
+			for (StackTraceElement stackTraceElement : e.getStackTrace()) {
+				logger.error(stackTraceElement);
+			}
 		}
 
 		checkCloudletCompletion();
@@ -1062,7 +1063,7 @@ public class Datacenter extends SimEntity {
 	 */
 	@Override
 	public void shutdownEntity() {
-		Log.printConcatLine(getName(), " is shutting down...");
+		logger.trace(getName()+ " is shutting down...");
 	}
 
 	/*
@@ -1072,7 +1073,7 @@ public class Datacenter extends SimEntity {
 	 */
 	@Override
 	public void startEntity() {
-		Log.printConcatLine(getName(), " is starting...");
+		logger.trace(getName()+ " is starting...");
 		// this resource should register to regional GIS.
 		// However, if not specified, then register to system GIS (the
 		// default CloudInformationService) entity.
@@ -1240,11 +1241,11 @@ public class Datacenter extends SimEntity {
 		try {
 			// checks whether this Cloudlet has finished or not
 			if (cl.isFinished()) {
-				String name = MainEventManager.getEntityName(cl.getUserId());
-				Log.printConcatLine(getName(), ": Warning - Cloudlet #", cl.getCloudletId(), " owned by ", name,
+				String name = getEntityName(cl.getUserId());
+				logger.warn(getName()+ ": Warning - Cloudlet #"+ cl.getCloudletId()+" owned by "+ name+
 						" is already completed/finished.");
-				Log.printLine("Therefore, it is not being executed again");
-				Log.printLine();
+				logger.warn("Therefore, it is not being executed again");
+				logger.warn("\n");
 
 				// NOTE: If a Cloudlet has finished, then it won't be processed.
 				// So, if ack is required, this method sends back a result.
@@ -1303,11 +1304,15 @@ public class Datacenter extends SimEntity {
 
 			}
 		} catch (ClassCastException c) {
-			Log.printLine(getName() + ".processCloudletSubmit(): " + "ClassCastException error.");
-			c.printStackTrace();
+			logger.error(getName() + ".processCloudletSubmit(): " + "ClassCastException error.");
+			for (StackTraceElement stackTraceElement : c.getStackTrace()) {
+				logger.error(stackTraceElement);
+			}
 		} catch (Exception e) {
-			Log.printLine(getName() + ".processCloudletSubmit(): " + "Exception error.");
-			e.printStackTrace();
+			logger.error(getName() + ".processCloudletSubmit(): " + "Exception error.");
+			for (StackTraceElement stackTraceElement : e.getStackTrace()) {
+				logger.error(stackTraceElement);
+			}
 		}
 
 		checkCloudletCompletion();

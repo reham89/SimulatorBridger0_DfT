@@ -163,7 +163,7 @@ public class NetDatacenterBroker extends SimEntity {
 		switch (ev.getTag()) {
 		// Resource characteristics request
 			case CloudSimTags.RESOURCE_CHARACTERISTICS_REQUEST:
-				processResourceCharacteristicsRequest(ev);
+				processResourceCharacteristicsRequest();
 				break;
 			// Resource characteristics answer
 			case CloudSimTags.RESOURCE_CHARACTERISTICS:
@@ -213,18 +213,16 @@ public class NetDatacenterBroker extends SimEntity {
 	/**
 	 * Process a request for the characteristics of a PowerDatacenter.
 	 * 
-	 * @param ev a SimEvent object
-	 * 
 	 * @pre ev != $null
 	 * @post $none
 	 */
 
-	protected void processResourceCharacteristicsRequest(SimEvent ev) {
+	protected void processResourceCharacteristicsRequest() {
 		setDatacenterIdsList(MainEventManager.getCloudResourceList());
-		setDatacenterCharacteristicsList(new HashMap<Integer, DatacenterCharacteristics>());
+		setDatacenterCharacteristicsList(new HashMap<>());
 
-		Log.printConcatLine(MainEventManager.clock(), ": ", getName(), ": Cloud Resource List received with ",
-				getDatacenterIdsList().size(), " resource(s)");
+		logger.info(MainEventManager.clock()+ ": "+ getName()+ ": Cloud Resource List received with "+
+				getDatacenterIdsList().size()+ " resource(s)");
 
 		for (Integer datacenterId : getDatacenterIdsList()) {
 			sendNow(datacenterId, CloudSimTags.RESOURCE_CHARACTERISTICS, getId());
@@ -254,7 +252,7 @@ public class NetDatacenterBroker extends SimEntity {
 		cloudletsSubmitted--;
 		// all cloudlets executed
 		if (getCloudletList().size() == 0 && cloudletsSubmitted == 0 && NetworkConstants.iteration > 10) {
-			Log.printConcatLine(MainEventManager.clock(), ": ", getName(), ": All Cloudlets executed. Finishing...");
+			logger.info(MainEventManager.clock()+ ": "+ getName()+ ": All Cloudlets executed. Finishing...");
 			clearDatacenters();
 			finishExecution();
 		} else { // some cloudlets haven't finished yet
@@ -279,11 +277,11 @@ public class NetDatacenterBroker extends SimEntity {
 	 */
 	protected void processOtherEvent(SimEvent ev) {
 		if (ev == null) {
-			Log.printConcatLine(getName(), ".processOtherEvent(): Error - an event is null.");
+			logger.error(getName()+ ".processOtherEvent(): Error - an event is null.");
 			return;
 		}
 
-		Log.printConcatLine(getName(), ".processOtherEvent(): ",
+		logger.error(getName()+".processOtherEvent(): "+
 				"Error - event unknown by this DatacenterBroker.");
 	}
 
@@ -402,7 +400,7 @@ public class NetDatacenterBroker extends SimEntity {
 	 */
 	protected void clearDatacenters() {
 		for (Vm vm : getVmsCreatedList()) {
-			Log.printConcatLine(MainEventManager.clock(), ": ", getName(), ": Destroying VM #", vm.getId());
+			logger.info(MainEventManager.clock()+ ": "+ getName()+ ": Destroying VM #"+ vm.getId());
 			sendNow(getVmsToDatacentersMap().get(vm.getId()), CloudSimTags.VM_DESTROY, vm);
 		}
 
@@ -425,7 +423,7 @@ public class NetDatacenterBroker extends SimEntity {
 	 */
 	@Override
 	public void shutdownEntity() {
-		Log.printConcatLine(getName(), " is shutting down...");
+		logger.trace(getName()+ " is shutting down...");
 	}
 
 	/*
@@ -434,7 +432,7 @@ public class NetDatacenterBroker extends SimEntity {
 	 */
 	@Override
 	public void startEntity() {
-		Log.printConcatLine(getName(), " is starting...");
+		logger.trace(getName()+ " is starting...");
 		schedule(getId(), 0, CloudSimTags.RESOURCE_CHARACTERISTICS_REQUEST);
 	}
 

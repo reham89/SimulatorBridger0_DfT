@@ -70,7 +70,7 @@ public class CSVMediator<T> {
     public class CSVReader implements AutoCloseable, Iterator<T> {
         MappingIterator<T> reader;
         CSVReader(File filename) throws IOException {
-            System.out.println(filename.getAbsolutePath());
+//            System.out.println(filename.getAbsolutePath());
             reader = csvMapper.readerFor(clazz)
                     .with(csvSchema)
                     .readValues(filename.getAbsoluteFile());

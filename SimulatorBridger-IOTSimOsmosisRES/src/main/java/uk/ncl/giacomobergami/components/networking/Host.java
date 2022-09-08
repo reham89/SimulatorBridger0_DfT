@@ -91,25 +91,6 @@ public class Host {
         return result;
     }
 
-//    public static List<LegacyConfiguration.EdgeDeviceEntity> asLegacyEdgeDeviceEntity(File name) {
-//        var reader = csvReader().beginCSVRead(name);
-//        ArrayList<LegacyConfiguration.EdgeDeviceEntity> ls = new ArrayList<>();
-//        while (reader.hasNext()) {
-//            ls.add(reader.next().asLegacyEdgeDeviceEntity());
-//        }
-//        return ls;
-//    }
-//
-//    public static List<LegacyConfiguration.HostEntity> asLegacyHostEntity(File name) {
-//        var reader = csvReader().beginCSVRead(name);
-//        ArrayList<LegacyConfiguration.HostEntity> ls = new ArrayList<>();
-//        while (reader.hasNext()) {
-//            ls.add(reader.next().asLegacyHostEntity());
-//        }
-//        return ls;
-//    }
-
-
     public double getX() {
         return x;
     }

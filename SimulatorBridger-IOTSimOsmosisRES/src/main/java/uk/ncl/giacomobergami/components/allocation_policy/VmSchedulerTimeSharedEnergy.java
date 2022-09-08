@@ -87,7 +87,7 @@ public class VmSchedulerTimeSharedEnergy extends VmSchedulerTimeShared implement
 		double totalMips = getTotalMips();
 		double usingMips = totalMips - this.getAvailableMips();
 		if(usingMips < 0) {
-			System.err.println("addUtilizationEntry : using mips is negative, No way!");
+			logger.error("addUtilizationEntry : using mips is negative, No way!");
 		}
 		if(utilizationHistories == null)
 			utilizationHistories = new ArrayList<PowerUtilizationHistoryEntry>();

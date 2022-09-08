@@ -12,6 +12,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.cloudbus.cloudsim.lists.PeList;
 
 /**
@@ -138,7 +140,7 @@ public abstract class VmScheduler {
 	 */
 	public double getMaxAvailableMips() {
 		if (getPeList() == null) {
-			Log.printLine("Pe list is empty");
+			logger.warn("Pe list is empty");
 			return 0;
 		}
 
@@ -158,9 +160,12 @@ public abstract class VmScheduler {
 	 * 
 	 * @return mips
 	 */
+
+
+	Logger logger = LogManager.getRootLogger();
 	public double getPeCapacity() {
 		if (getPeList() == null) {
-			Log.printLine("Pe list is empty");
+			logger.info("Pe list is empty");
 			return 0;
 		}
 		return getPeList().get(0).getMips();

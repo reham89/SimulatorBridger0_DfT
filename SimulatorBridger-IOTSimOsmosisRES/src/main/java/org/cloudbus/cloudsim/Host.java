@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 //import org.cloudbus.cloudsim.allocationstrategy.SubOption;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.cloudbus.cloudsim.core.MainEventManager;
 import org.cloudbus.cloudsim.lists.PeList;
 import org.cloudbus.cloudsim.provisioners.BwProvisioner;
@@ -126,6 +128,9 @@ public class Host implements Comparable<Host> {
 		// this.setSubOptionListEachHost();
 	}
 
+
+	protected static Logger logger = LogManager.getRootLogger();
+
 	/**
 	 * Requests updating of processing of cloudlets in the VMs running in this host.
 	 * 
@@ -159,26 +164,26 @@ public class Host implements Comparable<Host> {
 
 		if (!getVmsMigratingIn().contains(vm)) {
 			if (getStorage() < vm.getSize()) {
-				Log.printConcatLine("[VmScheduler.addMigratingInVm] Allocation of VM #", vm.getId(), " to Host #",
-						getId(), " failed by storage");
+				logger.fatal("[VmScheduler.addMigratingInVm] Allocation of VM #"+vm.getId()+ " to Host #"+
+						getId()+" failed by storage");
 				System.exit(0);
 			}
 
 			if (!getRamProvisioner().allocateRamForVm(vm, vm.getCurrentRequestedRam())) {
-				Log.printConcatLine("[VmScheduler.addMigratingInVm] Allocation of VM #", vm.getId(), " to Host #",
-						getId(), " failed by RAM");
+				logger.fatal("[VmScheduler.addMigratingInVm] Allocation of VM #"+vm.getId()+ " to Host #"+
+						getId()+" failed by RAM");
 				System.exit(0);
 			}
 
 			if (!getBwProvisioner().allocateBwForVm(vm, vm.getCurrentRequestedBw())) {
-				Log.printLine("[VmScheduler.addMigratingInVm] Allocation of VM #" + vm.getId() + " to Host #" + getId()
+				logger.fatal("[VmScheduler.addMigratingInVm] Allocation of VM #" + vm.getId() + " to Host #" + getId()
 						+ " failed by BW");
 				System.exit(0);
 			}
 
 			getVmScheduler().getVmsMigratingIn().add(vm.getUid());
 			if (!getVmScheduler().allocatePesForVm(vm, vm.getCurrentRequestedMips())) {
-				Log.printLine("[VmScheduler.addMigratingInVm] Allocation of VM #" + vm.getId() + " to Host #" + getId()
+				logger.fatal("[VmScheduler.addMigratingInVm] Allocation of VM #" + vm.getId() + " to Host #" + getId()
 						+ " failed by MIPS");
 				System.exit(0);
 			}
@@ -246,26 +251,27 @@ public class Host implements Comparable<Host> {
 	 */
 	public boolean vmCreate(Vm vm) {
 		if (getStorage() < vm.getSize()) {
-			Log.printConcatLine("[VmScheduler.vmCreate] Allocation of VM #", vm.getId(), " to Host #", getId(),
+			logger.error("[VmScheduler.vmCreate] Allocation of VM #"+vm.getId()+ " to Host #"+ getId()+
 					" failed by storage");
 			return false;
 		}
 
 		if (!getRamProvisioner().allocateRamForVm(vm, vm.getCurrentRequestedRam())) {
-			Log.printConcatLine("[VmScheduler.vmCreate] Allocation of VM #", vm.getId(), " to Host #", getId(),
+			logger.error("[VmScheduler.vmCreate] Allocation of VM #"+vm.getId()+ " to Host #"+ getId()+
 					" failed by RAM");
 			return false;
 		}
 
 		if (!getBwProvisioner().allocateBwForVm(vm, vm.getCurrentRequestedBw())) {
-			Log.printConcatLine("[VmScheduler.vmCreate] Allocation of VM #", vm.getId(), " to Host #", getId(),
+
+			logger.error("[VmScheduler.vmCreate] Allocation of VM #"+vm.getId()+ " to Host #"+ getId()+
 					" failed by BW");
 			getRamProvisioner().deallocateRamForVm(vm);
 			return false;
 		}
 
 		if (!getVmScheduler().allocatePesForVm(vm, vm.getCurrentRequestedMips())) {
-			Log.printConcatLine("[VmScheduler.vmCreate] Allocation of VM #", vm.getId(), " to Host #", getId(),
+			logger.error("[VmScheduler.vmCreate] Allocation of VM #"+vm.getId()+ " to Host #"+ getId()+
 					" failed by MIPS");
 			getRamProvisioner().deallocateRamForVm(vm);
 			getBwProvisioner().deallocateBwForVm(vm);

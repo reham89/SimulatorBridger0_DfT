@@ -33,7 +33,11 @@ public class RESPrinter {
         statistics = new HashMap<>();
     }
 
-    public void postMortemAnalysis(Map<String, EnergyController> energyControllers, String time_s, boolean sources_details, int print_step, Collection<OsmoticAppDescription> appList) {
+    public void postMortemAnalysis(Map<String, EnergyController> energyControllers,
+                                   String time_s,
+                                   boolean sources_details,
+                                   int print_step,
+                                   Collection<OsmoticAppDescription> appList) {
         RESannual.clear();
         RESaverage_power.clear();
         RESutilization.clear();
@@ -48,16 +52,16 @@ public class RESPrinter {
         energyControllers.keySet().forEach(dc -> {
             RESutilization.put(dc,energyControllers.get(dc).getUtilization());
             if (sources_details) {
-                Log.printLine(dc + " RES utilisation:\t " + energyControllers.get(dc).getUtilization() + "%");
-                Log.printLine(dc + " RES sources:\t " + energyControllers.get(dc).getEnergySources().size());
+                System.out.println(dc + " RES utilisation:\t " + energyControllers.get(dc).getUtilization() + "%");
+                System.out.println(dc + " RES sources:\t " + energyControllers.get(dc).getEnergySources().size());
             }
             double annual_dc=0;
             for(RenewableEnergySource resSource: energyControllers.get(dc).getEnergySources()){
                 double annual = resSource.getEnergyData().getAnnualEnergy();
                 annual_dc += annual;
                 if (sources_details) {
-                    Log.printLine(dc + " " + resSource.getName() + " annual RES energy:\t" + annual + " Wh");
-                    Log.printLine(dc + " " + resSource.getName() + " average RES power:\t" + annual / 365 / 24 + " W");
+                    System.out.println(dc + " " + resSource.getName() + " annual RES energy:\t" + annual + " Wh");
+                    System.out.println(dc + " " + resSource.getName() + " average RES power:\t" + annual / 365 / 24 + " W");
                 }
             }
             RESannual.put(dc,annual_dc);
@@ -65,7 +69,7 @@ public class RESPrinter {
             average_power.put(dc,annual_dc/365/24 / (energyControllers.get(dc).getUtilization() / 100.0) );
 
             if (sources_details) {
-                Log.printLine(dc + " average power consumption:\t" + average_power.get(dc) + " W");
+                System.out.println(dc + " average power consumption:\t" + average_power.get(dc) + " W");
             }
         });
 
@@ -84,9 +88,9 @@ public class RESPrinter {
     }
 
     private void AnalyseFlowsRES(List<WorkflowInfo> tags) {
-        Log.printLine();
-        Log.printLine("=========================== Osmosis App Results RES (START = "+timeStartRES+") (step = "+print_step+")========================");
-        Log.printLine(String.format("%1s\t%11s\t%18s\t%13s\t%19s\t%22s\t%15s\t%22s\t%23s\t%22s\t%22s"
+        System.out.println();
+        System.out.println("=========================== Osmosis App Results RES (START = "+timeStartRES+") (step = "+print_step+")========================");
+        System.out.println(String.format("%1s\t%11s\t%18s\t%13s\t%19s\t%22s\t%15s\t%22s\t%23s\t%22s\t%22s"
                 ,"App_ID"
                 ,"AppName"
                 ,"Transaction"
@@ -176,7 +180,7 @@ public class RESPrinter {
 
 
             if (worflow_id % print_step == 0) {
-                Log.printLine(String.format("%1s\t%15s\t%15s\t%18s\t%18s\t%21s\t%15s\t%21s\t%20s\t%20s\t%20s"
+                System.out.println(String.format("%1s\t%15s\t%15s\t%18s\t%18s\t%21s\t%15s\t%21s\t%20s\t%20s\t%20s"
                         , app_id
                         , app_name
                         , worflow_id
@@ -193,11 +197,11 @@ public class RESPrinter {
             statistics.put(edglet_dc,statistics.getOrDefault(edglet_dc,0)+1);
         }
 
-        Log.printLine(String.format("Self-consumed RES Utilization for workload CPU processing: %s",transaction_total_CPU_RES_utilization/tags.size()));
-        Log.printLine(String.format("Low carbon ES utilization for workload CPU processing: %s",transaction_total_CPU_lowEmission_utilization/tags.size()));
+        System.out.println(String.format("Self-consumed RES Utilization for workload CPU processing: %s",transaction_total_CPU_RES_utilization/tags.size()));
+        System.out.println(String.format("Low carbon ES utilization for workload CPU processing: %s",transaction_total_CPU_lowEmission_utilization/tags.size()));
 
         for(String s:statistics.keySet()){
-            Log.printLine(String.format("Datacenter: %s  count:%d", s,statistics.get(s)));
+            System.out.println(String.format("Datacenter: %s  count:%d", s,statistics.get(s)));
         }
     }
 

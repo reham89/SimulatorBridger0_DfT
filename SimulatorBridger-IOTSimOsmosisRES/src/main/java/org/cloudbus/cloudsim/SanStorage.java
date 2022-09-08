@@ -120,7 +120,7 @@ public class SanStorage extends HarddriveStorage {
 	public double addFile(List<FileSIM> list) {
 		double result = 0.0;
 		if (list == null || list.size() == 0) {
-			Log.printConcatLine(getName(), ".addFile(): Warning - list is empty.");
+			logger.warn(getName()+ ".addFile(): Warning - list is empty.");
 			return result;
 		}
 

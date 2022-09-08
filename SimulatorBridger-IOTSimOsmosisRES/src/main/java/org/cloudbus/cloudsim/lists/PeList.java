@@ -14,6 +14,8 @@ import org.cloudbus.cloudsim.Log;
 import org.cloudbus.cloudsim.Pe;
 import org.cloudbus.cloudsim.Vm;
 
+import static org.cloudbus.cloudsim.edge.utils.LogUtil.logger;
+
 /**
  * PeList is a collection of operations on lists of PEs.
  * 
@@ -205,7 +207,7 @@ public class PeList {
 			status = "WORKING";
 		}
 
-		Log.printConcatLine(resName, " - Machine: ", hostId, " is ", status);
+		logger.info(resName+ " - Machine: "+ hostId+ " is "+ status);
 
 		setStatusFailed(peList, failed);
 	}

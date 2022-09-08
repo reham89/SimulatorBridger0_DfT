@@ -11,26 +11,24 @@
 
 package org.cloudbus.osmosis.core;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.cloudbus.cloudsim.DatacenterCharacteristics;
 import org.cloudbus.cloudsim.Host;
 import org.cloudbus.cloudsim.Storage;
 import org.cloudbus.cloudsim.Vm;
+import org.cloudbus.cloudsim.edge.core.edge.EdgeDataCenter;
+import org.cloudbus.cloudsim.edge.core.edge.EdgeDevice;
 import org.cloudbus.cloudsim.edge.core.edge.LegacyConfiguration;
 import org.cloudbus.cloudsim.edge.core.edge.LegacyConfiguration.CloudDataCenterEntity;
 import org.cloudbus.cloudsim.edge.core.edge.LegacyConfiguration.EdgeDataCenterEntity;
 import org.cloudbus.cloudsim.edge.core.edge.LegacyConfiguration.LogEntity;
-import org.cloudbus.cloudsim.edge.core.edge.EdgeDataCenter;
-import org.cloudbus.cloudsim.edge.core.edge.EdgeDevice;
 import org.cloudbus.cloudsim.edge.core.edge.MEL;
-import org.cloudbus.cloudsim.edge.utils.LogUtil;
-import org.cloudbus.cloudsim.edge.utils.LogUtil.Level;
 import org.cloudbus.cloudsim.sdn.Switch;
 import uk.ncl.giacomobergami.components.allocation_policy.VmAllocationPolicyGeneratorFactory;
 import uk.ncl.giacomobergami.components.iot.IoTDevice;
-import uk.ncl.giacomobergami.components.iot.IoTDeviceTabularConfiguration;
 import uk.ncl.giacomobergami.components.iot.IoTGeneratorFactory;
 import uk.ncl.giacomobergami.components.loader.GlobalConfigurationSettings;
-import uk.ncl.giacomobergami.utils.data.CSVMediator;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -55,6 +53,9 @@ public class LegacyTopologyBuilder {
 	
 	private static AtomicInteger hostId = new AtomicInteger(1);
 	private static AtomicInteger vmId = new AtomicInteger(1);
+
+	private static final
+	Logger logger = LogManager.getRootLogger();
 	
 	public SDNController getSdWanController() {
 		return sdWanController;
@@ -157,7 +158,7 @@ public class LegacyTopologyBuilder {
 				hostList,
 				storageList,
 				edgeDCEntity.getSchedulingInterval());
-		System.out.println("Edge SDN cotroller has been created");
+		logger.trace("Edge SDN cotroller " + edgeDCEntity.getName() + "has been created");
 
 		var MELList = edgeDCEntity.getMELEntities()
 				.stream()
@@ -192,7 +193,7 @@ public class LegacyTopologyBuilder {
 			String logFilePath = logEntity.getLogFilePath();
 			String logLevel = logEntity.getLogLevel();
 			boolean append = logEntity.isAppend();
-			LogUtil.initLog(Level.valueOf(logLevel.toUpperCase()), logFilePath, saveLogToFile, append);
+//			LogUtil.initLog(Level.valueOf(logLevel.toUpperCase()), logFilePath, saveLogToFile, append);
 		}
 	}	
 }

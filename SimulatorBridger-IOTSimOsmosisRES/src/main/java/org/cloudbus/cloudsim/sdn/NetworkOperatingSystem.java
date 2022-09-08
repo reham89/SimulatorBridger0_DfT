@@ -147,14 +147,14 @@ public abstract class NetworkOperatingSystem extends SimEntity {
 	public int getHostAddressByVmId(int vmId) {
 		Vm vm = findVm(vmId);
 		if(vm == null) {
-			Log.printLine(MainEventManager.clock() + ": " + getName() + ": Cannot find VM with vmId = "+ vmId);
+			logger.error(MainEventManager.clock() + ": " + getName() + ": Cannot find VM with vmId = "+ vmId);
 			return -1;
 		}
 		
 		Host host = vm.getHost();
 		SDNHost sdnhost = findSDNHost(host);
 		if(sdnhost == null) {
-			Log.printLine(MainEventManager.clock() + ": " + getName() + ": Cannot find SDN Host with vmId = "+ vmId);
+			logger.error(MainEventManager.clock() + ": " + getName() + ": Cannot find SDN Host with vmId = "+ vmId);
 			return -1;
 		}
 		

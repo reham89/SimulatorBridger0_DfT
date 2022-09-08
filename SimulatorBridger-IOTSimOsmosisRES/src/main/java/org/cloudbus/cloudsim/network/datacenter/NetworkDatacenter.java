@@ -147,10 +147,9 @@ public class NetworkDatacenter extends Datacenter {
 			// checks whether this Cloudlet has finished or not
 			if (cl.isFinished()) {
 				String name = MainEventManager.getEntityName(cl.getUserId());
-				Log.printConcatLine(getName(), ": Warning - Cloudlet #", cl.getCloudletId(), " owned by ", name,
+				logger.warn(getName()+ ": Warning - Cloudlet #"+ cl.getCloudletId()+ " owned by "+ name+
 						" is already completed/finished.");
-				Log.printLine("Therefore, it is not being executed again");
-				Log.printLine();
+				logger.warn("Therefore, it is not being executed again");
 
 				// NOTE: If a Cloudlet has finished, then it won't be processed.
 				// So, if ack is required, this method sends back a result.
@@ -207,11 +206,11 @@ public class NetworkDatacenter extends Datacenter {
 				sendNow(cl.getUserId(), tag, data);
 			}
 		} catch (ClassCastException c) {
-			Log.printLine(getName() + ".processCloudletSubmit(): " + "ClassCastException error.");
-			c.printStackTrace();
+			logger.error(getName() + ".processCloudletSubmit(): " + "ClassCastException error.");
+			for (var x : c.getStackTrace()) logger.error(x);
 		} catch (Exception e) {
-			Log.printLine(getName() + ".processCloudletSubmit(): " + "Exception error.");
-			e.printStackTrace();
+			logger.error(getName() + ".processCloudletSubmit(): " + "Exception error.");
+			for (var x : e.getStackTrace()) logger.error(x);
 		}
 
 		checkCloudletCompletion();

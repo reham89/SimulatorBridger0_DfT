@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 
 
+import jdk.jfr.Percentage;
 import org.cloudbus.cloudsim.sdn.Link;
 import org.cloudbus.cloudsim.sdn.NetworkNIC;
 import org.cloudbus.cloudsim.sdn.SDNHost;
@@ -54,7 +55,7 @@ public class SDNRoutingLoadBalancing extends SDNRoutingPolicy {
 	/*
 	 * You must create a routing table if there is no previous communication bween srcVm and destVm
 	 */
-	
+	@Override
 	public List<NetworkNIC> getRoute(int source, int dest){
 		List<NetworkNIC> routeFound = path.get(source, dest);
 		if(routeFound != null)
@@ -62,7 +63,8 @@ public class SDNRoutingLoadBalancing extends SDNRoutingPolicy {
 		
 		return null;
 	}
-	
+
+	@Override
 	public List<Link> getLinks(int source, int dest){
 		List<Link> linksFound = links.get(source, dest);
 		if(linksFound != null)
@@ -91,8 +93,6 @@ public class SDNRoutingLoadBalancing extends SDNRoutingPolicy {
 				}
 			}		
 		}
-//		NetworkNIC NewNode = intToNode.get(minIndex);
-//		System.out.println("selected: " +  NewNode);
 		return minIndex;
 	}
 	protected List<NetworkNIC> biuldRoute(int biultRoute[], NetworkNIC src, NetworkNIC dest,Flow pkt){
@@ -124,7 +124,7 @@ public class SDNRoutingLoadBalancing extends SDNRoutingPolicy {
 		
 		path.put(pkt.getOrigin(), pkt.getDestination(), nodeLists);
 		links.put(pkt.getOrigin(), pkt.getDestination(), linkList);
-		
+//		System.out.println(nodeLists);
 		return nodeLists;
 	}
 	
@@ -258,11 +258,6 @@ public class SDNRoutingLoadBalancing extends SDNRoutingPolicy {
 		return routeBuilt;		
 	}
 
-//	@Override
-//	public List<SDNRoutingTable> constructRoutes(NetworkNIC node, NetworkNIC desthost, NetworkNIC srcHost) {
-//		// TODO Auto-generated method stub
-//		return null;
-//	}
 
 
 	

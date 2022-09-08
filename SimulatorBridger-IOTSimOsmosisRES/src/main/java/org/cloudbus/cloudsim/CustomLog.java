@@ -1,5 +1,10 @@
 package org.cloudbus.cloudsim;
 
+import com.google.common.base.Function;
+import org.cloudbus.cloudsim.core.MainEventManager;
+import org.cloudbus.cloudsim.util.InMemoryBufferredHandler;
+import org.cloudbus.cloudsim.util.TextUtil;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -7,22 +12,7 @@ import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Properties;
-import java.util.logging.ConsoleHandler;
-import java.util.logging.FileHandler;
-import java.util.logging.Formatter;
-import java.util.logging.Handler;
-import java.util.logging.Level;
-import java.util.logging.LogRecord;
-import java.util.logging.Logger;
-import java.util.logging.SimpleFormatter;
-import java.util.logging.StreamHandler;
-
-import org.apache.commons.io.output.NullOutputStream;
-import org.cloudbus.cloudsim.core.MainEventManager;
-import org.cloudbus.cloudsim.util.InMemoryBufferredHandler;
-import org.cloudbus.cloudsim.util.TextUtil;
-
-import com.google.common.base.Function;
+import java.util.logging.*;
 
 /**
  * Replaces the primitive functionality of the standard CloudSim Log. Allows
@@ -556,43 +546,6 @@ public class CustomLog {
      */
     public static void setOutput(final OutputStream output) {
         LOGGER.addHandler(new StreamHandler(output, formatter));
-    }
-
-    /**
-     * Configures the logger. Must be called before the logger is used.
-     * 
-     * @param props
-     *            - the configuration properties. See the predefined keys in
-     *            this class, to get an idea of what is required.
-     * @throws SecurityException
-     *             - if the specified log format contains invalid method calls.
-     * @throws IOException
-     *             - if something goes wrong with the I/O.
-     */
-    public static void configLogger(final Properties props) throws SecurityException, IOException {
-        final String fileName = props.containsKey(FILE_PATH_PROP_KEY) ? props.getProperty(FILE_PATH_PROP_KEY)
-                .toString() : null;
-        final String format = props.getProperty(LOG_FORMAT_PROP_KEY, "getLevel;getMessage").toString().trim();
-        final boolean prefixCloudSimClock = Boolean.parseBoolean(props
-                .getProperty(LOG_CLOUD_SIM_CLOCK_PROP_KEY, "false").toString().trim());
-        final boolean prefixReadableCloudSimClock = Boolean.parseBoolean(props
-                .getProperty(LOG_READABLE_CLOUD_SIM_CLOCK_PROP_KEY, "false").toString().trim());
-        final boolean prefixRealTimeClock = Boolean.parseBoolean(props
-                .getProperty(LOG_CLOUD_REAL_TIME_PROP_KEY, "false").toString().trim());
-        final boolean shutStandardMessages = Boolean.parseBoolean(props
-                .getProperty(SHUT_STANDART_LOGGER_PROP_KEY, "false").toString().trim());
-        granularityLevel = Level.parse(props.getProperty(LOG_LEVEL_PROP_KEY, DEFAULT_LEVEL.getName()).toString());
-        bufferSize = Integer.parseInt(props.getProperty(BUFFER_SIZE_PROP_KEY, "-1").toString().trim());
-
-        if (shutStandardMessages) {
-            Log.setOutput(new NullOutputStream());
-            Log.disable();
-        }
-
-        LOGGER.setUseParentHandlers(false);
-        formatter = new CustomFormatter(prefixCloudSimClock, prefixReadableCloudSimClock, prefixRealTimeClock, format);
-
-        redirectToFile(fileName);
     }
 
     /**

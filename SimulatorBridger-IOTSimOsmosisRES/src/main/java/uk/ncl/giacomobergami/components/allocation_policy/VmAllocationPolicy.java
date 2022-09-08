@@ -8,6 +8,8 @@
 
 package uk.ncl.giacomobergami.components.allocation_policy;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.cloudbus.cloudsim.Host;
 import org.cloudbus.cloudsim.Vm;
 
@@ -24,6 +26,8 @@ import java.util.Map;
  * @since CloudSim Toolkit 1.0
  */
 public abstract class VmAllocationPolicy {
+
+	protected static Logger logger = LogManager.getRootLogger();
 
 	/** The host list. */
 	private List<? extends Host> hostList;

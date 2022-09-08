@@ -41,7 +41,8 @@ public class SDWANController extends SDNController {
 	private Map<OsmoticDatacenter, List<Integer>> datacenterVmList;
 	protected Topology topology;
 
-	public SDWANController(LegacyConfiguration.WanEntity controllerEntity, List<Switch> datacenterGateways) {
+	public SDWANController(LegacyConfiguration.WanEntity controllerEntity,
+						   List<Switch> datacenterGateways) {
 		this(controllerEntity.getControllers().getName(),
 				SDNTrafficPolicyGeneratorFacade.generateFacade(controllerEntity.getControllers().getTrafficPolicy()),
 				SDNRoutingPolicyGeneratorFacade.generateFacade(controllerEntity.getControllers().getRoutingPolicy()));
@@ -51,8 +52,12 @@ public class SDWANController extends SDNController {
 				          datacenterGateways);
 	}
 
-	public SDWANController(String name, String traffic, String routing, List<Switch> datacenterGateways) {
-		this(name, SDNTrafficPolicyGeneratorFacade.generateFacade(traffic), SDNRoutingPolicyGeneratorFacade.generateFacade(routing));
+	public SDWANController(String name,
+						   String traffic,
+						   String routing) {
+		this(name,
+				SDNTrafficPolicyGeneratorFacade.generateFacade(traffic),
+				SDNRoutingPolicyGeneratorFacade.generateFacade(routing));
 		setName(name);
 	}
 	

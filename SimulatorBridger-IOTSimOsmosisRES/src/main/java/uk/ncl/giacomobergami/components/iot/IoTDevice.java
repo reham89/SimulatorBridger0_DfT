@@ -127,7 +127,7 @@ public abstract class IoTDevice extends SimEntity implements CartesianPoint {
 			break;
 
 		case OsmoticTags.MOVING: {
-			System.out.println("MOVING AT TIME: " + MainEventManager.clock() +" Update the program");
+			logger.info("MOVING AT TIME: " + MainEventManager.clock() +" Update the program");
 		}
 			break;
 		}

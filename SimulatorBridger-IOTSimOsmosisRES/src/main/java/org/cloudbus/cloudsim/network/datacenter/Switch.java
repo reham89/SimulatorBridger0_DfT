@@ -81,7 +81,7 @@ public class Switch extends SimEntity {
 
 	@Override
 	public void startEntity() {
-		Log.printConcatLine(getName(), " is starting...");
+		logger.info(getName(), " is starting...");
 		schedule(getId(), 0, CloudSimTags.RESOURCE_CHARACTERISTICS_REQUEST);
 	}
 
@@ -247,7 +247,7 @@ public class Switch extends SimEntity {
 				}
 			}
 			if (aggSwtichid < 0) {
-				System.out.println(" No destination for this packet");
+				logger.debug(" No destination for this packet");
 			} else {
 				List<NetworkPacket> pktlist = downlinkswitchpktlist.get(aggSwtichid);
 				if (pktlist == null) {
@@ -381,7 +381,7 @@ public class Switch extends SimEntity {
 
 	@Override
 	public void shutdownEntity() {
-		Log.printConcatLine(getName(), " is shutting down...");
+		logger.trace(getName(), " is shutting down...");
 	}
 
 }

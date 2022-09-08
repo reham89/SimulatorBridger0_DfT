@@ -8,11 +8,7 @@
 
 package org.cloudbus.cloudsim.sdn;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 import org.cloudbus.osmosis.core.Flow;
 import org.cloudbus.cloudsim.core.MainEventManager;
@@ -42,7 +38,7 @@ public class Channel {
 	private final int dstId;
 	private final int chId;	
 	public static double transmissionTime = 0;	
-	private Map<Double, Double> bwChangesLogMap = new TreeMap<Double, Double>();
+	private Map<Double, Double> bwChangesLogMap = new TreeMap<>();
 
 	public Channel(int chId, int srcId, int dstId, List<NetworkNIC> nodes, List<Link> links) {
 		this.chId = chId;
@@ -51,73 +47,50 @@ public class Channel {
 		this.nodes = nodes;
 		this.links = links;		
 
-		this.inTransmission = new LinkedList<Flow>();
-		this.completed = new LinkedList<Flow>();
+		this.inTransmission = new LinkedList<>();
+		this.completed = new LinkedList<>();
 	}		
 	
 	public void initialize() {
-		for(int i=0; i<nodes.size(); i++) {
- 			NetworkNIC from = nodes.get(i);
-			Link link = links.get(i);			
-			if(link != null){
-				link.addChannel(this);
-			} 
-//			from.updateNetworkUtilization();
-		} 
-//		nodes.get(nodes.size()-1).updateNetworkUtilization();
-	}	
-	
-//	public void initialize() {
-//		for(int i=0; i<links.size(); i++) { 			
-//			Link link = links.get(i);			
+		links.forEach(link -> {
+			if (link != null) link.addChannel(this);
+		});
+//		for(int i=0; i<nodes.size(); i++) {
+//// 			NetworkNIC from = nodes.get(i);
+//			Link link = links.get(i);
 //			if(link != null){
 //				link.addChannel(this);
-//			} 
-//			
-//		} 
-//		for(int i=0; i < nodes.size(); i++){
-//			NetworkNIC from = nodes.get(i);
-//			from.updateNetworkUtilization();
+//			}
 //		}
-////		nodes.get(nodes.size()-1).updateNetworkUtilization();
-//	}
+	}
 	
 	public void terminate() {
 		// Assign BW to all links
-		for(int i=0; i<nodes.size()-1; i++) {
-			Link link = links.get(i);
-			if(link != null){
-				link.removeChannel(this);
-			}
-			NetworkNIC node = nodes.get(i);
-//			node.updateNetworkUtilization();
-		}
-//		nodes.get(nodes.size()-1).updateNetworkUtilization();
-	}
-	
-	public Map<Double, Double> getBwChangesLogMap() {
-		return bwChangesLogMap;
-	}
-
-	public void setBwChangesLogMap(Map<Double, Double> bwChangesLogMap) {
-		this.bwChangesLogMap = bwChangesLogMap;
+		links.forEach(link -> {
+			if (link != null) link.removeChannel(this);
+		});
 	}
 	
 	public double getLowestSharedBandwidth() {
 		// Get the lowest bandwidth along links in the channel
-		double lowestSharedBw = Double.POSITIVE_INFINITY;
-		double linkBw = 0;
-		for(int i=0; i<nodes.size()-1; i++) {
-
-			Link link = links.get(i);
-			if(link != null){
-				linkBw = link.getFreeBandwidth();
-				if (linkBw < lowestSharedBw){				
-					lowestSharedBw = linkBw;	
-				}			
-			}
-		}
-		return lowestSharedBw;		
+//		double lowestSharedBw = Double.POSITIVE_INFINITY;
+//		double linkBw = 0;
+		return links.stream()
+				.filter(Objects::nonNull)
+				.mapToDouble(Link::getFreeBandwidth)
+				.min()
+				.orElse(Double.POSITIVE_INFINITY);
+//		for(int i=0; i<nodes.size()-1; i++) {
+//
+//			Link link = links.get(i);
+//			if(link != null){
+//				linkBw = link.getFreeBandwidth();
+//				if (linkBw < lowestSharedBw){
+//					lowestSharedBw = linkBw;
+//				}
+//			}
+//		}
+//		return lowestSharedBw;
 	}	
 
 	public boolean adjustSharedBandwidthAlongLink() {
@@ -168,7 +141,7 @@ public class Channel {
 
 		long processedThisRound =  Math.round((timeSpent*getAllocatedBandwidthPerFlow()));
 		
-		LinkedList<Flow> completedTransmissions = new LinkedList<Flow>();
+		LinkedList<Flow> completedTransmissions = new LinkedList<>();
 		for(Flow transmission: inTransmission){
 			transmission.addCompletedLength(processedThisRound);
 			
@@ -181,17 +154,6 @@ public class Channel {
 		
 		this.inTransmission.removeAll(completedTransmissions);
 		previousTime=currentTime;
-//		Log.printLine(CloudSim.clock()  + ": Channel.updateFlowTransmission() ("+this.toString()+"):Time spent:"+timeSpent+
-//				", BW/Flow:"+getAllocatedBandwidthPerFlow()+", Processed (time spent * channelBW):"+processedThisRound);
-//		Log.printLine(CloudSim.clock()+ ": ChannelClass: route:  -->" + nodes); 
-//			for (Link l:this.links){
-//				if(l != null){
-//			Log.printLine(CloudSim.clock()  + ": link: From " + l.getLowOrder() + " To " + l.getHighOrder() 
-//			+ "; Avliable BW = " + l.getFreeBandwidth() + "; Number Of channels = " + l.getChannelNo());
-//			}else {
-//				Log.printLine(CloudSim.clock());	
-//			}
-//		} 
 		
 		if(completedTransmissions.isEmpty())
 			return false;	// Nothing changed

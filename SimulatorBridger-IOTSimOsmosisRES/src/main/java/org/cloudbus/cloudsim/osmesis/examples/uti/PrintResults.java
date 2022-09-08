@@ -12,16 +12,31 @@
 package org.cloudbus.cloudsim.osmesis.examples.uti;
 
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.sql.Array;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.function.BiFunction;
+import java.util.stream.Collectors;
 
+import com.google.common.collect.HashMultimap;
+import com.google.gson.Gson;
+import org.cloudbus.cloudsim.Host;
 import org.cloudbus.cloudsim.Log;
+import org.cloudbus.cloudsim.sdn.Link;
+import org.cloudbus.cloudsim.sdn.NetworkNIC;
+import org.cloudbus.cloudsim.sdn.SDNHost;
+import org.cloudbus.cloudsim.sdn.Switch;
+import org.cloudbus.cloudsim.sdn.power.PowerUtilizationHistoryEntry;
+import org.cloudbus.cloudsim.sdn.power.PowerUtilizationInterface;
 import org.cloudbus.osmosis.core.Flow;
 import org.cloudbus.osmosis.core.OsmoticAppDescription;
-import org.cloudbus.osmosis.core.OsmoticAppsParser;
 import org.cloudbus.osmosis.core.OsmoticBroker;
 import org.cloudbus.osmosis.core.WorkflowInfo;
+import uk.ncl.giacomobergami.utils.data.CSVMediator;
+import uk.ncl.giacomobergami.utils.data.JSON;
 
 
 /**
@@ -32,36 +47,71 @@ import org.cloudbus.osmosis.core.WorkflowInfo;
  * 
 **/
 
-public class PrintResults {	
+public class PrintResults {
+	List<OsmoticAppDescription> appList;
+	List<PrintOsmosisAppFromTags> osmoticAppsStats;
+	List<OsmesisOverallAppsResults> overallAppResults;
+	List<EnergyConsumption> dataCenterEnergyConsumption;
+	List<PowerConsumption> hpc;
+	List<PowerConsumption> spc;
+	List<ActualPowerUtilizationHistoryEntry> puhe;
+	List<ActualHistoryEntry> ahe;
+	TreeMap<String, List<String>> app_to_path;
+
+	public void dumpCSV(File folder) {
+		if (!folder.exists()) {
+			folder.mkdirs();
+		}
+		new CSVMediator<>(OsmoticAppDescription.class).writeAll(new File(folder, "appList.csv"), appList);
+		new CSVMediator<>(PrintOsmosisAppFromTags.class).writeAll(new File(folder, "osmoticAppsStats.csv"), osmoticAppsStats);
+		new CSVMediator<>(OsmesisOverallAppsResults.class).writeAll(new File(folder, "overallAppResults.csv"), overallAppResults);
+		new CSVMediator<>(EnergyConsumption.class).writeAll(new File(folder, "dataCenterEnergyConsumption.csv"), dataCenterEnergyConsumption);
+		new CSVMediator<>(PowerConsumption.class).writeAll(new File(folder, "HostPowerConsumption.csv"), hpc);
+		new CSVMediator<>(PowerConsumption.class).writeAll(new File(folder, "SwitchPowerConsumption.csv"), spc);
+		new CSVMediator<>(ActualPowerUtilizationHistoryEntry.class).writeAll(new File(folder, "PowerUtilisationHistory.csv"), puhe);
+		new CSVMediator<>(ActualHistoryEntry.class).writeAll(new File(folder, "HistoryEntry.csv"), ahe);
+		try {
+			Files.writeString(new File(folder, "paths.json").toPath(), new Gson().toJson(app_to_path));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public void addHostPowerConsumption(String dcName, String name, double energy) {
+		if (hpc == null) hpc = new ArrayList<>();
+		hpc.add(new PowerConsumption(dcName, name, energy));
+	}
+	public void addSwitchPowerConsumption(String dcName, String name, double energy) {
+		if (spc == null) spc = new ArrayList<>();
+		spc.add(new PowerConsumption(dcName, name, energy));
+	}
+
+	public void addHostUtilizationHistory(String dcName, String name, List<PowerUtilizationHistoryEntry> utilizationHisotry) {
+		if (puhe == null) puhe = new ArrayList<>();
+		if (utilizationHisotry == null) return;
+		utilizationHisotry.forEach(x -> puhe.add(new ActualPowerUtilizationHistoryEntry(dcName, name, x)));
+	}
+
+	public void addSwitchUtilizationHistory(String dcName, String name, List<Switch.HistoryEntry> utilizationHisotry) {
+		if (ahe == null) ahe = new ArrayList<>();
+		if (utilizationHisotry == null) return;
+		utilizationHisotry.forEach(x -> ahe.add(new ActualHistoryEntry(dcName, name, x)));
+	}
 		
-	public void printOsmesisNetwork(List<OsmoticAppDescription> appList) {
-		
+	public void collectNetworkData(List<OsmoticAppDescription> appList) {
+		osmoticAppsStats = new ArrayList<>();
+		overallAppResults = new ArrayList<>();
 		List<WorkflowInfo> tags = new ArrayList<>();
 		for(OsmoticAppDescription app : appList){
 			for(WorkflowInfo workflowTag : OsmoticBroker.workflowTag){
-				workflowTag.getAppId();
 				if(app.getAppID() == workflowTag.getAppId()){
 					tags.add(workflowTag);
 				}
 			}
-			printOsmesisApp(tags);		
+			tags.forEach(x -> this.generateAppTag(x, osmoticAppsStats));
 			tags.clear();
 		}
-		
-		Log.printLine();				
-		Log.printLine("=========================== Osmesis Overall Apps Results ========================");
-		Log.printLine(String.format("%1s %19s %32s %24s %22s  %25s  %22s %16s %14s %19s %25s"				
-				, "App_Name"
-				, "IoTDeviceDrained"
-				, "IoTDeviceBatteryConsumption"
-				, "TotalIoTGeneratedData"
-				, "TotalEdgeLetSizes"
-				, "TotalMELGeneratedData"
-				, "TotalCloudLetSizes"						  
-				, "StartTime" 
-				, "EndTime" 
-				, "SimluationTime"
-				, "appTotalRunningTmie"));
+
 
 		for(OsmoticAppDescription app : appList){
 			for(WorkflowInfo workflowTag : OsmoticBroker.workflowTag){
@@ -71,44 +121,60 @@ public class PrintResults {
 				}
 			}
 			if (!tags.isEmpty())
-				printAppStat(app, tags);
+				printAppStat(app, tags, overallAppResults);
 			tags.clear();
 		}
-		printAppWorkflowConfigration(appList);
-	}
-	
-	private void printAppWorkflowConfigration(List<OsmoticAppDescription> appList) {
-		Log.printLine();				
-		Log.printLine("=========================== Osmesis Workflow Configrations ========================");
-		Log.printLine(String.format("%1s %17s %26s  %13s  %30s %13s %21s %23s %12s %21s"				
-				,"App_Name"   				
-				, "DataRate_Sec"
-				, "StopDataGeneration_Sec"
-				, "IoTDevice"
-				, "IoTDeviceOutputData_Mb"
-				, "MELName"
-				, "OsmesisEdgelet_MI"  				 				
-				, "MELOutputData_Mb"
-				, "VmName"  				   
-				, "OsmesisCloudlet_MI" 
-				));
-		for(OsmoticAppDescription app : appList){
-			Log.printLine(String.format("%1s %15s %21s  %25s  %18s %22s %15s %24s %18s %14s"				
-					, app.getAppName()   				
-					, app.getDataRate()
-					, app.getStopDataGenerationTime()
-					, app.getIoTDeviceName()
-					, app.getIoTDeviceOutputSize()
-					, app.getMELName()
-					, app.getOsmesisEdgeletSize()  				 				
-					, app.getMELOutputSize()
-					, app.getVmName()  				   
-					, app.getOsmesisCloudletSize() 
-					));							
-		}		
+		this.appList = appList;
 	}
 
-	private void printAppStat(OsmoticAppDescription app, List<WorkflowInfo> tags) {
+	public void collectDataCenterData(String dcName,
+									  List<SDNHost> hostList,
+									  List<Switch> switchList,
+									  double finishTime) {
+		EnergyConsumption ec = new EnergyConsumption();
+		ec.dcName = dcName;
+		ec.finishTime = finishTime;
+		if(hostList != null){
+			for(SDNHost sdnHost:hostList) {
+				Host host = sdnHost.getHost();
+				PowerUtilizationInterface scheduler =  (PowerUtilizationInterface) host.getVmScheduler();
+				scheduler.addUtilizationEntryTermination(finishTime);
+				double energy = scheduler.getUtilizationEnergyConsumption();
+				ec.addHostPowerConsumption(energy);
+				addHostPowerConsumption(dcName, sdnHost.getName(), energy);
+				addHostUtilizationHistory(dcName, sdnHost.getName(), scheduler.getUtilizationHisotry());
+			}
+		}
+		for(Switch sw:switchList) {
+			sw.addUtilizationEntryTermination(finishTime);
+			double energy = sw.getUtilizationEnergyConsumption();
+			ec.addSwitchPowerConsumption(energy);
+			addSwitchPowerConsumption(dcName, sw.getName(), energy);
+			addSwitchUtilizationHistory(dcName, sw.getName(), sw.getUtilizationHisotry());
+		}
+
+		ec.finalise();
+		if (dataCenterEnergyConsumption == null) dataCenterEnergyConsumption = new ArrayList<>();
+		dataCenterEnergyConsumption.add(ec);
+	}
+
+	public static class OsmesisOverallAppsResults {
+		public String App_Name;
+		public String IoTDeviceDrained;
+		public double IoTDeviceBatteryConsumption;
+		public long TotalIoTGeneratedData;
+		public long TotalEdgeLetSizes;
+		public long TotalMELGeneratedData;
+		public long TotalCloudLetSizes;
+		public double StartTime;
+		public double EndTime;
+		public double SimluationTime;
+		public double appTotalRunningTime;
+	}
+
+	private void printAppStat(OsmoticAppDescription app,
+							  List<WorkflowInfo> tags,
+							  List<OsmesisOverallAppsResults> list) {
 		String appName = app.getAppName();
 		String isIoTDeviceDrained = app.getIoTDeviceBatteryStatus();
 		double iotDeviceTotalConsumption = app.getIoTDeviceBatteryConsumption();
@@ -116,14 +182,12 @@ public class PrintResults {
 		long TotalEdgeLetSizes = 0;
 		long TotalMELGeneratedData = 0;
 		long TotalCloudLetSizes = 0;
-		double StartTime = 0;
-		double EndTime = 0;
-		double SimluationTime = 0;
 		double appTotalRunningTmie = 0;
-		
-		StartTime = app.getAppStartTime();
-		EndTime = tags.get(tags.size()-1).getCloudLet().getFinishTime();
-		SimluationTime = EndTime - StartTime;			
+		OsmesisOverallAppsResults fromTag = new OsmesisOverallAppsResults();
+
+		double StartTime = app.getAppStartTime();
+		double EndTime = tags.get(tags.size()-1).getCloudLet().getFinishTime();
+		double SimluationTime = EndTime - StartTime;
 		
 		WorkflowInfo firstWorkflow = tags.get(0);
 		WorkflowInfo secondWorkflow = tags.size() > 1 ? tags.get(1) : null;
@@ -135,6 +199,9 @@ public class PrintResults {
 				appTotalRunningTmie += workflowTag.getFinishTime() - workflowTag.getSartTime(); 
 			}
 		}
+		if (StartTime < 0.0) {
+			StartTime = EndTime - appTotalRunningTmie;
+		}
 		
 		for(WorkflowInfo workflowTag : tags){
 			TotalIoTGeneratedData += workflowTag.getIotDeviceFlow().getSize(); 
@@ -142,93 +209,173 @@ public class PrintResults {
 			TotalMELGeneratedData += workflowTag.getEdgeToCloudFlow().getSize();
 			TotalCloudLetSizes += workflowTag.getCloudLet().getCloudletLength();			   
 		}
-
-		Log.printLine(String.format("%1s %15s %28s %26s %26s  %22s  %25s %18s %17s %15s %22s"
-				, appName
-				, isIoTDeviceDrained
-				,  new DecimalFormat("0.00").format(iotDeviceTotalConsumption) 
-				, TotalIoTGeneratedData 
-				, TotalEdgeLetSizes 
-				, TotalMELGeneratedData 
-				, TotalCloudLetSizes    
-				,  new DecimalFormat("0.000").format(StartTime) 
-				,  new DecimalFormat("0.000").format(EndTime) 
-				,  new DecimalFormat("0.000").format(SimluationTime)
-				,  new DecimalFormat("0.000").format(appTotalRunningTmie)				
-				));
+		
+		fromTag.App_Name = appName;
+		fromTag.IoTDeviceDrained = isIoTDeviceDrained;
+		fromTag.IoTDeviceBatteryConsumption = iotDeviceTotalConsumption;
+		fromTag.TotalIoTGeneratedData = TotalIoTGeneratedData;
+		fromTag.TotalEdgeLetSizes = TotalEdgeLetSizes;
+		fromTag.TotalMELGeneratedData = TotalMELGeneratedData;
+		fromTag.TotalCloudLetSizes = TotalCloudLetSizes;
+		fromTag.StartTime = StartTime;
+		fromTag.EndTime = EndTime;
+		fromTag.SimluationTime = SimluationTime;
+		fromTag.appTotalRunningTime = appTotalRunningTmie;
+		list.add(fromTag);
 	}
-	
-	public double detemineMaxValue(double oldValue, double newValue){
-		if(oldValue < newValue){
-			oldValue  = newValue;	
+
+	public static class PrintOsmosisAppFromTags {
+		public int APP_ID;
+		public String AppName;
+		public int Transaction;
+		public double StartTime;
+		public double FinishTime;
+		public String IoTDeviceName;
+		public String MELName;
+		public long DataSizeIoTDeviceToMEL_Mb;
+		public double TransmissionTimeIoTDeviceToMEL;
+		public double EdgeLetMISize;
+		public double EdgeLet_MEL_StartTime;
+		public double EdgeLet_MEL_FinishTime;
+		public double EdgeLetProccessingTimeByMEL;
+		public String DestinationVmName;
+		public long DataSizeMELToVM_Mb;
+		public double TransmissionTimeMELToVM;
+		public double CloudLetMISize;
+		public double CloudLetProccessingTimeByVM;
+		public double TransactionTotalTime;
+	}
+
+	public static List<String> sortLinks(List<Link> ls) {
+		HashMap<String, Integer> ingoingCount = new HashMap<>();
+		HashMap<String, Integer> outgoingCount = new HashMap<>();
+		HashMultimap<String, String> m = HashMultimap.create();
+		Set<String> set = new HashSet<>();
+		for (var edge : ls) {
+			if (edge == null) continue;
+			m.put(edge.src().getName(), edge.dst().getName());
+			set.add(edge.src().getName());
+			set.add(edge.dst().getName());
+			ingoingCount.compute(edge.dst().getName(), (s, integer) -> integer == null ? 1 : integer+1);
+			outgoingCount.compute(edge.src().getName(), (s, integer) -> integer == null ? 1 : integer+1);
 		}
-		return oldValue;
+		String src = null;
+		String dst = null;
+		for (var x : set) {
+			if (!ingoingCount.containsKey(x)) {
+				if (src != null)
+					throw new RuntimeException("Wrong assumption");
+				src = x;
+			}
+			if (!outgoingCount.containsKey(x)) {
+				if (dst != null)
+					throw new RuntimeException("Wrong assumption");
+				dst = x;
+			}
+		}
+		ingoingCount.clear();
+		outgoingCount.clear();
+		ArrayList<String> result = new ArrayList<>();
+//		while (!Objects.equals(src, dst)) {
+//			result.add(src);
+//			src = m.get(src);
+//		}
+//		result.add(src);
+		return result;
 	}
 
-	public void printNetworkStatistics(Flow flow){				
-			Log.printLine(String.format("%1s %21s %12s %19s %15s %12s %11s %22s %16s %22s "
-					, flow.getFlowId()
-					, "" 					
-					, flow.getAppName() 
-					, ""
-					, flow.getAppNameSrc() 
-					, flow.getAppNameDest()
-					, flow.getSize()  					
-					, new DecimalFormat("0.0000").format(flow.getStartTime()) 
-					, new DecimalFormat("0.0000").format(flow.getFinishTime() -  flow.getStartTime())   
-					, new DecimalFormat("0.0000").format(flow.getFinishTime())));		
-	}
-	
-	public void printOsmesisApp(List<WorkflowInfo> tags) {
-		if ((tags == null) || (tags.isEmpty())) return;
-		Log.printLine();				
-		Log.printLine("=========================== Osmesis App Results ========================");
-		Log.printLine(String.format("%1s %11s %18s %17s %17s %19s %20s %35s %37s %21s %29s %29s %33s %21s %23s %28s %20s %30s %25s %10s"
-				,"App_ID"
-				,"AppName"
-				,"Transaction"
-				,"StartTime"
-				,"FinishTime"
-				,"IoTDeviceName"
-				,"MELName"
-				,"DataSizeIoTDeviceToMEL_Mb"  
-				,"TransmissionTimeIoTDeviceToMEL"
-				,"EdgeLetMISize"
-				,"EdgeLet_MEL_StartTime"
-				,"EdgeLet_MEL_FinishTime"
-				,"EdgeLetProccessingTimeByMEL"				  
-				,"DestinationVmName"
-				,"DataSizeMELToVM_Mb"
-				,"TransmissionTimeMELToVM"  
-				,"CloudLetMISize"
-				,"CloudLetProccessingTimeByVM"  						
-				, "TransactionTotalTime"
-				, "   "));
-	
-		double transactionTotalTime;
-		for(WorkflowInfo workflowTag : tags){			
-			transactionTotalTime =  workflowTag.getIotDeviceFlow().getTransmissionTime() + workflowTag.getEdgeLet().getActualCPUTime()
+	public void generateAppTag(WorkflowInfo workflowTag,
+							   List<PrintOsmosisAppFromTags> list) {
+			ArrayList<Link> ls1 = new ArrayList<>();
+			var sx = workflowTag.getEdgeToCloudFlow();
+			if ((sx != null) && (sx.getNodeOnRouteList() != null)) ls1.addAll(sx.getLinkList());
+	//		Collections.reverse(ls1);
+			var dx = workflowTag.getIotDeviceFlow();
+			if ((dx != null) && (dx.getNodeOnRouteList() != null)) ls1.addAll(dx.getLinkList());
+			if (app_to_path == null) app_to_path = new TreeMap<>();
+
+			var res = sortLinks(new ArrayList<>(ls1));
+			app_to_path.put(workflowTag.getAppName(), res);
+
+			PrintOsmosisAppFromTags fromTag = new PrintOsmosisAppFromTags();
+			fromTag.APP_ID = workflowTag.getAppId();
+			fromTag.AppName = workflowTag.getAppName();
+			fromTag.Transaction = workflowTag.getWorkflowId();
+			fromTag.StartTime = workflowTag.getSartTime();
+			fromTag.FinishTime = workflowTag.getFinishTime();
+			fromTag.IoTDeviceName = workflowTag.getIotDeviceFlow().getAppNameSrc();
+			fromTag.MELName = workflowTag.getIotDeviceFlow().getAppNameDest() + " (" +workflowTag.getSourceDCName() + ")";
+			fromTag.DataSizeIoTDeviceToMEL_Mb = workflowTag.getIotDeviceFlow().getSize();
+			fromTag.TransmissionTimeIoTDeviceToMEL = workflowTag.getIotDeviceFlow().getTransmissionTime();
+			fromTag.EdgeLetMISize = workflowTag.getEdgeLet().getCloudletLength();
+			fromTag.EdgeLet_MEL_StartTime = workflowTag.getEdgeLet().getExecStartTime();
+			fromTag.EdgeLet_MEL_FinishTime = workflowTag.getEdgeLet().getFinishTime();
+			fromTag.EdgeLetProccessingTimeByMEL = workflowTag.getEdgeLet().getActualCPUTime();
+			fromTag.DestinationVmName = workflowTag.getEdgeToCloudFlow().getAppNameDest() + " (" +workflowTag.getDestinationDCName() + ")";
+			fromTag.DataSizeMELToVM_Mb = workflowTag.getEdgeToCloudFlow().getSize();
+			fromTag.TransmissionTimeMELToVM = workflowTag.getEdgeToCloudFlow().getTransmissionTime();
+			fromTag.CloudLetMISize = workflowTag.getCloudLet().getCloudletLength();
+			fromTag.CloudLetProccessingTimeByVM = workflowTag.getCloudLet().getActualCPUTime();
+			fromTag.TransactionTotalTime =  workflowTag.getIotDeviceFlow().getTransmissionTime() + workflowTag.getEdgeLet().getActualCPUTime()
 					+ workflowTag.getEdgeToCloudFlow().getTransmissionTime() + workflowTag.getCloudLet().getActualCPUTime();
-			Log.printLine(String.format("%1s %15s %15s %18s %18s %21s %23s %21s %34s %32s %24s %28s %31s %30s %18s %26s %23s %24s %28s"
-					, workflowTag.getAppId()
-					, workflowTag.getAppName()
-					, workflowTag.getWorkflowId()	
-					, new DecimalFormat("0.00").format(workflowTag.getSartTime())
-					, new DecimalFormat("0.00").format(workflowTag.getFinishTime())
-					, workflowTag.getIotDeviceFlow().getAppNameSrc() 
-					, workflowTag.getIotDeviceFlow().getAppNameDest() + " (" +workflowTag.getSourceDCName() + ")"
-					, workflowTag.getIotDeviceFlow().getSize()
-					, new DecimalFormat("0.00").format(workflowTag.getIotDeviceFlow().getTransmissionTime())
-					, workflowTag.getEdgeLet().getCloudletLength()
-					, new DecimalFormat("0.00").format(workflowTag.getEdgeLet().getExecStartTime())
-					, new DecimalFormat("0.00").format(workflowTag.getEdgeLet().getFinishTime())
-					, new DecimalFormat("0.00").format(workflowTag.getEdgeLet().getActualCPUTime())
-					, workflowTag.getEdgeToCloudFlow().getAppNameDest() + " (" +workflowTag.getDestinationDCName() + ")"
-					, workflowTag.getEdgeToCloudFlow().getSize()
-					, new DecimalFormat("0.00").format(workflowTag.getEdgeToCloudFlow().getTransmissionTime())
-					, workflowTag.getCloudLet().getCloudletLength()
-					, new DecimalFormat("0.00").format(workflowTag.getCloudLet().getActualCPUTime())
-					, new DecimalFormat("0.00").format(transactionTotalTime)));
+			list.add(fromTag);
+	}
+
+	public static class PowerConsumption {
+		public String dcName;
+		public String name;
+		public double energy;
+		public PowerConsumption() {}
+		public PowerConsumption(String dcName, String name, double energy) {
+			this.dcName = dcName;
+			this.name = name;
+			this.energy = energy;
 		}
-	}	
+	}
+
+	public static class ActualPowerUtilizationHistoryEntry {
+		public String dcName;
+		public String name;
+		public double startTime;
+		public double usedMips;
+
+		public ActualPowerUtilizationHistoryEntry(String dcName, String name, PowerUtilizationHistoryEntry entry) {
+			this.dcName = dcName;
+			this.name = name;
+			this.startTime = entry.startTime;
+			this.usedMips = entry.usedMips;
+		}
+	}
+
+	public static class ActualHistoryEntry {
+		private String dcName;
+		private String name;
+		public double startTime;
+		public double numActivePorts;
+
+		public ActualHistoryEntry(String dcName, String name, Switch.HistoryEntry entry) {
+			this.dcName = dcName;
+			this.name = name;
+			this.startTime = entry.startTime;
+			this.numActivePorts = entry.numActivePorts;
+		}
+	}
+	public static class EnergyConsumption {
+		public String dcName;
+		public double finishTime;
+		public double HostEnergyConsumed;
+		public double SwitchEnergyConsumed;
+		public double TotalEnergyConsumed;
+
+		public void finalise() {
+			TotalEnergyConsumed = HostEnergyConsumed + SwitchEnergyConsumed;
+		}
+
+		public void addHostPowerConsumption(double energy) {
+			HostEnergyConsumed += energy;
+		}
+		public void addSwitchPowerConsumption(double energy) {
+			SwitchEnergyConsumed += energy;
+		}
+	}
 }

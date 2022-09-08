@@ -71,7 +71,7 @@ public class VmAllocationPolicyCombinedLeastFullFirst extends VmAllocationPolicy
 			}
 			
 			if(idx==-1) {
-				System.err.println("Cannot assign the VM to any host:"+tries+"/"+numHosts);
+				logger.error("Cannot assign the VM to any host:"+tries+"/"+numHosts);
 				return false;
 			}
 			
@@ -107,7 +107,7 @@ public class VmAllocationPolicyCombinedLeastFullFirst extends VmAllocationPolicy
 			} 
 		}
 		if(!result) {
-			System.err.println("Cannot assign the VM to any host:"+"/"+numHosts);
+			logger.error("Cannot assign the VM to any host:"+"/"+numHosts);
 		}
 		logMaxNumHostsUsed();
 		return result;

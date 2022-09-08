@@ -39,6 +39,10 @@ public abstract class SDNRoutingPolicy {
 	protected Topology topology;
 	private String policyName;
 
+	public Topology getTopology() {
+		return topology;
+	}
+
 	public NetworkNIC inefficientNodeByName(String name) {
 		for (var node : nodeList) {
 			if (node.getName().equals(name))

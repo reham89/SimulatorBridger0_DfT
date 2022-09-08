@@ -8,6 +8,10 @@
 
 package org.cloudbus.cloudsim.core;
 
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import org.cloudbus.cloudsim.Log;
 import org.cloudbus.cloudsim.NetworkTopology;
 import org.cloudbus.cloudsim.core.predicates.Predicate;
@@ -29,6 +33,8 @@ import org.cloudbus.cloudsim.core.predicates.Predicate;
  * @since CloudSim Toolkit 1.0
  */
 public abstract class SimEntity implements Cloneable {
+
+	protected static Logger logger = LogManager.getRootLogger();
 
 	/** The name. */
 	private String name;
@@ -536,7 +542,7 @@ public abstract class SimEntity implements Cloneable {
 		}
 
 		if (entityId < 0) {
-			Log.printConcatLine(getName(), ".send(): Error - " + "invalid entity id ", entityId);
+			logger.error(getName(), ".send(): Error - " + "invalid entity id ", entityId);
 			return;
 		}
 

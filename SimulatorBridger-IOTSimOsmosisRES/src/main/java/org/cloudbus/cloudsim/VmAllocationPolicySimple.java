@@ -230,9 +230,10 @@ public class VmAllocationPolicySimple extends VmAllocationPolicy {
 			getUsedPes().put(vm.getUid(), requiredPes);
 			getFreePes().set(idx, getFreePes().get(idx) - requiredPes);
 
-			Log.formatLine(
-					"%.2f: VM #" + vm.getId() + " has been allocated to the host #" + host.getId(),
-					MainEventManager.clock());
+			logger.info(
+					String.format(
+							"%.2f: VM #" + vm.getId() + " has been allocated to the host #" + host.getId(),
+							MainEventManager.clock()));
 			return true;
 		}
 

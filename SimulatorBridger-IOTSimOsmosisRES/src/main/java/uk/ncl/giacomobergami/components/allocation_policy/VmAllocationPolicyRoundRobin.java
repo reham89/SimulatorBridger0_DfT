@@ -103,7 +103,7 @@ public class VmAllocationPolicyRoundRobin extends VmAllocationPolicy {
 			} while (ai.get() != initialValue);
 		}
 		if (result) {
-			System.out.println(vm.getVmName()+" to "+((EdgeDevice)designatedHost).getDeviceName());
+			logger.info(vm.getVmName()+" to "+((EdgeDevice)designatedHost).getDeviceName());
 		}
 		return result;
 	}
@@ -232,9 +232,9 @@ public class VmAllocationPolicyRoundRobin extends VmAllocationPolicy {
 			getUsedPes().put(vm.getUid(), requiredPes);
 			getFreePes().set(idx, getFreePes().get(idx) - requiredPes);
 
-			Log.formatLine(
+			logger.info(String.format(
 					"%.2f: VM #" + vm.getId() + " has been allocated to the host #" + host.getId(),
-					MainEventManager.clock());
+					MainEventManager.clock()));
 			return true;
 		}
 

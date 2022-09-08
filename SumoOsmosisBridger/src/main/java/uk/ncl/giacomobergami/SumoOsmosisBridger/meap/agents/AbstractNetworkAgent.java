@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 
 public class AbstractNetworkAgent extends AbstractAgent {
     private final AbstractAgent actualAgent;
+    private final MaximumFlowRoutingPolicy routing;
 
     /**
      *
@@ -29,6 +30,7 @@ public class AbstractNetworkAgent extends AbstractAgent {
      */
     public AbstractNetworkAgent(AbstractAgent actualAgent) {
         this.actualAgent = actualAgent;
+        routing = new MaximumFlowRoutingPolicy();
     }
     private static final SquaredCartesianDistanceFunction f = SquaredCartesianDistanceFunction.getInstance();
 
@@ -84,6 +86,7 @@ public class AbstractNetworkAgent extends AbstractAgent {
 
             case OptimalMinCostFlux -> {
                 String iot_prefix = "iot_";
+                String element_with_separator = "@";
                 AtomicInteger id_generator = new AtomicInteger(0);
                 List<String> id_to_name = new ArrayList<>();
                 Map<String, Integer> name_to_id = new HashMap<>();
@@ -108,7 +111,7 @@ public class AbstractNetworkAgent extends AbstractAgent {
                             throw new RuntimeException("ERROR: IoT senders do not match!");
                         for (var edgeCandidate : msgPayload.candidates) {
                             var edgeDataCenter = edgeCandidate.getLeft();
-                            var edgeNode = edgeCandidate.getRight();
+//                            var edgeNode = edgeCandidate.getRight();
                             networks.putIfAbsent(edgeDataCenter.getNet().name, edgeDataCenter);
                         }
                     }
@@ -124,8 +127,8 @@ public class AbstractNetworkAgent extends AbstractAgent {
                         if (dst == null)
                             throw new RuntimeException("Unresolved node: "+edge.dst());
                         // A disambiguated name contains the nome name as well as its network's name
-                        var actualSrcDisambiguatedName = edge.src().getName()+"@"+net.getKey();
-                        var actualDstDisambiguatedName = edge.dst().getName()+"@"+net.getKey();
+                        var actualSrcDisambiguatedName = edge.src().getName()+element_with_separator+net.getKey();
+                        var actualDstDisambiguatedName = edge.dst().getName()+element_with_separator+net.getKey();
                         name_to_id.computeIfAbsent(actualSrcDisambiguatedName, k -> {
                             id_to_name.add(k);
                             nodeType.put(k, src);
@@ -155,7 +158,7 @@ public class AbstractNetworkAgent extends AbstractAgent {
                         for (var edgeCandidate : msgPayload.candidates) {
                             var edgeDataCenter = edgeCandidate.getLeft();
                             var edgeNode = edgeCandidate.getRight();
-                            var edgeName = edgeNode.getDeviceName()+"@"+edgeDataCenter.getNet().name;
+                            var edgeName = edgeNode.getDeviceName()+element_with_separator+edgeDataCenter.getNet().name;
                             var edgeId = name_to_id.get(edgeName);
                             if (edgeId == null)
                                 throw new RuntimeException("ERROR:" +edgeName+" is not associated to an id!");
@@ -177,8 +180,8 @@ public class AbstractNetworkAgent extends AbstractAgent {
                         if (dst == null)
                             throw new RuntimeException("Unresolved node: "+edge.dst());
                         // A disambiguated name contains the nome name as well as its network's name
-                        var actualSrcDisambiguatedName = edge.src().getName()+"@"+net.getKey();
-                        var actualDstDisambiguatedName = edge.dst().getName()+"@"+net.getKey();
+                        var actualSrcDisambiguatedName = edge.src().getName()+element_with_separator+net.getKey();
+                        var actualDstDisambiguatedName = edge.dst().getName()+element_with_separator+net.getKey();
                         var srcId = name_to_id.get(actualSrcDisambiguatedName);
                         var dstId = name_to_id.get(actualDstDisambiguatedName);
                         if ((src.index() == dst.index()) && (src.getT() == NetworkNodeType.type.Host)) {
@@ -196,7 +199,7 @@ public class AbstractNetworkAgent extends AbstractAgent {
                             cost[srcId][dstId] = 1;
                         }
                     }
-                    var gateway = actualNetwork.getGateway().getName()+"@"+net.getKey();
+                    var gateway = actualNetwork.getGateway().getName()+element_with_separator+net.getKey();
                     var gatewayId = name_to_id.get(gateway);
                     if (gatewayId == null)
                         throw new RuntimeException("ERROR: unresolved gateway " + gateway);
@@ -269,8 +272,8 @@ public class AbstractNetworkAgent extends AbstractAgent {
                     var y = (CartesianPoint) nodeType.get(iotPath.get(0)).getVal2().getHost();
                     substring_starts_at = i;
                     network = iotPath.get(0).substring(iotPath.get(0).length()-substring_starts_at);
-                    if (!network.startsWith("@")) {
-                        if (!network.contains("@"))
+                    if (!network.startsWith(element_with_separator)) {
+                        if (!network.contains(element_with_separator))
                             throw new RuntimeException("Error: we expect that the common suffix starts with @");
                         int atSign = network.lastIndexOf('@');
                         network = network.substring(atSign);
@@ -298,12 +301,10 @@ public class AbstractNetworkAgent extends AbstractAgent {
                     var network = distinctPaths.getKey();
                     var network_routing = networks.get(network).getSdnController().getSdnRoutingPoloicy();
                     if (network_routing instanceof MaximumFlowRoutingPolicy) {
-                        var actualNetworkRouting = (MaximumFlowRoutingPolicy)network_routing;
-                        actualNetworkRouting.setNewPaths(distinctPaths.getValue());
+                        // Updating the connections and the paths given the attempt to connections
+                        ((MaximumFlowRoutingPolicy)network_routing).setNewPaths(distinctPaths.getValue());
                     }
-
                 }
-//                System.out.println(paths_for_network);
             }
         }
     }

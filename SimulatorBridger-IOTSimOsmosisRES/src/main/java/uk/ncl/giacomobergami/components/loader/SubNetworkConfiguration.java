@@ -21,6 +21,8 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
+import static org.cloudbus.cloudsim.edge.utils.LogUtil.logger;
+
 public class SubNetworkConfiguration {
     public List<Host> hosts;
     public List<VM> vms_or_mels;
@@ -125,7 +127,7 @@ public class SubNetworkConfiguration {
         datacenter.setSdnController(conf.asEdgeSDNController(datacenter));
         datacenter.initEdgeTopology(hostList, s_switch, s_links);
 
-        System.out.println("Edge SDN cotroller has been created");
+        logger.info("Edge SDN cotroller has been created: "+conf.datacenter_name);
 
         var MELList = vms_or_mels
                 .stream()

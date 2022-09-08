@@ -80,10 +80,10 @@ public class PowerDatacenterNonPowerAware extends PowerDatacenter {
 			double timeDiff = currentTime - getLastProcessTime();
 			double minTime = Double.MAX_VALUE;
 
-			Log.printLine("\n");
 
 			for (PowerHost host : this.<PowerHost> getHostList()) {
-				Log.formatLine("%.2f: Host #%d", MainEventManager.clock(), host.getId());
+				logger.debug(
+						String.format("%.2f: Host #%d", MainEventManager.clock(), host.getId()));
 
 				double hostPower = 0.0;
 
@@ -94,24 +94,25 @@ public class PowerDatacenterNonPowerAware extends PowerDatacenter {
 					e.printStackTrace();
 				}
 
-				Log.formatLine(
-						"%.2f: Host #%d utilization is %.2f%%",
+				logger.debug(String.format(
+								"%.2f: Host #%d utilization is %.2f%%",
 						MainEventManager.clock(),
 						host.getId(),
-						host.getUtilizationOfCpu() * 100);
-				Log.formatLine(
+						host.getUtilizationOfCpu() * 100));
+				;
+				logger.debug(String.format(
 						"%.2f: Host #%d energy is %.2f W*sec",
 						MainEventManager.clock(),
 						host.getId(),
-						hostPower);
+						hostPower));
 			}
 
-			Log.formatLine("\n%.2f: Consumed energy is %.2f W*sec\n", MainEventManager.clock(), timeframePower);
-
-			Log.printLine("\n\n--------------------------------------------------------------\n\n");
+			logger.debug(
+					String.format("\n%.2f: Consumed energy is %.2f W*sec\n", MainEventManager.clock(), timeframePower));
+			logger.debug("\n\n--------------------------------------------------------------\n\n");
 
 			for (PowerHost host : this.<PowerHost> getHostList()) {
-				Log.formatLine("\n%.2f: Host #%d", MainEventManager.clock(), host.getId());
+				logger.debug(String.format("\n%.2f: Host #%d", MainEventManager.clock(), host.getId()));
 
 				double time = host.updateVmsProcessing(currentTime); // inform VMs to update
 																		// processing
@@ -129,11 +130,9 @@ public class PowerDatacenterNonPowerAware extends PowerDatacenter {
 				for (Vm vm : host.getCompletedVms()) {
 					getVmAllocationPolicy().deallocateHostForVm(vm);
 					getVmList().remove(vm);
-					Log.printLine("VM #" + vm.getId() + " has been deallocated from host #" + host.getId());
+					logger.info("VM #" + vm.getId() + " has been deallocated from host #" + host.getId());
 				}
 			}
-
-			Log.printLine();
 
 			if (!isDisableMigrations()) {
 				List<Map<String, Object>> migrationMap = getVmAllocationPolicy().optimizeAllocation(
@@ -146,18 +145,18 @@ public class PowerDatacenterNonPowerAware extends PowerDatacenter {
 						PowerHost oldHost = (PowerHost) vm.getHost();
 
 						if (oldHost == null) {
-							Log.formatLine(
+							logger.debug(String.format(
 									"%.2f: Migration of VM #%d to Host #%d is started",
 									MainEventManager.clock(),
 									vm.getId(),
-									targetHost.getId());
+									targetHost.getId()));
 						} else {
-							Log.formatLine(
+							logger.debug(String.format(
 									"%.2f: Migration of VM #%d from Host #%d to Host #%d is started",
 									MainEventManager.clock(),
 									vm.getId(),
 									oldHost.getId(),
-									targetHost.getId());
+									targetHost.getId()));
 						}
 
 						targetHost.addMigratingInVm(vm);
