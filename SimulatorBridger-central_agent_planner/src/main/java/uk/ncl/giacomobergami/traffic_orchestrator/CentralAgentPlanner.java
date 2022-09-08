@@ -277,7 +277,7 @@ public class CentralAgentPlanner {
         }
     }
 
-    void serializeAll() {
+    public void serializeAll() {
         logger.trace("Serializing data...");
         logger.trace(" * solver_time ");
         write_json(statsFolder, new File(statsFolder.getAbsoluteFile(), "solver_time.json").toString(), problemSolvingTime);

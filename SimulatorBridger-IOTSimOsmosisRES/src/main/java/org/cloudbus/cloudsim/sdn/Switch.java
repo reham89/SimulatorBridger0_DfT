@@ -7,16 +7,14 @@
  */
 package org.cloudbus.cloudsim.sdn;
 
-import java.util.ArrayList;
-import java.util.Hashtable;
-import java.util.List;
-import java.util.Map;
-
 import org.cloudbus.cloudsim.core.MainEventManager;
 import org.cloudbus.cloudsim.core.SimEntity;
 import org.cloudbus.cloudsim.core.SimEvent;
-
 import org.cloudbus.osmosis.core.Flow;
+
+import java.util.ArrayList;
+import java.util.Hashtable;
+import java.util.List;
 
 /**
  * This represents switches that maintain routing information.
@@ -29,10 +27,6 @@ import org.cloudbus.osmosis.core.Flow;
  * @since CloudSimSDN 1.0
  */
 public class Switch extends SimEntity implements NetworkNIC{
-	List<NetworkNIC> adjuNodes = new ArrayList<>(); 
-
-	Map<Flow,Double> delayQueuing;
-	
 	private static double POWER_CONSUMPTION_IDLE = 66.7;
 	private static double POWER_CONSUMPTION_PER_ACTIVE_PORT = 1; 
 	/* based on CARPO: Correlation-Aware Power Optimization in Data Center Networks by Xiaodong Wang et al. */
@@ -47,12 +41,8 @@ public class Switch extends SimEntity implements NetworkNIC{
 	public String getSwType() {
 		return swType;
 	}
-
-
 	ArrayList<Link> links = new ArrayList<>();
-
 	ForwardingTable forwardingTable;
-
 	Hashtable<Flow,Long> processingTable;
 					
 	public Switch(String name, String switchType, long iops) {
@@ -60,7 +50,6 @@ public class Switch extends SimEntity implements NetworkNIC{
 		this.swType = switchType;
 		this.iops = iops;
 		this.previousTime = 0.0;
-
 		this.forwardingTable = new ForwardingTable();
 		this.processingTable = new Hashtable<Flow,Long>();
 	}
@@ -74,7 +63,6 @@ public class Switch extends SimEntity implements NetworkNIC{
 	@Override
 	public void processEvent(SimEvent ev) {
 		int tag = ev.getTag();
-		
 		switch(tag){
 			default: System.out.println("Unknown event received by "+super.getName()+". Tag:"+ev.getTag());
 		}
@@ -83,7 +71,6 @@ public class Switch extends SimEntity implements NetworkNIC{
 	public void addLink(Link l){
 		this.links.add(l);
 	}
-	
 	
 	/************************************************
 	 *  Calculate Utilization history
@@ -102,7 +89,6 @@ public class Switch extends SimEntity implements NetworkNIC{
 	}
 	
 	public double getUtilizationEnergyConsumption() {
-		
 		double total=0;
 		double lastTime=0;
 		int lastPort=0;
@@ -122,7 +108,7 @@ public class Switch extends SimEntity implements NetworkNIC{
 			lastTime = h.startTime;
 			lastPort = h.numActivePorts;
 		}
-		return total/3600;	// transform to Whatt*hour from What*seconds
+		return total/3600.0;	// transform to Whatt*hour from What*seconds
 	}
 	public void updateNetworkUtilization() {
 		this.addUtilizationEntry();
@@ -147,16 +133,10 @@ public class Switch extends SimEntity implements NetworkNIC{
 		this.utilizationHistories.add(new HistoryEntry(time, totalActivePorts));
 	}
 	private double calculatePower(int numActivePort) {
-//		double power = POWER_CONSUMPTION_IDLE + POWER_CONSUMPTION_PER_ACTIVE_PORT * numActivePort;
 		return POWER_CONSUMPTION_IDLE + POWER_CONSUMPTION_PER_ACTIVE_PORT * numActivePort;
 	}
 	private int getTotalActivePorts() {
 		return  (int)this.links.stream().filter(Link::isActive).count();
-//		for(Link l:this.links) {
-//			if(l.isActive())
-//				num++;
-//		}
-//		return num;
 	}
 	
 	/******* Routeable interface implementation methods ******/
@@ -165,64 +145,9 @@ public class Switch extends SimEntity implements NetworkNIC{
 	public int getAddress() {
 		return super.getId();
 	}
-	
-//	@Override
-//	public void clearVMRoutingTable(){
-//		this.forwardingTable.clear();
-//	}
-//
-//	@Override
-//	public void addRoute(int src, int dest, int flowId, NetworkNIC to){
-//		this.forwardingTable.addRule(src, dest, flowId, to);
-//	}
-	
-//	@Override
-//	public NetworkNIC getVMRoute(int src, int dest, int flowId){
-//		NetworkNIC route= this.forwardingTable.getRoute(src, dest, flowId);
-//		if(route == null) {
-////			this.printVMRoute();
-//			System.err.println("SDNSwitch.getRoute() ERROR: Cannot find route:" +
-//					NetworkOperatingSystem.debugVmIdName.get(src) + "->"+
-//					NetworkOperatingSystem.debugVmIdName.get(dest) + ", flow ="+flowId);
-//		}
-//
-//		return route;
-//	}
-	
-//	@Override
-//	public void removeVMRoute(int src, int dest, int flowId){
-//		forwardingTable.removeRule(src, dest, flowId);
-//	}
 
-	
 	public String toString() {
 		return "Switch: "+this.getName();
 	}
-
-
-//	@Override
-//	public NetworkNIC updateVMRoute(int srcVM, int destVM, int flowId, NetworkNIC to) {
-//		// TODO Auto-generated method stub
-//		this.forwardingTable.addRule(srcVM, destVM, flowId, to);
-//		return null;
-//	}
-
-//	@Override
-//	public void setAdjancentNodes(List<NetworkNIC> nodes) {
-//		// TODO Auto-generated method stub
-//		adjuNodes.addAll(nodes);
-//	}
-//
-//	@Override
-//	public List<NetworkNIC> getAdjancentNodes() {
-//		return this.adjuNodes;
-//
-//	}
-//
-//	@Override
-//	public void addRoute(NetworkNIC srcHost, NetworkNIC desthost, int flowId, NetworkNIC nextNode) {
-//		// TODO Auto-generated method stub
-//		this.forwardingTable.addRule(srcHost.getAddress(), desthost.getAddress(), flowId, nextNode);
-//	}
 
 }

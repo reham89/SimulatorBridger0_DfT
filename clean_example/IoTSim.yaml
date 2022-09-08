@@ -6,17 +6,16 @@ start_vehicle_time:             0.0 #clean_example/1_traffic_information_collect
 simulation_step:                1.0 #clean_example/1_traffic_information_collector_configuration/converter.yaml, step
 end_vehicle_time:               100 #clean_example/1_traffic_information_collector_configuration/converter.yaml, end
 only_one_mel_per_edge_network:  no
-mel_routing_policy:             "uk.ncl.giacomobergami.SumoOsmosisBridger.osmotic.mel_routing.MELNearestDistanceSwitch"   # MEL switch policy
+mel_routing_policy:             "uk.ncl.giacomobergami.SumoOsmosisBridger.osmotic.mel_routing.MELDelegatedHost"           # MEL switch policy
 mel_app_policy:                 "NETWORK_MEL"                                                                             # This is exploited only when generating the CSV apps from legacy configuration
 ignore_csv_apps:                yes                                                                                       # Whether we need to generate no CSV apps (e.g., we exploit run-time communication)
-netsim_output:                  "clean_example/3_extIOTSim_output"
 
-## Linking old configuration files and generated outputs
-converter_yaml:                 "clean_example/1_traffic_information_collector_configuration/converter.yaml"
-strongly_connected_components:  "clean_example/1_traffic_information_collector_output/rsu.csv_timed_scc.json"
-edge_neighbours:                "clean_example/1_traffic_information_collector_output/rsu.csv_neighboursChange.json"
-iots:                           "clean_example/2_central_agent_oracle_output/vehicle.json"
-edge_information:               "clean_example/2_central_agent_oracle_output/rsu.json"
+## Input: Linking old configuration files and generated outputs
+converter_yaml:                 # dynamically defined
+strongly_connected_components:  # dynamically defined
+edge_neighbours:                # dynamically defined
+iots:                           # dynamically defined
+edge_information:               # dynamically defined
 
 ## Novel configuration files required for generating the network
 iot_generators:                 "clean_example/3_extIOTSim_configuration/iot_generators.yaml"
@@ -25,3 +24,6 @@ edge_general_configuration:     "clean_example/3_extIOTSim_configuration/edge_ge
 wan_general_configuration:      "clean_example/3_extIOTSim_configuration/wan_generator.yaml"
 RES_CONFIG_FILE:                null
 AGENT_CONFIG_FILE:              "clean_example/3_extIOTSim_configuration/agent_config.json"
+
+## Output:
+netsim_output:                  # dynamically defined

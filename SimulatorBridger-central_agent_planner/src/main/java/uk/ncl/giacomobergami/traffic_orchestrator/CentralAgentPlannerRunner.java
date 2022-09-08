@@ -40,10 +40,10 @@ public class CentralAgentPlannerRunner {
         return obj;
     }
 
-    public static void orchestrate(String configuration,
-                                   String conf2) {
-        Optional<OrchestratorConfiguration> conf = YAML.parse(OrchestratorConfiguration.class, new File(configuration));
-        Optional<TrafficConfiguration> conf3 = YAML.parse(TrafficConfiguration.class, new File(conf2));
+    public static void orchestrate(String conf2,
+                                   String conf1) {
+        Optional<OrchestratorConfiguration> conf = YAML.parse(OrchestratorConfiguration.class, new File(conf2));
+        Optional<TrafficConfiguration> conf3 = YAML.parse(TrafficConfiguration.class, new File(conf1));
         conf.ifPresent(x -> conf3.ifPresent(y -> {
             CentralAgentPlanner conv = generateFacade(x, y);
             conv.run();

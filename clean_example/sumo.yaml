@@ -1,3 +1,4 @@
+
 trace_file: "clean_example/1_sumo_output/sumo_trace_TAVF.xml"
 logger_file: "clean_example/1_sumo_output/sumo_log.txt"
 sumo_program: "sumo"                                                                            # The path via which run the program, OS dependant!

@@ -56,7 +56,7 @@ public class PrintResults {
 	List<PowerConsumption> spc;
 	List<ActualPowerUtilizationHistoryEntry> puhe;
 	List<ActualHistoryEntry> ahe;
-	TreeMap<String, List<String>> app_to_path;
+//	TreeMap<String, List<String>> app_to_path;
 
 	public void dumpCSV(File folder) {
 		if (!folder.exists()) {
@@ -70,11 +70,11 @@ public class PrintResults {
 		new CSVMediator<>(PowerConsumption.class).writeAll(new File(folder, "SwitchPowerConsumption.csv"), spc);
 		new CSVMediator<>(ActualPowerUtilizationHistoryEntry.class).writeAll(new File(folder, "PowerUtilisationHistory.csv"), puhe);
 		new CSVMediator<>(ActualHistoryEntry.class).writeAll(new File(folder, "HistoryEntry.csv"), ahe);
-		try {
-			Files.writeString(new File(folder, "paths.json").toPath(), new Gson().toJson(app_to_path));
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+//		try {
+//			Files.writeString(new File(folder, "paths.json").toPath(), new Gson().toJson(app_to_path));
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		}
 	}
 
 	public void addHostPowerConsumption(String dcName, String name, double energy) {
@@ -286,16 +286,15 @@ public class PrintResults {
 
 	public void generateAppTag(WorkflowInfo workflowTag,
 							   List<PrintOsmosisAppFromTags> list) {
-			ArrayList<Link> ls1 = new ArrayList<>();
-			var sx = workflowTag.getEdgeToCloudFlow();
-			if ((sx != null) && (sx.getNodeOnRouteList() != null)) ls1.addAll(sx.getLinkList());
+//			ArrayList<Link> ls1 = new ArrayList<>();
+//			var sx = workflowTag.getEdgeToCloudFlow();
+//			if ((sx != null) && (sx.getNodeOnRouteList() != null)) ls1.addAll(sx.getLinkList());
 	//		Collections.reverse(ls1);
-			var dx = workflowTag.getIotDeviceFlow();
-			if ((dx != null) && (dx.getNodeOnRouteList() != null)) ls1.addAll(dx.getLinkList());
-			if (app_to_path == null) app_to_path = new TreeMap<>();
-
-			var res = sortLinks(new ArrayList<>(ls1));
-			app_to_path.put(workflowTag.getAppName(), res);
+//			var dx = workflowTag.getIotDeviceFlow();
+//			if ((dx != null) && (dx.getNodeOnRouteList() != null)) ls1.addAll(dx.getLinkList());
+//			if (app_to_path == null) app_to_path = new TreeMap<>();
+//			var res = sortLinks(new ArrayList<>(ls1));
+//			app_to_path.put(workflowTag.getAppName(), res);
 
 			PrintOsmosisAppFromTags fromTag = new PrintOsmosisAppFromTags();
 			fromTag.APP_ID = workflowTag.getAppId();

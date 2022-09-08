@@ -289,7 +289,8 @@ public class OsmoticWrapper {
                 res_printer.postMortemAnalysis(energyControllers, conf.simulationStartTime, true,1, appList);
             }
 
-            pr.dumpCSV(new File("log_osmosis_results"));
+            if (conf.output_simulation_file != null)
+                pr.dumpCSV(new File(conf.output_simulation_file));
         }
     }
 

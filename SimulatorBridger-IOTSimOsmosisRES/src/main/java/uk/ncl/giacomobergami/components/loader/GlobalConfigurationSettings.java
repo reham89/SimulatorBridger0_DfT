@@ -25,6 +25,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class GlobalConfigurationSettings {
+    public String output_simulation_file;
     public String logLevel;
     public  boolean saveLogToFile;
     public  String logFilePath;
@@ -144,7 +145,8 @@ public class GlobalConfigurationSettings {
                                        String iot_traces,
                                        double delta,
                                        String AGENT_CONFIG_FILE,
-                                       String RES_CONFIG_FILE) {
+                                       String RES_CONFIG_FILE,
+                                       String output_simulation_file) {
         this();
         this.actualEdgeDataCenters = actualEdgeDataCenters;
         this.actualCloudDataCenters = actualCloudDataCenters;
@@ -170,6 +172,7 @@ public class GlobalConfigurationSettings {
         this.simulation_step = delta;
         this.AGENT_CONFIG_FILE = AGENT_CONFIG_FILE;
         this.RES_CONFIG_FILE = RES_CONFIG_FILE;
+        this.output_simulation_file = output_simulation_file;
     }
 
     public static OsmoticAppDescription asLegacyApp(WorkloadCSV novel) {

@@ -167,6 +167,7 @@ public class EnsembleConfigurations {
         public boolean ignore_csv_apps;
         public String AGENT_CONFIG_FILE;
         public String RES_CONFIG_FILE;
+        public String netsim_output;
 
         public IoTEntityGenerator first() {
             return new IoTEntityGenerator(new File(iots), new File(iot_generators));
@@ -306,7 +307,8 @@ public class EnsembleConfigurations {
                 confDis.iots,
                 confDis.simulation_step,
                 confDis.AGENT_CONFIG_FILE,
-                confDis.RES_CONFIG_FILE);
+                confDis.RES_CONFIG_FILE,
+                confDis.netsim_output);
     }
 
 
@@ -331,7 +333,6 @@ public class EnsembleConfigurations {
         var conf = YAML.parse(EnsembleConfigurations.Configuration.class, configuration_file).orElseThrow();
         var ec = new EnsembleConfigurations(conf.first(), conf.second(), conf.third(), conf.fourth(), conf.fith());
         var ls = ec.getTimedPossibleConfigurations(conf);
-        var dump = new File(configuration_file.getParentFile(), "dump");
         ls.forEach(OsmoticRunner::runFromConfiguration);
         return true;
     }

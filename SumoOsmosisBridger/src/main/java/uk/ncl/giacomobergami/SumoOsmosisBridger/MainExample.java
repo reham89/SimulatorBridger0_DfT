@@ -3,12 +3,29 @@ package uk.ncl.giacomobergami.SumoOsmosisBridger;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.LoggerContext;
 import uk.ncl.giacomobergami.SumoOsmosisBridger.network_generators.EnsembleConfigurations;
+import uk.ncl.giacomobergami.components.OsmoticRunner;
 import uk.ncl.giacomobergami.traffic_converter.TrafficConverterRunner;
+import uk.ncl.giacomobergami.traffic_converter.abstracted.TrafficConverter;
+import uk.ncl.giacomobergami.traffic_orchestrator.CentralAgentPlanner;
 import uk.ncl.giacomobergami.traffic_orchestrator.CentralAgentPlannerRunner;
+import uk.ncl.giacomobergami.utils.data.YAML;
+import uk.ncl.giacomobergami.utils.pipeline_confs.OrchestratorConfiguration;
+import uk.ncl.giacomobergami.utils.pipeline_confs.TrafficConfiguration;
 
 import java.io.File;
+import java.util.Optional;
 
 public class MainExample {
+
+    private static final String converter_out = "1_traffic_information_collector_output";
+    private static final String converter_out_RSUCsvFile = "rsu.csv";
+    private static final String converter_out_VehicleCsvFile = "vehicle.csv";
+    private static final String orchestrator_out = "2_central_agent_oracle_output";
+    private static final String orchestrator_out_rsujsonFile = "rsu.json";
+    private static final String orchestrator_out_vehiclejsonFile = "vehicle.json";
+    private static final String orchestrator_out_output_stats_folder = "stats";
+    private static final String orchestrator_out_output_experiment_name = "test";
+    private static final String final_out = "3_extIOTSim_output";
 
     static {
         File file = new File("log4j2.xml");
@@ -17,16 +34,67 @@ public class MainExample {
     }
 
     public static void main(String args[]) {
-        String converter = "clean_example/1_traffic_information_collector_configuration/converter.yaml";
-        String orchestrator = "clean_example/2_central_agent_oracle_configuration/orchestrator.yaml";
-        String simulator_runner = "clean_example/3_extIOTSim_configuration/main.yaml";
-        if (args.length >= 2) {
+        String converter = "clean_example/converter.yaml";
+        String orchestrator = "clean_example/orchestrator.yaml";
+        String simulator_runner = "clean_example/IoTSim.yaml";
+        if (args.length >= 3) {
             converter = args[0];
             orchestrator = args[1];
+            simulator_runner = args[2];
         }
-//        TrafficConverterRunner.convert(converter);
-//        CentralAgentPlannerRunner.orchestrate(orchestrator, converter);
-        EnsembleConfigurations.runConfigurationFromFile(simulator_runner);
+        String finalOrchestrator = orchestrator;
+        String finalSimulator_runner = simulator_runner;
+
+        // Dumping the traffic simulation
+        var converter_file = new File(converter).getAbsoluteFile();
+        Optional<TrafficConfiguration> conf1 = YAML.parse(TrafficConfiguration.class, converter_file);
+        // First configuration step
+        conf1.ifPresent(y -> {
+            var output_folder_1 = new File(converter_file.getParentFile(), converter_out);
+            if (!output_folder_1.exists()) {
+                output_folder_1.mkdirs();
+            }
+            y.RSUCsvFile = new File(output_folder_1, converter_out_RSUCsvFile).getAbsolutePath();
+            y.VehicleCsvFile = new File(output_folder_1, converter_out_VehicleCsvFile).getAbsolutePath();
+            TrafficConverter conv1 = TrafficConverterRunner.generateFacade(y);
+            conv1.run();
+            var orchestrator_file = new File(finalOrchestrator).getAbsoluteFile();
+            Optional<OrchestratorConfiguration> conf2 = YAML.parse(OrchestratorConfiguration.class, orchestrator_file);
+
+            // Second configuration step
+            conf2.ifPresent(x -> {
+                var output_folder_2 = new File(orchestrator_file.getParentFile(), orchestrator_out);
+                if (!output_folder_2.exists()) {
+                    output_folder_2.mkdirs();
+                }
+                x.RSUCsvFile = y.RSUCsvFile;
+                x.vehicleCSVFile = y.VehicleCsvFile;
+                x.RSUJsonFile = new File(output_folder_2, orchestrator_out_rsujsonFile).getAbsolutePath();
+                x.vehiclejsonFile = new File(output_folder_2, orchestrator_out_vehiclejsonFile).getAbsolutePath();
+                x.output_stats_folder = new File(output_folder_2, orchestrator_out_output_stats_folder).getAbsolutePath();
+                x.experiment_name = orchestrator_out_output_experiment_name;
+                CentralAgentPlanner conv2 = CentralAgentPlannerRunner.generateFacade(x, y);
+                conv2.run();
+                conv2.serializeAll();
+
+                // Third configuration step
+                var configuration_file = new File(finalSimulator_runner).getAbsoluteFile();
+                var conf3 = YAML.parse(EnsembleConfigurations.Configuration.class, configuration_file).orElseThrow();
+                conf3.converter_yaml = converter_file.getAbsolutePath();
+                conf3.strongly_connected_components = new File(output_folder_1, converter_out_RSUCsvFile+"_timed_scc.json").getAbsolutePath();
+                conf3.edge_neighbours = new File(output_folder_1, converter_out_RSUCsvFile+"_neighboursChange.json").getAbsolutePath();
+                conf3.iots = x.vehiclejsonFile;
+                conf3.edge_information = x.RSUJsonFile;
+                var output_folder_3 = new File(configuration_file.getParentFile(), final_out);
+                if (!output_folder_3.exists()) {
+                    output_folder_3.mkdirs();
+                }
+                conf3.netsim_output = output_folder_3.getAbsolutePath();
+                var conv3 = new EnsembleConfigurations(conf3.first(), conf3.second(), conf3.third(), conf3.fourth(), conf3.fith());
+                var configuration_for_each_network_change = conv3.getTimedPossibleConfigurations(conf3);
+                configuration_for_each_network_change.forEach(OsmoticRunner::runFromConfiguration);
+            });
+        });
     }
 
 }
