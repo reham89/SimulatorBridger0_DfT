@@ -1,6 +1,9 @@
 package uk.ncl.giacomobergami.SumoOsmosisBridger.network_generators;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import uk.ncl.giacomobergami.SumoOsmosisBridger.network_generators.from_traffic_data.EdgeNetworksGenerator;
+import uk.ncl.giacomobergami.components.OsmoticRunner;
 import uk.ncl.giacomobergami.components.iot.IoTEntityGenerator;
 import uk.ncl.giacomobergami.SumoOsmosisBridger.network_generators.from_traffic_data.TimeTicker;
 import uk.ncl.giacomobergami.components.iot.IoTDeviceTabularConfiguration;
@@ -11,6 +14,7 @@ import uk.ncl.giacomobergami.utils.annotations.Input;
 import uk.ncl.giacomobergami.utils.annotations.Output;
 import uk.ncl.giacomobergami.utils.asthmatic.WorkloadCSV;
 import uk.ncl.giacomobergami.utils.data.YAML;
+import uk.ncl.giacomobergami.utils.pipeline_confs.TrafficConfiguration;
 import uk.ncl.giacomobergami.utils.shared_data.edge.TimedEdge;
 import uk.ncl.giacomobergami.utils.structures.ImmutablePair;
 
@@ -27,6 +31,7 @@ public class EnsembleConfigurations {
     private final CloudInfrastructureGenerator.Configuration cloud;
     private final  EdgeInfrastructureGenerator.Configuration edge;
     private final WANInfrastructureGenerator.Configuration wan_conf;
+    private final static Logger logger = LogManager.getRootLogger();
 
     public enum MEL_APP_POLICY {
         ANY_MEL,
@@ -155,15 +160,30 @@ public class EnsembleConfigurations {
         public String cloud_general_configuration;      // /home/giacomo/IdeaProjects/SimulatorBridger/cloud_generators.yaml
         public String edge_general_configuration;       // /home/giacomo/IdeaProjects/SimulatorBridger/edge_generators.yaml
         public String wan_general_configuration;       // /home/giacomo/IdeaProjects/SimulatorBridger/edge_generators.yaml
+        public String converter_yaml;
         public String mel_app_policy;
         public boolean only_one_mel_per_edge_network;
         public String mel_routing_policy;
+        public boolean ignore_csv_apps;
+        public String AGENT_CONFIG_FILE;
+        public String RES_CONFIG_FILE;
 
         public IoTEntityGenerator first() {
             return new IoTEntityGenerator(new File(iots), new File(iot_generators));
         }
 
         public TimeTicker ticker() {
+            if (converter_yaml != null) {
+                Optional<TrafficConfiguration> conf = YAML.parse(TrafficConfiguration.class, new File(converter_yaml));
+                if (conf.isPresent()) {
+                    start_vehicle_time = conf.get().begin;
+                    end_vehicle_time = conf.get().end;
+                    simulation_step = conf.get().step;
+                } else {
+                    logger.fatal("ERROR: the "+converter_yaml+" file from which the simulation times and granularity are stated is missing. Aborting!");
+                    System.exit(1);
+                }
+            }
             return new TimeTicker(start_vehicle_time, simulation_step, end_vehicle_time);
         }
 
@@ -195,19 +215,23 @@ public class EnsembleConfigurations {
         MEL_APP_POLICY casus = MEL_APP_POLICY.valueOf(conf.mel_app_policy);
 
         for (var consistent_network_conf : edgeNetworkGenerator.simulation_intervals) {
-            var filteredApps = globalApps
-                    .stream()
-                    .filter(x -> (consistent_network_conf.getLeft() <= x.StartDataGenerationTime_Sec) &&
-                            (consistent_network_conf.getRight() >= x.StopDataGeneration_Sec))
-                    .collect(Collectors.toList());
-
+            List<WorkloadCSV> filteredApps;
+            if (conf.ignore_csv_apps) {
+                filteredApps = Collections.emptyList();
+            } else {
+                filteredApps = globalApps
+                        .stream()
+                        .filter(x -> (consistent_network_conf.getLeft() <= x.StartDataGenerationTime_Sec) &&
+                                (consistent_network_conf.getRight() >= x.StopDataGeneration_Sec))
+                        .collect(Collectors.toList());
+            }
 
             Map<String, String> nodeToCloudName = new HashMap<>();
             var time = consistent_network_conf.getLeft();
             List<EdgeInfrastructureGenerator.Configuration> edgeNets = generateConfigurationForSimulationTime(time, edge, nodeToCloudName);
 
             filteredApps.forEach(x -> {
-                x.VmName = "VM_1";
+                x.VmName = "VM_1"; // TODO: VM_scheduling, or not, depending on the configuration
                 if (casus == null)
                     x.MELName = "*";
                 else switch (casus) {
@@ -222,7 +246,14 @@ public class EnsembleConfigurations {
                                                                                                       conf.IoTMultiplicityForVMs,
                                                                                                       nSCC,
                                                                                                       cloud);
-            ls.add(ensemble(consistent_network_conf.getLeft(), cloudNets, edgeNets, wan_conf, iotDevices, filteredApps, conf));
+            ls.add(ensemble(consistent_network_conf.getLeft(),
+                            cloudNets,
+                            edgeNets,
+                            wan_conf,
+                            iotDevices,
+                            filteredApps,
+                            conf)
+                    );
         }
         return ls;
     }
@@ -273,7 +304,9 @@ public class EnsembleConfigurations {
                 confDis.start_time,
                 confDis.mel_routing_policy,
                 confDis.iots,
-                confDis.simulation_step);
+                confDis.simulation_step,
+                confDis.AGENT_CONFIG_FILE,
+                confDis.RES_CONFIG_FILE);
     }
 
 
@@ -290,6 +323,16 @@ public class EnsembleConfigurations {
                 ls.get(i).dump(f);
             }
         }
+        return true;
+    }
+
+    public static boolean runConfigurationFromFile(@Input String file) {
+        var configuration_file = new File(file);
+        var conf = YAML.parse(EnsembleConfigurations.Configuration.class, configuration_file).orElseThrow();
+        var ec = new EnsembleConfigurations(conf.first(), conf.second(), conf.third(), conf.fourth(), conf.fith());
+        var ls = ec.getTimedPossibleConfigurations(conf);
+        var dump = new File(configuration_file.getParentFile(), "dump");
+        ls.forEach(OsmoticRunner::runFromConfiguration);
         return true;
     }
 

@@ -22,6 +22,8 @@ package uk.ncl.giacomobergami.traffic_orchestrator.solver;
 
 import com.eatthepath.jvptree.VPTree;
 import io.jenetics.ext.moea.ParetoFront;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import uk.ncl.giacomobergami.utils.algorithms.CartesianProduct;
 import uk.ncl.giacomobergami.utils.gir.SquaredCartesianDistanceFunction;
 import uk.ncl.giacomobergami.utils.shared_data.edge.TimedEdge;
@@ -46,6 +48,7 @@ public class LocalTimeOptimizationProblem {
     Map<TimedIoT, ArrayList<TimedEdge>> vehicles_communicating_with_nearest_RSUs;
     Random rd;
     long run_time;
+    private static Logger logger = LogManager.getRootLogger();
 
     public LocalTimeOptimizationProblem(List<TimedIoT> vehicles,
                                         ReconstructNetworkInformation.TimedNetwork tInfo
@@ -190,12 +193,11 @@ public class LocalTimeOptimizationProblem {
         }
 
         for (int i = 0; i < allPossiblePairs.size(); i++) {
-            if (i % 1000 == 0) System.out.print(i+"... ");
-            System.out.flush();
+            if (i % 1000 == 0) logger.info(i+"... ");
             all.add(computeRanking(k1, k2, ignoreCubic, allPossiblePairs.get(i), updateAfterFlow));
         }
         final ParetoFront<double[]> front = new ParetoFront<>(dominance);
-        System.out.println("\nParetoing...");
+        logger.info("\nParetoing...");
         all.forEach(x -> front.add(x.objectives));
         double[] prev = new double[]{Double.MAX_VALUE,Double.MAX_VALUE,Double.MAX_VALUE};
         for (int i = 0, N = all.size(); i<N; i++) {
@@ -220,7 +222,7 @@ public class LocalTimeOptimizationProblem {
         }
 
         run_time += (System.currentTimeMillis() - startTime);
-        System.out.println("Solution found: " + solutionList.size() + " over " + all.size());
+        logger.info("Solution found: " + solutionList.size() + " over " + all.size());
         return solutionList;
     }
 
@@ -443,7 +445,7 @@ public class LocalTimeOptimizationProblem {
             if (!distanceQueryResult.isEmpty()) {
                 hasSomeResult = true;
                 for (var veh : distanceQueryResult) {
-                    System.out.println("d("+veh.id+","+x.id+")="+f.getDistance(veh,x)+" ["+veh.x+","+veh.y+"]--["+x.x+","+x.y+"]");
+                    logger.debug("d("+veh.id+","+x.id+")="+f.getDistance(veh,x)+" ["+veh.x+","+veh.y+"]--["+x.x+","+x.y+"]");
                     vehicles_communicating_with_nearest_RSUs.get(veh).add(x);
                     visitedVehicles.add(veh.id);
                 }

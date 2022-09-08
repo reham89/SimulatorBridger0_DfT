@@ -1,5 +1,7 @@
 package uk.ncl.giacomobergami.utils.shared_data.edge;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import uk.ncl.giacomobergami.utils.algorithms.ClusterDifference;
 import uk.ncl.giacomobergami.utils.shared_data.abstracted.SimulationProgram;
 import uk.ncl.giacomobergami.utils.structures.ImmutablePair;
@@ -9,6 +11,7 @@ import java.util.*;
 public class EdgeProgram implements SimulationProgram  {
     public final TreeMap<Double, ProgramDetails> neighboursAtEachSimulationTime;
     private Double startCommunicatingAtSimulationTime;
+    private static Logger logger = LogManager.getRootLogger();
 
     public void finaliseProgram(ImmutablePair<ImmutablePair<Double, List<String>>, List<ClusterDifference<String>>> deltaIoTDevices,
                                 ImmutablePair<ImmutablePair<Double, List<String>>, List<ClusterDifference<String>>> deltaNetworkNeighbours) {
@@ -30,7 +33,7 @@ public class EdgeProgram implements SimulationProgram  {
         val.startIoTDevice = deltaIoTDevices.getKey().getValue();
         val.startRSUNeighbours = deltaNetworkNeighbours.getKey().getValue();
         if (val.startRSUNeighbours != null) {
-            System.out.println(val.startRSUNeighbours);
+            logger.debug(val.startRSUNeighbours);
         }
         for (int i = 0; i<deltaIoTDevices.getValue().size(); i++) {
             tick = it.next();

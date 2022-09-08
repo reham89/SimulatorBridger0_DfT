@@ -200,7 +200,7 @@ public class OsmoticBroker extends DatacenterBroker {
 		if (melRouting.test(melName)){
 			// Using a policy for determining the next MEL
 			String melInstanceName = melRouting.apply(actualIoT, melName, this);
-			if (melInstanceName == null) return;
+			if (melInstanceName == null) return; // Ignoring the communication if no alternative is given
 			flow.setAppNameDest(melInstanceName);
 			mel_id = getVmIdByName(melInstanceName); //name of VM
 			//dynamic mapping to datacenter

@@ -58,12 +58,16 @@ public class OsmoticRunner {
         conv.legacy_log();
     }
 
-    public static void current(String configuration) {
-        var conf = GlobalConfigurationSettings.readFromYAML(new File(configuration));
+    public static void runFromConfiguration(GlobalConfigurationSettings conf) {
         var conv = new OsmoticWrapper(conf.asPreviousOsmoticConfiguration());
         conv.runConfiguration(conf);
         conv.stop();
         conv.log(conf);
+    }
+
+    public static void runFromDump(String configuration) {
+        var conf = GlobalConfigurationSettings.readFromYAML(new File(configuration));
+        runFromConfiguration(GlobalConfigurationSettings.readFromYAML(new File(configuration)));
     }
 
     public static void main(String[] args) {
@@ -71,7 +75,7 @@ public class OsmoticRunner {
         if (args.length >= 1) {
             configuration = args[0];
         }
-        current(configuration);
+        runFromDump(configuration);
         //legacyOrchestrate("osmotic.json");
     }
 }

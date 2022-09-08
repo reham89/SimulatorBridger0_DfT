@@ -1,0 +1,9 @@
+clazzPath:                  "uk.ncl.giacomobergami.SumoOsmosisBridger.traffic_converter.SUMOConverter" # Simulator Class
+YAMLConverterConfiguration: "clean_example/1_traffic_information_collector_configuration/sumo.yaml"    # Simulator Configuration for the Class
+begin: 0                                                                                               # Start simulator time
+end: 100                                                                                               # End simulator time
+step: 1.0                                                                                              # Simulation granularity
+
+## Output
+RSUCsvFile: "clean_example/1_traffic_information_collector_output/rsu.csv"
+VehicleCsvFile: "clean_example/1_traffic_information_collector_output/vehicle.csv"

@@ -35,9 +35,11 @@ sdwan:
 apps_file: "apps.csv"
 OsmesisBroker: "OsmesisBroker"
 num_user: 0
-mel_switch_policy: "uk.ncl.giacomobergami.SumoOsmosisBridger.osmotic.mel_routing.MELNearestDistanceSwitch"
+mel_switch_policy: "uk.ncl.giacomobergami.SumoOsmosisBridger.osmotic.mel_routing.MELNearestDistanceRouting"
 terminate_simulation_at: 0.0
-simulationStartTime: "20160504:0000"
+simulationStartTime: "20160901:0000"
+RES_CONFIG_FILE: null
+AGENT_CONFIG_FILE: "/home/giacomo/IdeaProjects/SimulatorBridger/inputFiles/novel/dump/agent_config.json"
 iot_traces: "/home/giacomo/IdeaProjects/SimulatorBridger/inputFiles/novel/test_vehicle.json"
 simulation_step: 1.0
 ioTSpecsFile: "iot.csv"

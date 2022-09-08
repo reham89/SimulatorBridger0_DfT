@@ -21,6 +21,8 @@
 package uk.ncl.giacomobergami.traffic_orchestrator.solver;
 
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import uk.ncl.giacomobergami.utils.algorithms.CartesianProduct;
 import uk.ncl.giacomobergami.utils.algorithms.ClusterDifference;
 import uk.ncl.giacomobergami.utils.algorithms.StringComparator;
@@ -31,6 +33,7 @@ import uk.ncl.giacomobergami.utils.structures.ImmutablePair;
 import java.util.*;
 
 public class TemporalNetworkingRanking {
+    private static Logger logger = LogManager.getRootLogger();
 
     /**
      * This implementation assumes that the orchestrating agent is an oracle which can forecast in the future all of the
@@ -57,7 +60,7 @@ public class TemporalNetworkingRanking {
         var allThePossibleSolutions = CartesianProduct.mapCartesianProductWithSortedKeySequence(simulationSolutions, timeArrow, 0);
         simulationSolutions = null;
 
-        System.out.println("Valuating oracular candidate solutions for ranking: ");
+        logger.trace("Valuating oracular candidate solutions for ranking: ");
         int i = 0;
         for (Map<Double, LocalTimeOptimizationProblem.Solution> candidateSolution : allThePossibleSolutions) {
             if ((i % 1000) == 0) {
@@ -115,7 +118,7 @@ public class TemporalNetworkingRanking {
             candidate.delta_associations = local_delta_associations;
             candidate.inStringTime = local_inStringTime;
             candidate.inCurrentTime = local_inCurrentTime;
-            System.out.print("[New best candidate: "+ i +"]");
+            logger.info("[New best candidate: "+ i +"]");
         }
         candidate.bestResultScore = bestResultScore;
         return bestResultScore;

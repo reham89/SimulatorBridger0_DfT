@@ -1,5 +1,7 @@
 package uk.ncl.giacomobergami.SumoOsmosisBridger.traffic_converter;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -37,6 +39,7 @@ public class SUMOConverter extends TrafficConverter {
     StraightforwardAdjacencyList<String> connectionPath;
     HashMap<Double, List<TimedIoT>> timedIoTDevices;
     HashSet<TimedEdge> roadSideUnits;
+    private static Logger logger = LogManager.getRootLogger();
 
     public SUMOConverter(TrafficConfiguration conf)  {
         super(conf);
@@ -82,7 +85,7 @@ public class SUMOConverter extends TrafficConverter {
             return false;
         }
         if (!network_python.exists()) {
-            System.err.println("ERR: file " + network_python.getAbsolutePath() + " from " + file.getAbsolutePath() + " does not exists!");
+            logger.fatal("ERR: file " + network_python.getAbsolutePath() + " from " + file.getAbsolutePath() + " does not exists!");
             System.exit(1);
         } else if (network_python.getAbsolutePath().endsWith(".gz")) {
             String ap = network_python.getAbsolutePath();
@@ -95,7 +98,7 @@ public class SUMOConverter extends TrafficConverter {
             }
             network_python = new File(ap);
         }
-        System.out.println("Loading the traffic light information...");
+        logger.trace("Loading the traffic light information...");
         try {
             networkFile = db.parse(network_python);
         } catch (SAXException | IOException e) {
@@ -105,11 +108,11 @@ public class SUMOConverter extends TrafficConverter {
 
         File trajectory_python = new File(concreteConf.trace_file);
         if (!trajectory_python.exists()) {
-            System.err.println("ERROR: sumo has not built the trace file: " + trajectory_python.getAbsolutePath());
+            logger.error("ERROR: sumo has not built the trace file: " + trajectory_python.getAbsolutePath());
             return false;
         }
 
-        System.out.println("Loading the vehicle information...");
+        logger.trace("Loading the vehicle information...");
         Document trace_document = null;
         try {
             trace_document = db.parse(trajectory_python);
@@ -215,7 +218,7 @@ public class SUMOConverter extends TrafficConverter {
                              long end,
                              long step) {
         if (new File(concreteConf.trace_file).exists()) {
-            System.out.println("Skipping the sumo running: the trace_file already exists");
+            logger.info("Skipping the sumo running: the trace_file already exists");
             return true;
         }
         File fout = new File(concreteConf.logger_file);

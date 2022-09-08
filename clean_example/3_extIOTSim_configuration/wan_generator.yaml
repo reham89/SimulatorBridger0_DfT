@@ -1,0 +1,5 @@
+iops:             1000000000
+bandwidth:        1000
+sdwan_controller: "wan_sdn"
+sdwan_traffic:    "uk.ncl.giacomobergami.components.sdn_traffic.SDNTrafficPolicyFairShare"
+sdwan_routing:    "uk.ncl.giacomobergami.components.sdn_routing.SDNRoutingLoadBalancing"

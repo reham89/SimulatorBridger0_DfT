@@ -2,6 +2,8 @@ package uk.ncl.giacomobergami.traffic_converter.abstracted;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import uk.ncl.giacomobergami.utils.algorithms.ClusterDifference;
 import uk.ncl.giacomobergami.utils.algorithms.StringComparator;
 import uk.ncl.giacomobergami.utils.algorithms.Tarjan;
@@ -30,8 +32,11 @@ public abstract class TrafficConverter {
     protected TimedIoTMediator vehm;
     protected CSVMediator<TimedEdge>.CSVWriter rsuwrite;
     protected CSVMediator<TimedIoT>.CSVWriter vehwrite;
+    private static Logger logger = LogManager.getRootLogger();
 
     public TrafficConverter(TrafficConfiguration conf) {
+        logger.info("=== TRAFFIC CONVERTER ===");
+        logger.trace("TRAFFIC CONVERTER: init");
         this.conf = conf;
         this.RSUCsvFile = conf.RSUCsvFile;
         vehicleCSVFile = conf.VehicleCsvFile;
@@ -50,8 +55,14 @@ public abstract class TrafficConverter {
     protected abstract void endReadSimulatorOutput();
 
     public boolean run() {
+        logger.trace("TRAFFIC CONVERTER: running the simulator as per configuration: " +conf.YAMLConverterConfiguration);
         runSimulator(conf.begin, conf.end, conf.step);
-        if (!initReadSimulatorOutput()) return false;
+        if (!initReadSimulatorOutput()) {
+            logger.info("Not generating the already-provided results");
+            return false;
+        } else {
+            logger.trace("Collecting the data from the simulator output");
+        }
         List<Double> timeUnits = getSimulationTimeUnits();
         Collections.sort(timeUnits);
         TreeMap<Double, List<List<String>>> sccPerTimeComponent = new TreeMap<>();
@@ -74,6 +85,7 @@ public abstract class TrafficConverter {
             timedNodeAdjacency.put(tick, network.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, x->new ArrayList<>(x.getValue()))));
         }
 
+        logger.trace("Dumping the last results...");
         HashMap<String, ImmutablePair<ImmutablePair<Double, List<String>>, List<ClusterDifference<String>>>> delta_network_neighbours = ClusterDifference.computeTemporalDifference(timedNodeAdjacency, allTlsS, StringComparator.getInstance());
         try {
             Files.writeString(Paths.get(new File(conf.RSUCsvFile+"_"+"neighboursChange.json").getAbsolutePath()), gson.toJson(delta_network_neighbours));
@@ -87,10 +99,11 @@ public abstract class TrafficConverter {
             e.printStackTrace();
             return false;
         }
-
+        logger.trace("quitting...");
         closeWritingTimedIoT();
         closeWritingTimedEdge();
         endReadSimulatorOutput();
+        logger.info("=========================");
         return true;
     }
 

@@ -27,6 +27,8 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import io.jenetics.ext.moea.Pareto;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import uk.ncl.giacomobergami.traffic_orchestrator.solver.CandidateSolutionParameters;
 import uk.ncl.giacomobergami.traffic_orchestrator.solver.LocalTimeOptimizationProblem;
 import uk.ncl.giacomobergami.traffic_orchestrator.solver.TemporalNetworkingRanking;
@@ -60,6 +62,7 @@ import java.util.stream.Collectors;
 
 public class CentralAgentPlanner {
 
+    Logger logger = LogManager.getRootLogger();
     private final OrchestratorConfiguration conf;
     private final TrafficConfiguration conf2;
     protected TimedEdgeMediator rsum;
@@ -76,6 +79,8 @@ public class CentralAgentPlanner {
     HashMap<Double, HashMap<String, Integer>> belongingMap;
 
     public CentralAgentPlanner(OrchestratorConfiguration conf, TrafficConfiguration conf2) {
+        logger.info("=== CENTRAL AGENT PLANNER ===");
+        logger.trace("CENTRAL AGENT PLANNER: init");
         this.conf = conf;
         this.conf2 = conf2;
         rsum = new TimedEdgeMediator();
@@ -102,7 +107,7 @@ public class CentralAgentPlanner {
         }
         if (folder.exists() && folder.isDirectory()) {
             try {
-                Files.writeString(Paths.get(new File(folder, conf.experiment_name+"_"+filename).getAbsolutePath()), gson.toJson(writable));
+                Files.writeString(Paths.get(new File(/*folder, conf.experiment_name+"_"*/filename).getAbsolutePath()), gson.toJson(writable));
                 return true;
             } catch (IOException e) {
                 e.printStackTrace();
@@ -136,6 +141,7 @@ public class CentralAgentPlanner {
     }
 
     public void run() {
+        logger.trace("CENTRAL AGENT PLANNER: running");
         candidate = null;
         timeEvolvingEdges = readEdges();
         HashSet<String> vehId = new HashSet<>();
@@ -147,11 +153,11 @@ public class CentralAgentPlanner {
         HashMap<Double, ArrayList<LocalTimeOptimizationProblem.Solution>> simulationSolutions = new HashMap<>();
         var vehSet = readIoT().entrySet();
         if (vehSet.isEmpty()) {
-            System.err.println("WARNING: vechicles are empty!");
+            logger.warn("WARNING: vechicles are empty!");
             return;
         }
         for (var simTimeToVehicles : vehSet) {
-            System.out.println(simTimeToVehicles.getKey());
+            logger.info(simTimeToVehicles.getKey());
             if (!timeEvolvingEdges.hasNext()) {
                 throw new RuntimeException("ERROR: the TLS should have the same timing of the Vehicles");
             }
@@ -210,17 +216,17 @@ public class CentralAgentPlanner {
         tls_s = new ArrayList<>(timeEvolvingEdges.getEdgeNodeForReconstruction().keySet());
         List<String> veh_s = new ArrayList<>(vehId);
 
-        System.out.println("Computing all of the possible Pareto Routing scenarios...");
+        logger.trace("Computing all of the possible Pareto Routing scenarios...");
 
         if (simulationSolutions.values().stream().anyMatch(ArrayList::isEmpty)) {
-            System.err.println("NO viable solution found!");
+            logger.warn("NO viable solution found!");
         } else {
             Double bestResultScore = Double.MAX_VALUE;
 
             candidate = new CandidateSolutionParameters();
             var multiplicity = simulationSolutions.values().stream().mapToInt(ArrayList::size).reduce((a, b) -> a * b)
                     .orElse(0);
-            System.out.println("Multiplicity: " + multiplicity);
+            logger.info("Multiplicity: " + multiplicity);
             long timedBegin = System.currentTimeMillis();
             if (conf.clairvoyance) {
                 TemporalNetworkingRanking.oracularBestNetworking(simulationSolutions, temporalOrdering, veh_s, bestResultScore, candidate, conf.removal, conf.addition, comparator);
@@ -272,20 +278,20 @@ public class CentralAgentPlanner {
     }
 
     void serializeAll() {
-        System.out.println("Serializing data...");
-        System.out.println(" * solver_time ");
-        write_json(statsFolder, "solver_time.json", problemSolvingTime);
+        logger.trace("Serializing data...");
+        logger.trace(" * solver_time ");
+        write_json(statsFolder, new File(statsFolder.getAbsoluteFile(), "solver_time.json").toString(), problemSolvingTime);
 
-        System.out.println(" * candidate solution ");
-        write_json(statsFolder, "candidate.json", candidate);
+        logger.trace(" * candidate solution ");
+        write_json(statsFolder, new File(statsFolder.getAbsoluteFile(),"candidate.json").toString(), candidate);
 
-        System.out.println(" * reconstructed vehicles ");
+        logger.trace(" * reconstructed vehicles ");
         write_json(statsFolder, conf.vehiclejsonFile, reconstructVehicles);
 
-        System.out.println(" * RSU Programs ");
+        logger.trace(" * RSU Programs ");
         write_json(statsFolder, conf.RSUJsonFile, timeEvolvingEdges.getEdgeNodeForReconstruction());
 
-        System.out.println(" * Time for problem solving ");
+        logger.trace(" * Time for problem solving ");
         try {
             FileOutputStream tlsF = new FileOutputStream(Paths.get(statsFolder.getAbsolutePath(), conf.experiment_name+"_time_benchmark.csv").toFile());
             BufferedWriter flsF2 = new BufferedWriter(new OutputStreamWriter(tlsF));
@@ -301,7 +307,7 @@ public class CentralAgentPlanner {
             e.printStackTrace();
         }
 
-        System.out.println(" * Just Last Mile Occupancy ");
+        logger.trace(" * Just Last Mile Occupancy ");
         try {
             FileOutputStream tlsF = new FileOutputStream(Paths.get(statsFolder.getAbsolutePath(), conf.experiment_name+"_tracesMatch_toplot.csv").toFile());
             BufferedWriter flsF2 = new BufferedWriter(new OutputStreamWriter(tlsF));
@@ -325,8 +331,8 @@ public class CentralAgentPlanner {
             e.printStackTrace();
         }
 
-        System.out.println(" * RSU/EDGE communication devices infrastructure");
-        System.out.println("  - [WorkloadCSV]");
+        logger.trace(" * RSU/EDGE communication devices infrastructure");
+        logger.trace("  - [WorkloadCSV]");
         var vehicularConverterToWorkflow = new WorkloadFromVehicularProgram(null);
         AtomicInteger ai = new AtomicInteger();
         CSVMediator<WorkloadCSV>.CSVWriter x = new WorkloadCSVMediator().beginCSVWrite(new File(statsFolder, "AsmathicWorkflow.csv"));

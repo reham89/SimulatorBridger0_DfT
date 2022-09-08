@@ -283,7 +283,8 @@ public class AbstractNetworkAgent extends AbstractAgent {
                     for (i = 0, N = iotPath.size(); i<N; i++) {
                         iotPath.set(i, iotPath.get(i).substring(0, iotPath.get(i).length()-substring_starts_at));
                     }
-                    var iotConnectToMel = iotPath.get(0)+".*";
+                    var iotConnectToMel = "@"+iotPath.get(0); // Correct specification, determining the precise host
+                    //iotPath.get(0)+".*"; Old, uncorrect specification
 
                     // Setting the path to the IoT Device
                     paths_for_network.put(network, iotPath);

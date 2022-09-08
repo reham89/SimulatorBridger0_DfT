@@ -142,7 +142,9 @@ public class GlobalConfigurationSettings {
                                        String start,
                                        String mel_routing_policy,
                                        String iot_traces,
-                                       double delta) {
+                                       double delta,
+                                       String AGENT_CONFIG_FILE,
+                                       String RES_CONFIG_FILE) {
         this();
         this.actualEdgeDataCenters = actualEdgeDataCenters;
         this.actualCloudDataCenters = actualCloudDataCenters;
@@ -166,6 +168,8 @@ public class GlobalConfigurationSettings {
         this.mel_switch_policy = mel_routing_policy;
         this.iot_traces = iot_traces;
         this.simulation_step = delta;
+        this.AGENT_CONFIG_FILE = AGENT_CONFIG_FILE;
+        this.RES_CONFIG_FILE = RES_CONFIG_FILE;
     }
 
     public static OsmoticAppDescription asLegacyApp(WorkloadCSV novel) {
@@ -394,7 +398,7 @@ public class GlobalConfigurationSettings {
                 actualCloudDataCenters.isEmpty() ||
                 iotDevices.isEmpty() ||
                 global_network_links.isEmpty() ||
-                sdwan.switches.isEmpty() || apps.isEmpty()) {
+                sdwan.switches.isEmpty()) {
             fillDataStructuresFromFiles();
         }
 

@@ -26,12 +26,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.cloudbus.cloudsim.edge.utils.LogUtil.logger;
+
 public class RoundRobinMELSwitchPolicy implements MELSwitchPolicy {
     private Map<String, Integer> roundRobinMelMap;
     public RoundRobinMELSwitchPolicy() { roundRobinMelMap = new HashMap<>(); }
     @Override
     public String apply(IoTDevice IoTDevice, String abstractMel, OsmoticBroker self) {
         List<String> instances = getCandidateMELsFromPattern(abstractMel, self);
+        if (instances.isEmpty()) {
+            logger.warn("Warning: IoTDevice " + IoTDevice.getName()+" was expecting to communicate with someone, but no candidate was detected: the app is going to be discarded soon...");
+            return null;
+        }
         if (!roundRobinMelMap.containsKey(abstractMel)){
             roundRobinMelMap.put(abstractMel,0);
         }
