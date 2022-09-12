@@ -27,6 +27,96 @@ import uk.ncl.giacomobergami.utils.structures.ImmutablePair;
 import java.util.*;
 
 public class MinCostMaxFlow {
+	static class Edge {
+		int to, f, cap, cost, rev;
+
+		Edge(int v, int cap, int cost, int rev) {
+			this.to = v;
+			this.cap = cap;
+			this.cost = cost;
+			this.rev = rev;
+		}
+	}
+
+	public static List<Edge>[] createGraph(int n) {
+		List<Edge>[] graph = new List[n];
+		for (int i = 0; i < n; i++)
+			graph[i] = new ArrayList<Edge>();
+		return graph;
+	}
+
+	public static void addEdge(List<Edge>[] graph, int s, int t, int cap, int cost) {
+		graph[s].add(new Edge(t, cap, cost, graph[t].size()));
+		graph[t].add(new Edge(s, 0, -cost, graph[s].size() - 1));
+	}
+
+	static void bellmanFord(List<Edge>[] graph,
+							int s,
+							int[] dist,
+							int[] prevnode,
+							int[] prevedge,
+							int[] curflow) {
+		int n = graph.length;
+		Arrays.fill(dist, 0, n, Integer.MAX_VALUE);
+		dist[s] = 0;
+		curflow[s] = Integer.MAX_VALUE;
+		boolean[] inqueue = new boolean[n];
+		int[] q = new int[n];
+		int qt = 0;
+		q[qt++] = s;
+		for (int qh = 0; (qh - qt) % n != 0; qh++) {
+			int u = q[qh % n];
+			inqueue[u] = false;
+			for (int i = 0; i < graph[u].size(); i++) {
+				Edge e = graph[u].get(i);
+				if (e.f >= e.cap)
+					continue;
+				int v = e.to;
+				int ndist = dist[u] + e.cost;
+				if (dist[v] > ndist) {
+					dist[v] = ndist;
+					prevnode[v] = u;
+					prevedge[v] = i;
+					curflow[v] = Math.min(curflow[u], e.cap - e.f);
+					if (!inqueue[v]) {
+						inqueue[v] = true;
+						q[qt++ % n] = v;
+					}
+				}
+			}
+		}
+	}
+
+	public static Result minCostFlow(List<Edge>[] graph, int s, int t, int maxf) {
+		int n = graph.length;
+		int[] dist = new int[n];
+		int[] curflow = new int[n];
+		int[] prevedge = new int[n];
+		int[] prevnode = new int[n];
+
+		int flow = 0;
+		int flowCost = 0;
+		var hsl = new HashSet<List<Integer>>();
+		while (flow < maxf) {
+			bellmanFord(graph, s, dist, prevnode, prevedge, curflow);
+			if (dist[t] == Integer.MAX_VALUE)
+				break;
+			int df = Math.min(curflow[t], maxf - flow);
+			flow += df;
+			List<Integer> path = new ArrayList<>();
+			for (int v = t; v != s; v = prevnode[v]) {
+				if (v != t) path.add(v);
+				Edge e = graph[prevnode[v]].get(prevedge[v]);
+				e.f += df;
+				graph[v].get(e.rev).f -= df;
+				flowCost += df * e.cost;
+			}
+			Collections.reverse(path);
+			hsl.add(path);
+		}
+		return new Result(flow,flowCost,hsl);
+//		return new int[]{flow, flowCost};
+	}
 
 	// Stores the found edges
 	boolean found[];
@@ -42,12 +132,11 @@ public class MinCostMaxFlow {
 
 	// Stores the cost per
 	// unit flow of each edge
-	double cost[][];
+	int cost[][];
 
 	// Stores the distance from each node
 	// and picked edges for each node
-	int dad[];
-	double dist[], pi[];
+	int dad[], dist[], pi[];
 
 	static final int INF
 		= Integer.MAX_VALUE / 2 - 1;
@@ -56,7 +145,6 @@ public class MinCostMaxFlow {
 	// have a flow from the src to sink
 	boolean search(int src, int sink)
 	{
-
 		// Initialise found[] to false
 		Arrays.fill(found, false);
 
@@ -83,9 +171,9 @@ public class MinCostMaxFlow {
 				if (flow[k][src] != 0) {
 
 					// Obtain the total value
-					double val
-						= dist[src] + pi[src]
-						- pi[k] - cost[k][src];
+					int val
+							= dist[src] + pi[src]
+							- pi[k] - cost[k][src];
 
 					// If dist[k] is > minimum value
 					if (dist[k] > val) {
@@ -98,7 +186,7 @@ public class MinCostMaxFlow {
 
 				if (flow[src][k] < cap[src][k]) {
 
-					double val = dist[src] + pi[src]
+					int val = dist[src] + pi[src]
 							- pi[k] + cost[src][k];
 
 					// If dist[k] is > minimum value
@@ -121,8 +209,8 @@ public class MinCostMaxFlow {
 
 		for (int k = 0; k < N; k++)
 			pi[k]
-				= Math.min(pi[k] + dist[k],
-						INF);
+					= Math.min(pi[k] + dist[k],
+					INF);
 
 		// Return the value obtained at sink
 		return found[sink];
@@ -195,15 +283,15 @@ public class MinCostMaxFlow {
 		}
 	}
 
-	public class Result {
+	public static class Result {
 		public double total_flow;
 		public double total_cost;
 		public Set<List<Integer>> minedPaths;
 
-		public Result(double total_flow, double total_cost) {
+		public Result(double total_flow, double total_cost, Set<List<Integer>> hsl) {
 			this.total_flow = total_flow;
 			this.total_cost = total_cost;
-			this.minedPaths = new HashSet<>();
+			this.minedPaths = hsl;
 		}
 
 		@Override
@@ -229,7 +317,7 @@ public class MinCostMaxFlow {
 	}
 
 	// Function to obtain the maximum Flow
-	public Result getMaxFlow(int[][] cap, double[][] cost, int src, int sink) {
+	public Result getMaxFlow(int[][] cap, int[][] cost, int src, int sink) {
 
 		this.cap = cap;
 		this.cost = cost;
@@ -237,41 +325,44 @@ public class MinCostMaxFlow {
 		N = cap.length;
 		found = new boolean[N];
 		flow = new int[N][N];
-		dist = new double[N + 1];
+		dist = new int[N + 1];
 		dad = new int[N];
-		pi = new double[N];
+		pi = new int[N];
 
-		Result result = new Result(0,0);
+		Set<List<Integer>> hsl = new HashSet<>();
+		int totflow = 0, totcost = 0;
 
 		// If a path exist from src to sink
 		while (search(src, sink)) {
-
 			// Set the default amount
 			int amt = INF;
 			List<Integer> path = new ArrayList<>();
 			for (int x = sink; x != src; x = dad[x])
 
 				amt = Math.min(amt,
-							flow[x][dad[x]] != 0
+						flow[x][dad[x]] != 0
 								? flow[x][dad[x]]
 								: cap[dad[x]][x]
-										- flow[dad[x]][x]);
+								- flow[dad[x]][x]);
 
 			for (int x = sink; x != src; x = dad[x]) {
 				if (x != sink) path.add(x);
 				if (flow[x][dad[x]] != 0) {
 					flow[x][dad[x]] -= amt;
-					result.total_cost -= amt * cost[x][dad[x]];
+					totcost -= amt * cost[x][dad[x]];
 				}
 				else {
 					flow[dad[x]][x] += amt;
-					result.total_cost += amt * cost[dad[x]][x];
+					totcost += amt * cost[dad[x]][x];
 				}
 			}
 			Collections.reverse(path);
-			result.minedPaths.add(path);
-			result.total_flow += amt;
+			hsl.add(path);
+			totflow += amt;
 		}
+
+		Result result = new Result(totflow,totcost,hsl);
+
 
 		// Return pair total cost and sink
 		return result;

@@ -39,7 +39,7 @@ public class EdgeDevice extends Host implements CartesianPoint {
 	private boolean enabled;
 	public double max_vehicle_communication;
 	
-	public EdgeDevice(int id, String deviceName, RamProvisioner ramProvisioner, BwProvisioner bwProvisioner,
+	EdgeDevice(int id, String deviceName, RamProvisioner ramProvisioner, BwProvisioner bwProvisioner,
 			long storage, List<? extends Pe> peList) {
 		super(id, ramProvisioner, bwProvisioner, storage, peList,
 				new VmSchedulerTimeSharedEnergy(peList));
@@ -55,7 +55,8 @@ public class EdgeDevice extends Host implements CartesianPoint {
 				.collect(Collectors.toList());
 	}
 
-    public EdgeDevice(AtomicInteger idGen, LegacyConfiguration.EdgeDeviceEntity hostEntity) {
+    public EdgeDevice(AtomicInteger idGen,
+					  LegacyConfiguration.EdgeDeviceEntity hostEntity) {
         this(idGen.getAndIncrement(),
 				hostEntity.getName(),
 				new RamProvisionerSimple(hostEntity.getRamSize()),
@@ -64,6 +65,7 @@ public class EdgeDevice extends Host implements CartesianPoint {
 				generatePEList(hostEntity));
 		location = hostEntity.location;
 		signalRange = hostEntity.signalRange;
+		max_vehicle_communication = hostEntity.max_vehicle_communication;
     }
     public String getDeviceName() {
 		return deviceName;

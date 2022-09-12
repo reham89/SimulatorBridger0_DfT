@@ -19,8 +19,9 @@ public class Host {
     public double y;
     public double z;
     public double signalRange;
+    public double max_vehicle_communication;
 
-    public Host(String name, int pes, int ram, int bw, long storage, int mips, double x, double y, double z, double signalRange) {
+    public Host(String name, int pes, int ram, int bw, long storage, int mips, double x, double y, double z, double signalRange, double max_vehicle_communication) {
         this.name = name;
         this.pes = pes;
         this.ram = ram;
@@ -31,6 +32,7 @@ public class Host {
         this.y = y;
         this.z = z;
         this.signalRange = signalRange;
+        this.max_vehicle_communication = max_vehicle_communication;
     }
 
     public Host() {}
@@ -45,6 +47,7 @@ public class Host {
         y = x.getLocation().y;
         z = x.getLocation().z;
         signalRange = x.getSignalRange();
+        max_vehicle_communication = x.getMax_vehicle_communication();
     }
 
     public Host(LegacyConfiguration.HostEntity x) {
@@ -56,6 +59,7 @@ public class Host {
         name = x.getName();
         this.x = y = z = 0;
         signalRange = Double.MAX_VALUE;
+        max_vehicle_communication = x.getMax_vehicle_communication();
     }
 
     public LegacyConfiguration.EdgeDeviceEntity asLegacyEdgeDeviceEntity() {
@@ -68,6 +72,7 @@ public class Host {
         result.setName(name);
         result.setLocation(new Mobility.Location(x, y, z));
         result.setSignalRange(signalRange);
+        result.setMax_vehicle_communication(max_vehicle_communication);
         return result;
     }
 
@@ -88,6 +93,7 @@ public class Host {
         result.setRam(ram);
         result.setPes(pes);
         result.setName(name);
+        result.setMax_vehicle_communication(max_vehicle_communication);
         return result;
     }
 
@@ -177,5 +183,13 @@ public class Host {
 
     public void setMips(int mips) {
         this.mips = mips;
+    }
+
+    public double getMax_vehicle_communication() {
+        return max_vehicle_communication;
+    }
+
+    public void setMax_vehicle_communication(double max_vehicle_communication) {
+        this.max_vehicle_communication = max_vehicle_communication;
     }
 }

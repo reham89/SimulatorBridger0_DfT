@@ -230,7 +230,9 @@ public class EdgeDataCenter extends OsmoticDatacenter {
 	}
 	
 	@Override
-	public void initEdgeTopology(List<EdgeDevice> devices, List<SwitchEntity> switchEntites, List<LinkEntity> linkEntites){
+	public void initEdgeTopology(List<EdgeDevice> devices,
+								 List<SwitchEntity> switchEntites,
+								 List<LinkEntity> linkEntites){
 		this.hosts.addAll(devices); 
 		topology  = new Topology();		 
 		sdnhosts = new ArrayList<>();

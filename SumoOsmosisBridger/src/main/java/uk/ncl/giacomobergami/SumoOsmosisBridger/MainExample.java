@@ -77,6 +77,9 @@ public class MainExample {
                 conv2.run();
                 conv2.serializeAll();
 
+                var maxAcceptableVehiclesPerEdgeNode = x.reset_max_vehicle_communication;
+                var maxCommunicationRadiusPerEdgeNode = x.reset_rsu_communication_radius;
+
                 // Third configuration step
                 var configuration_file = new File(finalSimulator_runner).getAbsoluteFile();
                 var conf3 = YAML.parse(EnsembleConfigurations.Configuration.class, configuration_file).orElseThrow();
@@ -85,6 +88,8 @@ public class MainExample {
                 conf3.edge_neighbours = new File(output_folder_1, converter_out_RSUCsvFile+"_neighboursChange.json").getAbsolutePath();
                 conf3.iots = x.vehiclejsonFile;
                 conf3.edge_information = x.RSUJsonFile;
+                conf3.reset_rsu_communication_radius = x.reset_rsu_communication_radius;
+                conf3.reset_max_vehicle_communication = x.reset_max_vehicle_communication;
                 var output_folder_3 = new File(configuration_file.getParentFile(), final_out);
                 if (!output_folder_3.exists()) {
                     output_folder_3.mkdirs();

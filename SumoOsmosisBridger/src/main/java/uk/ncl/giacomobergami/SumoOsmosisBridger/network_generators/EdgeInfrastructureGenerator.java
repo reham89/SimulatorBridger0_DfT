@@ -38,20 +38,16 @@ public class EdgeInfrastructureGenerator {
     public static Switch generateEdgeSwitch(int id, long mips) {
         return new Switch("edge", edgeId(id), mips);
     }
-//    public static List<Switch> generateEdgeSwitches(int n, long mips) {
-//        return IntStream.range(1, n+1).mapToObj(x-> generateEdgeSwitch(x, mips)).collect(Collectors.toList());
-//    }
+
     public static Switch generateCoreSwitch(int id, long mips) {
         return new Switch("core", coreId(id), mips);
     }
-//    public static List<Switch> generateCoreSwitches(int n, long mips) {
-//        return IntStream.range(1, n+1).mapToObj(x-> generateCoreSwitch(x, mips)).collect(Collectors.toList());
-//    }
-    public static Host generateEdgeDevice(int id, int bw, int mips, int pes, int ram, long storage) {
-        return new Host(edgeDeviceId(id),  pes, ram,  bw, storage, mips, 0, 0, 0, 0);
+
+    public static Host generateEdgeDevice(int id, int bw, int mips, int pes, int ram, long storage, double max_vehicle_communication) {
+        return new Host(edgeDeviceId(id),  pes, ram,  bw, storage, mips, 0, 0, 0, 0, max_vehicle_communication);
     }
-    public static List<Host> generateDistinctEdgeDevices(int n, int bandwidth, int mips, int pes, int ram, long storage) {
-        return IntStream.range(1, n+1).mapToObj(x-> generateEdgeDevice(edgeDevice.getAndIncrement(), bandwidth, mips, pes, ram, storage)).collect(Collectors.toList());
+    public static List<Host> generateDistinctEdgeDevices(int n, int bandwidth, int mips, int pes, int ram, long storage, double max_vehicle_communication) {
+        return IntStream.range(1, n+1).mapToObj(x-> generateEdgeDevice(edgeDevice.getAndIncrement(), bandwidth, mips, pes, ram, storage, max_vehicle_communication)).collect(Collectors.toList());
     }
     public static VM generateMEL(String network_name, int id, int bandwidth, String policy, double mips, int pes, int ram, long storage) {
         return new VM(melId(network_name, id), bandwidth, mips, ram, pes, policy, storage);
@@ -64,6 +60,7 @@ public class EdgeInfrastructureGenerator {
         public String edge_network_name;
         public String gateway_name;
         public long gateway_iops;
+        public double reset_max_vehicle_communication;
 
         public int n_edgeDevices_and_edges;
         public int edge_device_to_edge_bw;
@@ -120,7 +117,8 @@ public class EdgeInfrastructureGenerator {
                 conf.hosts_and_vms.hosts_mips,
                 conf.hosts_and_vms.hosts_pes,
                 conf.hosts_and_vms.hosts_ram,
-                conf.hosts_and_vms.hosts_storage
+                conf.hosts_and_vms.hosts_storage,
+                conf.reset_max_vehicle_communication
         );
         if (hosts.size() != conf.stringToInteger.size())
             throw  new RuntimeException("ERROR!");

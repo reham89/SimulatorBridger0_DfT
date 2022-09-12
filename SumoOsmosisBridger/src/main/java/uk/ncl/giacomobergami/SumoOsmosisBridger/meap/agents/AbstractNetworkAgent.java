@@ -45,6 +45,17 @@ public class AbstractNetworkAgent extends AbstractAgent {
     @Override
     public void execute() {}
 
+    public static String replaceLast(String string, String toReplace, String replacement) {
+        int pos = string.lastIndexOf(toReplace);
+        if (pos > -1) {
+            return string.substring(0, pos)
+                    + replacement
+                    + string.substring(pos + toReplace.length());
+        } else {
+            return string;
+        }
+    }
+
     @Override
     public void plan() {
         var messagesFromIoTDevices = actualAgent.getReceivedMessages(x -> ((MessageWithPayload<PayloadFromIoTAgent>)x).getPayload());
@@ -68,7 +79,7 @@ public class AbstractNetworkAgent extends AbstractAgent {
                             .flatMap(y->y.candidates.stream().map(ImmutablePair::getRight))
                             .min(Comparator.comparingDouble(o -> f.getDistance(dev, o.location)))
                             .ifPresent(y-> {
-                                var payload = new PayloadForIoTAgent(y.getDeviceName()+".*", y.getX(), y.getY());
+                                var payload = new PayloadForIoTAgent("@"+y.getDeviceName(), y.getX(), y.getY());
                                 var message = new MessageWithPayload<PayloadForIoTAgent>();
                                 message.setSOURCE(getName());
                                 message.setDESTINATION(Collections.singletonList(dst));
@@ -85,6 +96,7 @@ public class AbstractNetworkAgent extends AbstractAgent {
             }
 
             case OptimalMinCostFlux -> {
+//                System.out.println("This run:");
                 String iot_prefix = "iot_";
                 String element_with_separator = "@";
                 AtomicInteger id_generator = new AtomicInteger(0);
@@ -97,25 +109,29 @@ public class AbstractNetworkAgent extends AbstractAgent {
                 int bogusDst = id_generator.getAndIncrement();
                 id_to_name.add(null);
                 id_to_name.add(null);
+                Set<String> iotNames = new HashSet<>();
 
                 int niot = 0;
                 HashMap<String, EdgeDataCenter> networks = new HashMap<>();
                 HashMap<String, NetworkNodeType> nodeType = new HashMap<>();
 
                 for (var cp : payloadMap.asMap().entrySet()) {
-                    name_to_id.put(iot_prefix+cp.getKey(), id_generator.getAndIncrement());
-                    id_to_name.add(iot_prefix+cp.getKey());
+                    var name = iot_prefix+cp.getKey();
+//                    System.out.println(iot_prefix+cp.getKey());
+                    name_to_id.put(name, id_generator.getAndIncrement());
+                    id_to_name.add(name);
+                    iotNames.add(name);
                     niot++;
                     for (var msgPayload : cp.getValue()) {
                         if (!msgPayload.sender.getName().equals(cp.getKey()))
                             throw new RuntimeException("ERROR: IoT senders do not match!");
                         for (var edgeCandidate : msgPayload.candidates) {
                             var edgeDataCenter = edgeCandidate.getLeft();
-//                            var edgeNode = edgeCandidate.getRight();
                             networks.putIfAbsent(edgeDataCenter.getNet().name, edgeDataCenter);
                         }
                     }
                 }
+
 
                 for (var net : networks.entrySet()) {
                     var actualNetwork = net.getValue();
@@ -130,30 +146,35 @@ public class AbstractNetworkAgent extends AbstractAgent {
                         var actualSrcDisambiguatedName = edge.src().getName()+element_with_separator+net.getKey();
                         var actualDstDisambiguatedName = edge.dst().getName()+element_with_separator+net.getKey();
                         name_to_id.computeIfAbsent(actualSrcDisambiguatedName, k -> {
+                            id_to_name.add(null); // Doppelgänger has no name
                             id_to_name.add(k);
                             nodeType.put(k, src);
-                            return id_generator.getAndIncrement();
+                            id_generator.incrementAndGet();
+                            return id_generator.getAndIncrement(); // the previous is the doppelgänger giving acces to the current node
                         });
                         name_to_id.computeIfAbsent(actualDstDisambiguatedName, k -> {
+                            id_to_name.add(null); // Doppelgänger has no name
                             id_to_name.add(k);
                             nodeType.put(k, dst);
-                            return id_generator.getAndIncrement();
+                            id_generator.incrementAndGet();
+                            return id_generator.getAndIncrement(); // the previous is the doppelgänger giving acces to the current node
                         });
                     }
                 }
 
                 int N = id_generator.get();
-                double cost[][] = new double[N][N];
+                var graph = MinCostMaxFlow.createGraph(N);
+                int cost[][] = new int[N][N];
                 for (var array: cost) Arrays.fill(array, 0);
-                int flow[][] = new int[N][N];
-                for (var array: flow) Arrays.fill(array, 0);
+                int cap[][] = new int[N][N];
+                for (var array: cap) Arrays.fill(array, 0);
 
                 // After counting how many nodes are there, now we can actually create the network!
                 for (var cp : payloadMap.asMap().entrySet()) {
                     var iot = iot_prefix+cp.getKey();
                     var iot_id = name_to_id.get(iot);
-                    cost[bogusSrc][iot_id] = 0;
-                    flow[bogusSrc][iot_id] = 1;
+                    cost[bogusSrc][iot_id] = 1;
+                    cap[bogusSrc][iot_id] = 1;
                     for (var msgPayload : cp.getValue()) {
                         for (var edgeCandidate : msgPayload.candidates) {
                             var edgeDataCenter = edgeCandidate.getLeft();
@@ -162,9 +183,15 @@ public class AbstractNetworkAgent extends AbstractAgent {
                             var edgeId = name_to_id.get(edgeName);
                             if (edgeId == null)
                                 throw new RuntimeException("ERROR:" +edgeName+" is not associated to an id!");
-
-                            cost[iot_id][edgeId] = Math.sqrt(f.getDistance(devices.get(cp.getKey()),  edgeNode.location));
-                            flow[iot_id][edgeId] = 1;
+                            var doppelGangerName = id_to_name.get(edgeId-1);
+                            if (doppelGangerName != null)
+                                throw new RuntimeException(doppelGangerName);
+                            if (!Objects.equals(id_to_name.get(edgeId),edgeName))
+                                throw new RuntimeException(name_to_id.get(edgeId)+" for "+edgeId+" != "+edgeName);
+                            cost[iot_id][edgeId-1] = (int)Math.round(Math.sqrt(f.getDistance(devices.get(cp.getKey()),  edgeNode.location)) * 100.0);
+                            cap[iot_id][edgeId-1] = 1;
+                            cost[edgeId-1][edgeId] = 1;
+                            cap[edgeId-1][edgeId] = (int)edgeNode.max_vehicle_communication;
                         }
                     }
 
@@ -191,11 +218,11 @@ public class AbstractNetworkAgent extends AbstractAgent {
                             var dstHost = dst.getVal2().getHost();
                             if (!(dstHost instanceof EdgeDevice))
                                 throw new RuntimeException("ERROR on dst host: this supports only edge hotsts! "+ dstHost);
-                            flow[srcId][dstId] = Math.min((int)((EdgeDevice)srcHost).max_vehicle_communication,
+                            cap[srcId][dstId] = Math.min((int)((EdgeDevice)srcHost).max_vehicle_communication,
                                                           (int)((EdgeDevice)dstHost).max_vehicle_communication);
-                            cost[srcId][dstId] = Math.sqrt(f.getDistance(((EdgeDevice)srcHost),((EdgeDevice)dstHost)));
+                            cost[srcId][dstId] = (int)Math.round(Math.sqrt(f.getDistance(((EdgeDevice)srcHost),((EdgeDevice)dstHost))) * 100.0);
                         } else {
-                            flow[srcId][dstId] = niot;
+                            cap[srcId][dstId] = niot;
                             cost[srcId][dstId] = 1;
                         }
                     }
@@ -203,19 +230,22 @@ public class AbstractNetworkAgent extends AbstractAgent {
                     var gatewayId = name_to_id.get(gateway);
                     if (gatewayId == null)
                         throw new RuntimeException("ERROR: unresolved gateway " + gateway);
-                    flow[gatewayId][bogusDst] = niot;
+                    cap[gatewayId][bogusDst] = niot;
                     cost[gatewayId][bogusDst] = 1;
                 }
 
                 // Now, we can run the pathing algorithm
                 MinCostMaxFlow algorithm = new MinCostMaxFlow();
-                var result = algorithm.getMaxFlow(flow, cost, bogusSrc, bogusDst);
+                var result = algorithm.getMaxFlow(cap, cost, bogusSrc, bogusDst);
                 Set<String> computedIoTPaths = new HashSet<>();
+                HashMultimap<String, List<String>> obtainedPaths = HashMultimap.create();
 
                 for (var p : result.minedPaths) {
-                    var calculated_path = p.stream().map(id_to_name::get).collect(Collectors.toList());
+                    var calculated_path = p.stream().map(id_to_name::get).filter(Objects::nonNull).collect(Collectors.toList());
+//                    System.out.println(calculated_path);
                     computedIoTPaths.add(calculated_path.get(0));
                     paths.put(calculated_path.get(0), calculated_path);
+                    obtainedPaths.put(calculated_path.get(1), calculated_path);
                 }
                 if (result.minedPaths.size() != niot) {
                     if (result.minedPaths.size() > niot) {
@@ -237,10 +267,13 @@ public class AbstractNetworkAgent extends AbstractAgent {
                     }
                 }
 
+                HashMultimap<String, String> hm = HashMultimap.create();
+
                 for (var solutions : paths.entrySet()) {
                     var iotName = solutions.getKey().substring(iot_prefix.length());
                     var iotPath = solutions.getValue();
                     var candidate = iotPath.remove(0).substring(iot_prefix.length());
+                    iotPath.removeIf(iotNames::contains);
                     if (!candidate.equals(iotName))
                         throw new RuntimeException("ERROR: IoT does not match");
                     String network;
@@ -269,6 +302,9 @@ public class AbstractNetworkAgent extends AbstractAgent {
                         }
                     }
 
+                    var tmp = nodeType.get(iotPath.get(0));
+                    if (tmp == null)
+                        throw new RuntimeException("Expected that the network contained the node " +iotPath.get(0));
                     var y = (CartesianPoint) nodeType.get(iotPath.get(0)).getVal2().getHost();
                     substring_starts_at = i;
                     network = iotPath.get(0).substring(iotPath.get(0).length()-substring_starts_at);
@@ -281,7 +317,7 @@ public class AbstractNetworkAgent extends AbstractAgent {
                     }
                     network = network.substring(1);;
                     for (i = 0, N = iotPath.size(); i<N; i++) {
-                        iotPath.set(i, iotPath.get(i).substring(0, iotPath.get(i).length()-substring_starts_at));
+                        iotPath.set(i,  replaceLast(iotPath.get(i), "@"+network, ""));
                     }
                     var iotConnectToMel = "@"+iotPath.get(0); // Correct specification, determining the precise host
                     //iotPath.get(0)+".*"; Old, uncorrect specification
@@ -292,6 +328,7 @@ public class AbstractNetworkAgent extends AbstractAgent {
                     // Sending the IoT device who should they contact!
                     var payload = new PayloadForIoTAgent(iotConnectToMel, y.getX(), y.getY());
                     var message = new MessageWithPayload<PayloadForIoTAgent>();
+                    hm.put(iotConnectToMel+"@"+network, iotName);
                     message.setSOURCE(getName());
                     message.setDESTINATION(Collections.singletonList(iotName));
                     message.setPayload(payload);
@@ -306,6 +343,11 @@ public class AbstractNetworkAgent extends AbstractAgent {
                         ((MaximumFlowRoutingPolicy)network_routing).setNewPaths(distinctPaths.getValue());
                     }
                 }
+
+                hm.asMap().forEach((k,v)-> {
+//                    System.out.println(k+"-->"+v.size());
+                });
+//                System.out.println("DEBUG");
             }
         }
     }

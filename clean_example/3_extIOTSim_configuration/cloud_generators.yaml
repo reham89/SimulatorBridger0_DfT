@@ -18,7 +18,7 @@ hosts_and_vms:
   hosts_pes:                       4
   hosts_ram:                       32750
   hosts_storage:                   6400000000000
-  n_vm:                            -1 #Defined dynamically
+  n_vm:                            -1           #Defined dynamically
   vm_bw:                           1000
   vm_mips:                         250.0
   vm_ram:                          512
@@ -27,7 +27,7 @@ hosts_and_vms:
   vm_storage:                      10000
 network_configuration:
   scheduling_interval:             0.0
-  datacenter_name:                 ""                                                                                   #dynamic setting, the specific name associated to a specific cloud
+  datacenter_name:                 ""           #dynamic setting, the specific name associated to a specific cloud
   datacenter_type:                 "cloud"
   datacenter_vmAllocationPolicy:  "uk.ncl.giacomobergami.components.allocation_policy.VmAllocationPolicyCombinedLeastFullFirst"
   datacenter_architecture:        "x86"
@@ -38,6 +38,6 @@ network_configuration:
   datacenter_costPerMem:          0.05
   datacenter_costPerStorage:      0.001
   datacenter_costPerBw:           0.0
-  controller_name:                ""                                                                                    #dynamic setting, the controller name associated to each cloud network
+  controller_name:                ""            #dynamic setting, the controller name associated to each cloud network
   controller_trafficPolicy:       "uk.ncl.giacomobergami.components.sdn_traffic.SDNTrafficPolicyFairShare"
   controller_routingPolicy:       "uk.ncl.giacomobergami.components.sdn_routing.SDNRoutingLoadBalancing"

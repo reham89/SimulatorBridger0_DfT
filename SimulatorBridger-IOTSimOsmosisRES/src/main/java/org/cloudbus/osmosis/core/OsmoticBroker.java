@@ -342,6 +342,17 @@ public class OsmoticBroker extends DatacenterBroker {
 		return map.values();
 	}
 
+	public Host resolveHostFromMELId(String melId) {
+		for (var cp : mapVmsToDatacenter.entrySet()) {
+			for (var vmOrMel : cp.getValue()) {
+				if (vmOrMel.getVmName().equals(melId)) {
+					return vmOrMel.getHost();
+				}
+			}
+		}
+		return null;
+	}
+
 	public EdgeDevice resolveEdgeDeviceFromId(String hostId) {
 		for (var cp : mapVmsToDatacenter.entrySet()) {
 			for (var vmOrMel : cp.getValue()) {

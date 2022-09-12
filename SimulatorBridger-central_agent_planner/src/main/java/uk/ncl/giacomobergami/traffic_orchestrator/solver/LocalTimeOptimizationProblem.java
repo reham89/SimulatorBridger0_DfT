@@ -286,7 +286,7 @@ public class LocalTimeOptimizationProblem {
 
         int vertexSize = counter.get();
         int[][] capacity = new int[vertexSize][vertexSize];
-        double[][] cost = new double[vertexSize][vertexSize];
+        int[][] cost = new int[vertexSize][vertexSize];
         for (var rsu1 : this.tInfo.tls) {
             var sq1 = rsu1.communication_radius * rsu1.communication_radius;
             var r1 = rsus.get(rsu1);
@@ -331,9 +331,9 @@ public class LocalTimeOptimizationProblem {
             capacity[initialSource][vehId] = 1;
 
             // The communication cost is proportional to the distance of the two nodes
-            cost[vehId][rsuId] = (k1 * f.getDistance(assoc.getKey(), assoc.getValue()) + k2);
-            // No cost for starting from the bogus node
-            cost[initialSource][vehId] = 0;
+            cost[vehId][rsuId] = (int)Math.round(k1 * f.getDistance(assoc.getKey(), assoc.getValue()) + k2);
+            // Negligible cost for starting from the bogus node
+            cost[initialSource][vehId] = 1;
         }
 
         // Calculating for each RSU device the minimization of the occupancy
@@ -346,8 +346,8 @@ public class LocalTimeOptimizationProblem {
             // The capacity associated for reaching the final target shall be equal to how many nodes want to communicate with it
             var id = rsus.get(inv_assoc.getKey());
             capacity[id][finalTarget] = inv_assoc.getValue();
-            // No cost for reaching the target bogus node
-            cost[id][finalTarget] = 0;
+            // Negligible cost for reaching the target bogus node
+            cost[id][finalTarget] = 1;
         }
 
         var result = flow.getMaxFlow(capacity, cost, initialSource, finalTarget);

@@ -168,6 +168,8 @@ public class EnsembleConfigurations {
         public String AGENT_CONFIG_FILE;
         public String RES_CONFIG_FILE;
         public String netsim_output;
+        public double reset_rsu_communication_radius;
+        public int reset_max_vehicle_communication;
 
         public IoTEntityGenerator first() {
             return new IoTEntityGenerator(new File(iots), new File(iot_generators));
@@ -278,7 +280,10 @@ public class EnsembleConfigurations {
         // Generating the edge nets in a way which is IoT independent, and only considering Edge devices
         List<SubNetworkConfiguration> actualEdgeDataCenters = edgeNets
                 .stream()
-                .map(x -> EdgeInfrastructureGenerator.generate(x, global_network_links, confDis.only_one_mel_per_edge_network, f))
+                .map(x -> {
+                    x.reset_max_vehicle_communication = confDis.reset_max_vehicle_communication;
+                    return EdgeInfrastructureGenerator.generate(x, global_network_links, confDis.only_one_mel_per_edge_network, f);
+                })
                 .collect(Collectors.toList());
 
         // Generating the cloud nets

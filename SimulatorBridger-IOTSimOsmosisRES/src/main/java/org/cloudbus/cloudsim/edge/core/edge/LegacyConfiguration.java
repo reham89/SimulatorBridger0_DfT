@@ -114,6 +114,7 @@ public class LegacyConfiguration {
 		int bwSize;
 		Location location;
 		double signalRange;
+		double max_vehicle_communication;
 	}
 	
 	@Data
@@ -124,6 +125,7 @@ public class LegacyConfiguration {
 	    private Integer ram;
 	    private Long storage;	  
 	    private long bw;
+		private double max_vehicle_communication;
 	}
 	
 	@Data 
@@ -155,7 +157,9 @@ public class LegacyConfiguration {
 	        return this.type.equals("gateway");
 	    }
 
-		public void initializeSwitch(Map<String, Integer> nameIdTable, Topology topology, List<Switch> switches) {
+		public void initializeSwitch(Map<String, Integer> nameIdTable,
+									 Topology topology,
+									 List<Switch> switches) {
 			long iops = getIops();
 			String switchName = getName();
 			String switchType = getType();

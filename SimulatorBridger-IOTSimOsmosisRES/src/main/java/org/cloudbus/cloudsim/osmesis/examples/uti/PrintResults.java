@@ -13,30 +13,23 @@ package org.cloudbus.cloudsim.osmesis.examples.uti;
 
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.sql.Array;
-import java.text.DecimalFormat;
 import java.util.*;
-import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.google.common.collect.HashMultimap;
-import com.google.gson.Gson;
 import org.cloudbus.cloudsim.Host;
-import org.cloudbus.cloudsim.Log;
+import org.cloudbus.cloudsim.edge.core.edge.EdgeDevice;
 import org.cloudbus.cloudsim.sdn.Link;
-import org.cloudbus.cloudsim.sdn.NetworkNIC;
 import org.cloudbus.cloudsim.sdn.SDNHost;
 import org.cloudbus.cloudsim.sdn.Switch;
 import org.cloudbus.cloudsim.sdn.power.PowerUtilizationHistoryEntry;
 import org.cloudbus.cloudsim.sdn.power.PowerUtilizationInterface;
-import org.cloudbus.osmosis.core.Flow;
 import org.cloudbus.osmosis.core.OsmoticAppDescription;
 import org.cloudbus.osmosis.core.OsmoticBroker;
 import org.cloudbus.osmosis.core.WorkflowInfo;
 import uk.ncl.giacomobergami.utils.data.CSVMediator;
-import uk.ncl.giacomobergami.utils.data.JSON;
 
 
 /**
@@ -56,6 +49,7 @@ public class PrintResults {
 	List<PowerConsumption> spc;
 	List<ActualPowerUtilizationHistoryEntry> puhe;
 	List<ActualHistoryEntry> ahe;
+	private List<EdgeConnectionsPerSimulationTime> connectionPerSimTime;
 //	TreeMap<String, List<String>> app_to_path;
 
 	public void dumpCSV(File folder) {
@@ -70,6 +64,7 @@ public class PrintResults {
 		new CSVMediator<>(PowerConsumption.class).writeAll(new File(folder, "SwitchPowerConsumption.csv"), spc);
 		new CSVMediator<>(ActualPowerUtilizationHistoryEntry.class).writeAll(new File(folder, "PowerUtilisationHistory.csv"), puhe);
 		new CSVMediator<>(ActualHistoryEntry.class).writeAll(new File(folder, "HistoryEntry.csv"), ahe);
+		new CSVMediator<>(EdgeConnectionsPerSimulationTime.class).writeAll(new File(folder, "connectionPerSimTime.csv"), connectionPerSimTime);
 //		try {
 //			Files.writeString(new File(folder, "paths.json").toPath(), new Gson().toJson(app_to_path));
 //		} catch (IOException e) {
@@ -97,10 +92,24 @@ public class PrintResults {
 		if (utilizationHisotry == null) return;
 		utilizationHisotry.forEach(x -> ahe.add(new ActualHistoryEntry(dcName, name, x)));
 	}
+
+	public static class EdgeConnectionsPerSimulationTime {
+		public double time;
+		public String edge_host;
+		public int    IoTDevices;
+
+		public EdgeConnectionsPerSimulationTime(double time, String edge_host, int ioTDevices) {
+			this.time = time;
+			this.edge_host = edge_host;
+			IoTDevices = ioTDevices;
+		}
+	}
 		
-	public void collectNetworkData(List<OsmoticAppDescription> appList) {
+	public void collectNetworkData(List<OsmoticAppDescription> appList,
+								   OsmoticBroker osmoticBroker) {
 		osmoticAppsStats = new ArrayList<>();
 		overallAppResults = new ArrayList<>();
+		TreeMap<Double, HashMultimap<String, String>> tm = new TreeMap<>();
 		List<WorkflowInfo> tags = new ArrayList<>();
 		for(OsmoticAppDescription app : appList){
 			for(WorkflowInfo workflowTag : OsmoticBroker.workflowTag){
@@ -108,10 +117,24 @@ public class PrintResults {
 					tags.add(workflowTag);
 				}
 			}
-			tags.forEach(x -> this.generateAppTag(x, osmoticAppsStats));
+			tags.forEach(x -> this.generateAppTag(x, osmoticAppsStats, osmoticBroker, tm));
 			tags.clear();
 		}
 
+		Set<String> allActiveNodes = tm.entrySet()
+						.stream()
+								.flatMap(kv -> kv.getValue().keys().stream())
+										.collect(Collectors.toUnmodifiableSet());
+
+		this.connectionPerSimTime = tm.entrySet()
+				.stream()
+				.flatMap(kv -> allActiveNodes.stream()
+						.map(x -> {
+							var s = kv.getValue().get(x);
+							var n = s == null ? 0 : s.size();
+							return new EdgeConnectionsPerSimulationTime(kv.getKey(), x, n);
+						}))
+				.collect(Collectors.toList());
 
 		for(OsmoticAppDescription app : appList){
 			for(WorkflowInfo workflowTag : OsmoticBroker.workflowTag){
@@ -186,7 +209,9 @@ public class PrintResults {
 		OsmesisOverallAppsResults fromTag = new OsmesisOverallAppsResults();
 
 		double StartTime = app.getAppStartTime();
-		double EndTime = tags.get(tags.size()-1).getCloudLet().getFinishTime();
+		var tmp = tags.get(tags.size()-1).getCloudLet();
+		if (tmp == null) return;
+		double EndTime = tmp.getFinishTime();
 		double SimluationTime = EndTime - StartTime;
 		
 		WorkflowInfo firstWorkflow = tags.get(0);
@@ -244,6 +269,7 @@ public class PrintResults {
 		public double CloudLetMISize;
 		public double CloudLetProccessingTimeByVM;
 		public double TransactionTotalTime;
+		public String path_src, path_dst;
 	}
 
 	public static List<String> sortLinks(List<Link> ls) {
@@ -285,7 +311,9 @@ public class PrintResults {
 	}
 
 	public void generateAppTag(WorkflowInfo workflowTag,
-							   List<PrintOsmosisAppFromTags> list) {
+							   List<PrintOsmosisAppFromTags> list,
+							   OsmoticBroker MELResolverToHostingHost,
+							   TreeMap<Double, HashMultimap<String, String>> countingMapPerSimTime) {
 //			ArrayList<Link> ls1 = new ArrayList<>();
 //			var sx = workflowTag.getEdgeToCloudFlow();
 //			if ((sx != null) && (sx.getNodeOnRouteList() != null)) ls1.addAll(sx.getLinkList());
@@ -296,14 +324,22 @@ public class PrintResults {
 //			var res = sortLinks(new ArrayList<>(ls1));
 //			app_to_path.put(workflowTag.getAppName(), res);
 
+
 			PrintOsmosisAppFromTags fromTag = new PrintOsmosisAppFromTags();
 			fromTag.APP_ID = workflowTag.getAppId();
 			fromTag.AppName = workflowTag.getAppName();
 			fromTag.Transaction = workflowTag.getWorkflowId();
 			fromTag.StartTime = workflowTag.getSartTime();
+		countingMapPerSimTime.putIfAbsent(fromTag.StartTime, HashMultimap.create());
 			fromTag.FinishTime = workflowTag.getFinishTime();
 			fromTag.IoTDeviceName = workflowTag.getIotDeviceFlow().getAppNameSrc();
 			fromTag.MELName = workflowTag.getIotDeviceFlow().getAppNameDest() + " (" +workflowTag.getSourceDCName() + ")";
+			var srcHost = MELResolverToHostingHost.resolveHostFromMELId(workflowTag.getIotDeviceFlow().getAppNameDest());
+			if (srcHost == null) return; // skipping the communications that never happened
+			if (!(srcHost instanceof EdgeDevice))
+				throw new RuntimeException("ERROR: wrong assumption");
+			fromTag.path_src = ((EdgeDevice)srcHost).getDeviceName();
+		countingMapPerSimTime.get(fromTag.StartTime).put(fromTag.path_src, fromTag.IoTDeviceName);
 			fromTag.DataSizeIoTDeviceToMEL_Mb = workflowTag.getIotDeviceFlow().getSize();
 			fromTag.TransmissionTimeIoTDeviceToMEL = workflowTag.getIotDeviceFlow().getTransmissionTime();
 			fromTag.EdgeLetMISize = workflowTag.getEdgeLet().getCloudletLength();
@@ -311,6 +347,8 @@ public class PrintResults {
 			fromTag.EdgeLet_MEL_FinishTime = workflowTag.getEdgeLet().getFinishTime();
 			fromTag.EdgeLetProccessingTimeByMEL = workflowTag.getEdgeLet().getActualCPUTime();
 			fromTag.DestinationVmName = workflowTag.getEdgeToCloudFlow().getAppNameDest() + " (" +workflowTag.getDestinationDCName() + ")";
+			var dstHost = MELResolverToHostingHost.resolveHostFromMELId(workflowTag.getEdgeToCloudFlow().getAppNameDest());
+			fromTag.path_dst = "Host#"+dstHost.getId()+"@"+workflowTag.getDestinationDCName();
 			fromTag.DataSizeMELToVM_Mb = workflowTag.getEdgeToCloudFlow().getSize();
 			fromTag.TransmissionTimeMELToVM = workflowTag.getEdgeToCloudFlow().getTransmissionTime();
 			fromTag.CloudLetMISize = workflowTag.getCloudLet().getCloudletLength();

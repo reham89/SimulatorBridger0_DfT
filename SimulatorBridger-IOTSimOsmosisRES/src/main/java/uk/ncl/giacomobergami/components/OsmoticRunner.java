@@ -47,6 +47,7 @@ public class OsmoticRunner {
         return obj;
     }
 
+    @Deprecated
     public static void legacyOrchestrate(String configuration) {
         List<OsmoticConfiguration> ls = JSON.stringToArray(new File(configuration), OsmoticConfiguration[].class);
         if (ls.isEmpty()) return;
@@ -65,17 +66,9 @@ public class OsmoticRunner {
         conv.log(conf);
     }
 
+    @Deprecated
     public static void runFromDump(String configuration) {
         var conf = GlobalConfigurationSettings.readFromYAML(new File(configuration));
         runFromConfiguration(GlobalConfigurationSettings.readFromYAML(new File(configuration)));
-    }
-
-    public static void main(String[] args) {
-        String configuration = "/home/giacomo/IdeaProjects/SimulatorBridger/inputFiles/novel/dump/iot_sim_osmosis_res.yaml";
-        if (args.length >= 1) {
-            configuration = args[0];
-        }
-        runFromDump(configuration);
-        //legacyOrchestrate("osmotic.json");
     }
 }

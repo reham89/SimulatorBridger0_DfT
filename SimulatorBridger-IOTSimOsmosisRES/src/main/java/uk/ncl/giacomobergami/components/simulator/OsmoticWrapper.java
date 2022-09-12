@@ -93,7 +93,7 @@ public class OsmoticWrapper {
             MainEventManager.novel_stop();
 //            OsmoticAppsParser.appList.clear();
             OsmoticBroker.workflowTag.clear();
-            osmoticBroker = null;
+//            osmoticBroker = null;
             topologyBuilder = null;
             agentBroker = null;
             started = false;
@@ -245,7 +245,7 @@ public class OsmoticWrapper {
         if (finished) {
             LogUtil.logger.trace("Simulation finished...");
             PrintResults pr = new PrintResults();
-            pr.collectNetworkData(appList);
+            pr.collectNetworkData(appList, osmoticBroker);
 
             for(OsmoticDatacenter osmesisDC : topologyBuilder.getOsmesisDatacentres()){
                 pr.collectDataCenterData(osmesisDC.getName(),
@@ -273,7 +273,8 @@ public class OsmoticWrapper {
         if (finished) {
             LogUtil.logger.trace("Simulation finished...");
             PrintResults pr = new PrintResults();
-            pr.collectNetworkData(appList);
+            pr.collectNetworkData(appList, osmoticBroker);
+
 
             for(OsmoticDatacenter osmesisDC : conf.conf.osmesisDatacentres){
                 pr.collectDataCenterData(osmesisDC.getName(),

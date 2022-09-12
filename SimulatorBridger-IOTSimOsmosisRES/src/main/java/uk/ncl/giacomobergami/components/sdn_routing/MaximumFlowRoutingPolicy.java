@@ -71,7 +71,8 @@ public class MaximumFlowRoutingPolicy extends SDNRoutingPolicy {
     @Override
     public List<Link> getLinks(int source, int dest) { return linkTable.get(source, dest); }
 
-    public void setNewPaths(Collection<List<String>> value, SDNRoutingPolicy actualPolicy) {
+    public void setNewPaths(Collection<List<String>> value,
+                            SDNRoutingPolicy actualPolicy) {
         for (var path : value) {
             List<Link> linkList = new ArrayList<>();
             var ls = path.stream().map(actualPolicy::inefficientNodeByName).collect(Collectors.toList());

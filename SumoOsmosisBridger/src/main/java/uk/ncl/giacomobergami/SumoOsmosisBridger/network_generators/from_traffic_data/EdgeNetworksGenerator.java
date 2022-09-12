@@ -129,14 +129,14 @@ public class EdgeNetworksGenerator {
         }
     }
 
-    public void updateEdgeDevice(EdgeDevice device, double lower, double upper) {
-        var retrieve = retriveEdgeLocationInTime(lower, device.getDeviceName());
-        if (retrieve == null) return;
-        device.location.x = retrieve.x;
-        device.location.y = retrieve.y;
-        device.signalRange = retrieve.communication_radius;
-        device.max_vehicle_communication = retrieve.max_vehicle_communication;
-    }
+//    public void updateEdgeDevice(EdgeDevice device, double lower, double upper) {
+//        var retrieve = retriveEdgeLocationInTime(lower, device.getDeviceName());
+//        if (retrieve == null) return;
+//        device.location.x = retrieve.x;
+//        device.location.y = retrieve.y;
+//        device.signalRange = retrieve.communication_radius;
+//        device.max_vehicle_communication = retrieve.max_vehicle_communication;
+//    }
 
     public static void main(String args[]) {
         new EdgeNetworksGenerator(

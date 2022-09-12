@@ -12,7 +12,6 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class CloudInfrastructureGenerator {
-
     private static AtomicInteger core = new AtomicInteger(1);
     private static AtomicInteger aggregate = new AtomicInteger(1);
     private static AtomicInteger edge = new AtomicInteger(1);
@@ -65,11 +64,11 @@ public class CloudInfrastructureGenerator {
     public static List<VM> generateDistinctVMs(int n, int bandwidth, String policy, double mips, int pes, int ram, long storage) {
         return IntStream.range(1, n+1).mapToObj(x-> generateVirtualMachine(vm.getAndIncrement(), bandwidth, policy, mips, pes, ram, storage)).collect(Collectors.toList());
     }
-    public static Host generateHost(int id, int bw, int mips, int pes, int ram, long storage) {
-        return new Host(hostId(id),  pes, ram,  bw, storage, mips, 0, 0, 0, 0);
+    public static Host generateHost(int id, int bw, int mips, int pes, int ram, long storage, double max_vehicle_communication) {
+        return new Host(hostId(id),  pes, ram,  bw, storage, mips, 0, 0, 0, 0, max_vehicle_communication);
     }
-    public static List<Host> generateDistinctHosts(int n, int bandwidth, int mips, int pes, int ram, long storage) {
-        return IntStream.range(1, n+1).mapToObj(x-> generateHost(host.getAndIncrement(), bandwidth, mips, pes, ram, storage)).collect(Collectors.toList());
+    public static List<Host> generateDistinctHosts(int n, int bandwidth, int mips, int pes, int ram, long storage, double max_vehicle_communication) {
+        return IntStream.range(1, n+1).mapToObj(x-> generateHost(host.getAndIncrement(), bandwidth, mips, pes, ram, storage, max_vehicle_communication)).collect(Collectors.toList());
     }
 
     public static class Configuration {
@@ -202,7 +201,8 @@ public class CloudInfrastructureGenerator {
                 conf.hosts_and_vms.hosts_mips,
                 conf.hosts_and_vms.hosts_pes,
                 conf.hosts_and_vms.hosts_ram,
-                conf.hosts_and_vms.hosts_storage
+                conf.hosts_and_vms.hosts_storage,
+                0
         );
         for (int i = 1; i<conf.n_edges; i++) {
             for (int j = 1; j<=conf.hosts_and_vms.n_hosts_per_edges; j++) {

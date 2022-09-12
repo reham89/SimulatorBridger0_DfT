@@ -96,7 +96,6 @@ public class LegacyTopologyBuilder {
 			osmesisDatacentres.add(y);
 		}
 
-        initLog(topologyEntity); // ConfigurationSettings.initLog()
 
         sdWanController = new SDWANController(topologyEntity.getSdwan().get(0), datacenterGateways);
 		osmesisDatacentres.forEach(datacenter -> datacenter.getSdnController().setWanController(sdWanController));
@@ -185,15 +184,4 @@ public class LegacyTopologyBuilder {
 				});
 		return datacenter;
 	}
-	
-	private void initLog(LegacyConfiguration conf) {
-		LogEntity logEntity = conf.getLogEntity();
-		boolean saveLogToFile = logEntity.isSaveLogToFile();
-		if (saveLogToFile) {
-			String logFilePath = logEntity.getLogFilePath();
-			String logLevel = logEntity.getLogLevel();
-			boolean append = logEntity.isAppend();
-//			LogUtil.initLog(Level.valueOf(logLevel.toUpperCase()), logFilePath, saveLogToFile, append);
-		}
-	}	
 }

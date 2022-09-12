@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration status="all">
-
     <Appenders>
-        <RollingFile name="fileLogger"
+        <Console name="STDOUT" target="SYSTEM_OUT">
+            <PatternLayout pattern="[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{1} - %msg%n"/>
+        </Console>
+        <File name="fileLogger"
                      fileName="osmotic.log"
                      filePattern="osmotic-%d{yyyy-MM-dd}.log">
             <PatternLayout>
@@ -20,11 +22,12 @@
                     <IfLastModified age="30d" />
                 </Delete>
             </DefaultRolloverStrategy>
-        </RollingFile>
+        </File>
     </Appenders>
     <Loggers>
         <Root level="all" additivity="false">
             <appender-ref ref="fileLogger" />
+<!--            <appender-ref ref="STDOUT" />-->
         </Root>
     </Loggers>
 </Configuration>

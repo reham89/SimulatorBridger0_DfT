@@ -13,6 +13,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.cloudbus.cloudsim.edge.utils.LogUtil.logger;
+
 public class MELDelegatedHost extends MELNearestDistanceSwitch {
 
     private Map<String, Integer> roundRobinMelMap;
@@ -41,6 +43,10 @@ public class MELDelegatedHost extends MELNearestDistanceSwitch {
         if (melName.startsWith("@")) {
             var host = melName.substring(1);
             var minimumHost = self.resolveEdgeDeviceFromId(host);
+            if (minimumHost == null) {
+                logger.warn("Warning: the MELs are likely not to be associated to a host: stopping the communication");
+                return null;
+            }
             var instances = minimumHost.getVmList();
             if (!roundRobinMelMap.containsKey(ioTDevice.getName())){
                 roundRobinMelMap.put(ioTDevice.getName(),0);
