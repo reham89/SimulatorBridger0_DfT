@@ -18,3 +18,7 @@ reham*
 /IoTSim-Osmosis-RES.iml
 /.gradle/
 log.txt
+/clean_example/1_sumo_output/
+/clean_example/1_traffic_information_collector_output/
+/clean_example/2_central_agent_oracle_output/
+osmotic.log
