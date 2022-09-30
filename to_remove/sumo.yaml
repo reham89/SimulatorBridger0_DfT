@@ -1,7 +1,0 @@
-trace_file: "reham_sumo_trace_yes_TAVF.xml"
-logger_file: "reham_sumo_yes_log.txt"
-sumo_program: "sumo"
-sumo_configuration_file_path: "/home/giacomo/Scaricati/TAVF-Hamburg/run_simulation.sumocfg"
-default_rsu_communication_radius: 200.0
-default_max_vehicle_communication: 5
-generateRSUAdjacencyList: "uk.ncl.giacomobergami.SumoOsmosisBridger.traffic_orchestrator.TopKConnections"

@@ -1,7 +1,0 @@
-clazzPath: "uk.ncl.giacomobergami.SumoOsmosisBridger.traffic_converter.SUMOConverter"
-YAMLConverterConfiguration: "sumo.yaml"
-RSUCsvFile: "rsu.csv"
-VehicleCsvFile: "vehicle.csv"
-begin: 0
-end: 100
-step: 1.0

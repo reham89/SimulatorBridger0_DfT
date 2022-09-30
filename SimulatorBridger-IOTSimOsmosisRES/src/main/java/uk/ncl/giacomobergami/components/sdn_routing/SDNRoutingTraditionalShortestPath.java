@@ -184,7 +184,7 @@ public class SDNRoutingTraditionalShortestPath extends SDNRoutingPolicy {
 			}
 		}
 		List<NetworkNIC> routeBuilt = biuldRoute(previousNode, srcHost, destHost, pkt);
-		System.out.println(routeBuilt);
+//		System.out.println(routeBuilt);
 		return routeBuilt;		
 	}
 
