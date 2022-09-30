@@ -33,6 +33,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ *
+ * @author Giacomo Bergami
+ * @contact bergamigiacomo@gmail.com
+ * @since SimulatorBridger
+ */
 public class MaximumFlowRoutingPolicy extends SDNRoutingPolicy {
     @Override @Deprecated
     public void updateSDNNetworkGraph() { throw new RuntimeException("Unexpected method call!"); }
