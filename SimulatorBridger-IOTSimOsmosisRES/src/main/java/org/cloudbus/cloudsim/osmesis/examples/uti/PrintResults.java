@@ -29,6 +29,7 @@ import org.cloudbus.cloudsim.sdn.power.PowerUtilizationInterface;
 import org.cloudbus.osmosis.core.OsmoticAppDescription;
 import org.cloudbus.osmosis.core.OsmoticBroker;
 import org.cloudbus.osmosis.core.WorkflowInfo;
+import uk.ncl.giacomobergami.components.iot.IoTDevice;
 import uk.ncl.giacomobergami.utils.data.CSVMediator;
 
 
@@ -41,6 +42,7 @@ import uk.ncl.giacomobergami.utils.data.CSVMediator;
 **/
 
 public class PrintResults {
+	List<AccurateBatteryInformation> battInfo;
 	List<OsmoticAppDescription> appList;
 	List<PrintOsmosisAppFromTags> osmoticAppsStats;
 	List<OsmesisOverallAppsResults> overallAppResults;
@@ -56,6 +58,7 @@ public class PrintResults {
 		if (!folder.exists()) {
 			folder.mkdirs();
 		}
+		new CSVMediator<>(AccurateBatteryInformation.class).writeAll(new File(folder, "accurateBatteryInfo.csv"), battInfo);
 		new CSVMediator<>(OsmoticAppDescription.class).writeAll(new File(folder, "appList.csv"), appList);
 		new CSVMediator<>(PrintOsmosisAppFromTags.class).writeAll(new File(folder, "osmoticAppsStats.csv"), osmoticAppsStats);
 		new CSVMediator<>(OsmesisOverallAppsResults.class).writeAll(new File(folder, "overallAppResults.csv"), overallAppResults);
@@ -91,6 +94,15 @@ public class PrintResults {
 		if (ahe == null) ahe = new ArrayList<>();
 		if (utilizationHisotry == null) return;
 		utilizationHisotry.forEach(x -> ahe.add(new ActualHistoryEntry(dcName, name, x)));
+	}
+
+	public void collectTrustworthyBatteryData(Map<String, IoTDevice> devices) {
+		battInfo = new ArrayList<>();
+		for (var nameToIoT : devices.entrySet()) {
+			for (var entry : nameToIoT.getValue().getTrustworthyConsumption().entrySet()) {
+				battInfo.add(new AccurateBatteryInformation(nameToIoT.getKey(), entry.getKey(), entry.getValue()));
+			}
+		}
 	}
 
 	public static class EdgeConnectionsPerSimulationTime {
@@ -207,6 +219,7 @@ public class PrintResults {
 		long TotalCloudLetSizes = 0;
 		double appTotalRunningTmie = 0;
 		OsmesisOverallAppsResults fromTag = new OsmesisOverallAppsResults();
+
 
 		double StartTime = app.getAppStartTime();
 		var tmp = tags.get(tags.size()-1).getCloudLet();

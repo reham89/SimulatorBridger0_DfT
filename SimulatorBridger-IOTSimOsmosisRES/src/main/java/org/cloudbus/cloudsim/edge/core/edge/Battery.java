@@ -104,7 +104,13 @@ public class Battery {
 	public double getCurrentCapacity() {
 		return currentCapacity;
 	}
+	public void initCapacity(double currentCapacity) {
+		this.currentCapacity = currentCapacity;
+	}
 	public void setCurrentCapacity(double currentCapacity) {
+		if (currentCapacity > this.currentCapacity) {
+			System.err.println("ERROR");
+		}
 		this.currentCapacity = currentCapacity;
 	}
 

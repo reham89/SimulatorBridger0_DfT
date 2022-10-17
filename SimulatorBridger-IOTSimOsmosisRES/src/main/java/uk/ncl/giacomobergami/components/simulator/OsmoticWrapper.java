@@ -245,6 +245,7 @@ public class OsmoticWrapper {
         if (finished) {
             LogUtil.logger.trace("Simulation finished...");
             PrintResults pr = new PrintResults();
+            pr.collectTrustworthyBatteryData(osmoticBroker.getDevices());
             pr.collectNetworkData(appList, osmoticBroker);
 
             for(OsmoticDatacenter osmesisDC : topologyBuilder.getOsmesisDatacentres()){
@@ -273,6 +274,7 @@ public class OsmoticWrapper {
         if (finished) {
             LogUtil.logger.trace("Simulation finished...");
             PrintResults pr = new PrintResults();
+            pr.collectTrustworthyBatteryData(osmoticBroker.getDevices());
             pr.collectNetworkData(appList, osmoticBroker);
 
 

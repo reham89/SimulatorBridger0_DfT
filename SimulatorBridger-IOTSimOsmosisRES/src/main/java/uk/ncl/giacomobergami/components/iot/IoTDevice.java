@@ -28,6 +28,8 @@ import uk.ncl.giacomobergami.utils.gir.CartesianPoint;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -52,6 +54,11 @@ public abstract class IoTDevice extends SimEntity implements CartesianPoint {
 	private double bw;
 	private double usedBw;
 	private final AtomicInteger flowId;
+	private TreeMap<Double, Double> consumptionInTime = new TreeMap<>();
+
+	public Map<Double, Double> getTrustworthyConsumption() {
+		return consumptionInTime;
+	}
 
 	@Override
 	public double getX() {
@@ -88,9 +95,9 @@ public abstract class IoTDevice extends SimEntity implements CartesianPoint {
 		// Battery Setting
 		battery.setMaxCapacity(onta.getMax_battery_capacity());
 		if (onta.getInitial_battery_capacity()==0.0){
-			battery.setCurrentCapacity(onta.getMax_battery_capacity());
+			battery.initCapacity(onta.getMax_battery_capacity());
 		} else {
-			battery.setCurrentCapacity(onta.getInitial_battery_capacity());
+			battery.initCapacity(onta.getInitial_battery_capacity());
 		}
 		battery.setBatterySensingRate(onta.getBattery_sensing_rate());
 		battery.setBatterySendingRate(onta.getBattery_sending_rate());
@@ -175,6 +182,7 @@ public abstract class IoTDevice extends SimEntity implements CartesianPoint {
 
 		// if the battery is drained,
 		this.updateBatteryBySensing();
+		consumptionInTime.put(ev.eventTime(), this.getBattery().getCurrentCapacity());
 		boolean died = this.updateBatteryByTransmission();
 		app.setIoTBatteryConsumption(this.battery.getBatteryTotalConsumption());
 		if (died) {

@@ -85,16 +85,17 @@ public class AgentBroker {
                     current = max_charging_current;
                 }
 
-                double mah = batteryDeltaTime/3600.0 * current;
+//                double mah = batteryDeltaTime/3600.0 * current;
 
                 //charging is in mAh
-                iotDevice.getBattery().chargeBattery(mah, current);
+//                iotDevice.getBattery().chargeBattery(mah, current);
 
-                if (mah>0.0){
-                    iotDevice.getBattery().setCharging(true);
-                } else {
-                    iotDevice.getBattery().setCharging(false);
-                }
+                iotDevice.getBattery().setCharging(false);
+//                if (mah>0.0){
+//                    iotDevice.getBattery().setCharging(true);
+//                } else {
+//                    iotDevice.getBattery().setCharging(false);
+//                }
 
             }
         }

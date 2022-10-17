@@ -55,6 +55,10 @@ public class OsmoticBroker extends DatacenterBroker {
 	private final AtomicInteger edgeLetId;
 	public boolean isWakeupStartSet;
 
+	public Map<String, IoTDevice> getDevices() {
+		return iotDeviceNameToObject;
+	}
+
 	//private Map<String, Integer> roundRobinMelMap = new HashMap<>();
 
 	public CentralAgent osmoticCentralAgent;
@@ -492,6 +496,8 @@ public class OsmoticBroker extends DatacenterBroker {
 		iotDeviceNameToId.put(device.getName(), device.getId());
 		iotDeviceNameToObject.put(device.getName(), device);
 	}
+
+
 
 	public void setIoTTraces(IoTEntityGenerator ioTEntityGenerator) {
 		this.ioTEntityGenerator = ioTEntityGenerator;
