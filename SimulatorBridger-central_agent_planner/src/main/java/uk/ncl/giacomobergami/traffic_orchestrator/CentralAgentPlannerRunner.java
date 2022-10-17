@@ -30,12 +30,12 @@ import java.util.Optional;
 
 public class CentralAgentPlannerRunner {
     private static Class<?> clazz;
-    private static CentralAgentPlanner obj;
+    private static PreSimulatorEstimator obj;
 
-    public static CentralAgentPlanner generateFacade(OrchestratorConfiguration conf,
-                                                     TrafficConfiguration conf2) {
+    public static PreSimulatorEstimator generateFacade(OrchestratorConfiguration conf,
+                                                       TrafficConfiguration conf2) {
         if (obj == null) {
-            obj = new CentralAgentPlanner(conf, conf2);
+            obj = new PreSimulatorEstimator(conf, conf2);
         }
         return obj;
     }
@@ -45,7 +45,7 @@ public class CentralAgentPlannerRunner {
         Optional<OrchestratorConfiguration> conf = YAML.parse(OrchestratorConfiguration.class, new File(conf2));
         Optional<TrafficConfiguration> conf3 = YAML.parse(TrafficConfiguration.class, new File(conf1));
         conf.ifPresent(x -> conf3.ifPresent(y -> {
-            CentralAgentPlanner conv = generateFacade(x, y);
+            PreSimulatorEstimator conv = generateFacade(x, y);
             conv.run();
             conv.serializeAll();
         }));

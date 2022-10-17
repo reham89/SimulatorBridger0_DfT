@@ -3,18 +3,18 @@ package org.cloudbus.cloudsim.osmesis.examples.uti;
 public class AccurateBatteryInformation {
     public String IoTDeviceName;
     public double time;
-    public double capacity;
+    public double consumption;
 
     public AccurateBatteryInformation() {
         IoTDeviceName = "";
         time = 0.0;
-        capacity = 0.0;
+        consumption = 0.0;
     }
 
-    public AccurateBatteryInformation(String ioTDeviceName, double time, double capacity) {
+    public AccurateBatteryInformation(String ioTDeviceName, double time, double consume) {
         IoTDeviceName = ioTDeviceName;
         this.time = time;
-        this.capacity = capacity;
+        this.consumption = consume;
     }
 
     public String getIoTDeviceName() {
@@ -33,11 +33,11 @@ public class AccurateBatteryInformation {
         this.time = time;
     }
 
-    public double getCapacity() {
-        return capacity;
+    public double getConsumption() {
+        return consumption;
     }
 
-    public void setCapacity(double capacity) {
-        this.capacity = capacity;
+    public void setConsumption(double consumption) {
+        this.consumption = consumption;
     }
 }

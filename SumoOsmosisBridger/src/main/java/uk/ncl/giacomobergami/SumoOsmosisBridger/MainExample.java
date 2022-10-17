@@ -6,7 +6,7 @@ import uk.ncl.giacomobergami.SumoOsmosisBridger.network_generators.EnsembleConfi
 import uk.ncl.giacomobergami.components.OsmoticRunner;
 import uk.ncl.giacomobergami.traffic_converter.TrafficConverterRunner;
 import uk.ncl.giacomobergami.traffic_converter.abstracted.TrafficConverter;
-import uk.ncl.giacomobergami.traffic_orchestrator.CentralAgentPlanner;
+import uk.ncl.giacomobergami.traffic_orchestrator.PreSimulatorEstimator;
 import uk.ncl.giacomobergami.traffic_orchestrator.CentralAgentPlannerRunner;
 import uk.ncl.giacomobergami.utils.data.YAML;
 import uk.ncl.giacomobergami.utils.pipeline_confs.OrchestratorConfiguration;
@@ -73,7 +73,7 @@ public class MainExample {
                 x.vehiclejsonFile = new File(output_folder_2, orchestrator_out_vehiclejsonFile).getAbsolutePath();
                 x.output_stats_folder = new File(output_folder_2, orchestrator_out_output_stats_folder).getAbsolutePath();
                 x.experiment_name = orchestrator_out_output_experiment_name;
-                CentralAgentPlanner conv2 = CentralAgentPlannerRunner.generateFacade(x, y);
+                PreSimulatorEstimator conv2 = CentralAgentPlannerRunner.generateFacade(x, y);
                 conv2.run();
                 conv2.serializeAll();
 

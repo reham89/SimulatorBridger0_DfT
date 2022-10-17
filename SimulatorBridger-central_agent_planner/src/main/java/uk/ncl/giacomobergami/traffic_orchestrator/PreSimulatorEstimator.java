@@ -60,7 +60,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-public class CentralAgentPlanner {
+public class PreSimulatorEstimator {
 
     Logger logger = LogManager.getRootLogger();
     private final OrchestratorConfiguration conf;
@@ -78,7 +78,7 @@ public class CentralAgentPlanner {
     List<String> tls_s;
     HashMap<Double, HashMap<String, Integer>> belongingMap;
 
-    public CentralAgentPlanner(OrchestratorConfiguration conf, TrafficConfiguration conf2) {
+    public PreSimulatorEstimator(OrchestratorConfiguration conf, TrafficConfiguration conf2) {
         logger.info("=== CENTRAL AGENT PLANNER ===");
         logger.trace("CENTRAL AGENT PLANNER: init");
         this.conf = conf;

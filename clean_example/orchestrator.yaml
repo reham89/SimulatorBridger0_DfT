@@ -17,7 +17,7 @@ p1:                                   1.0
 p2:                                   1.0
 removal:                              1.0
 addition:                             1.0
-reset_rsu_communication_radius:       500.0           #sumo.yaml: default_rsu_communication_radius
+reset_rsu_communication_radius:       100.0           #sumo.yaml: default_rsu_communication_radius
 reset_max_vehicle_communication:      15               #sumo.yaml: default_max_vehicle_communication
 generateRSUAdjacencyList:             "uk.ncl.giacomobergami.SumoOsmosisBridger.traffic_orchestrator.TopKConnections"
 

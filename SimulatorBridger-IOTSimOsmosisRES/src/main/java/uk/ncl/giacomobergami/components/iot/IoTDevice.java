@@ -96,7 +96,9 @@ public abstract class IoTDevice extends SimEntity implements CartesianPoint {
 		battery.setMaxCapacity(onta.getMax_battery_capacity());
 		if (onta.getInitial_battery_capacity()==0.0){
 			battery.initCapacity(onta.getMax_battery_capacity());
+			battery.setMaxCapacity(onta.getMax_battery_capacity());
 		} else {
+			battery.setMaxCapacity(onta.getInitial_battery_capacity());
 			battery.initCapacity(onta.getInitial_battery_capacity());
 		}
 		battery.setBatterySensingRate(onta.getBattery_sensing_rate());
@@ -134,7 +136,9 @@ public abstract class IoTDevice extends SimEntity implements CartesianPoint {
 			break;
 
 		case OsmoticTags.MOVING: {
-			logger.info("MOVING AT TIME: " + MainEventManager.clock() +" Update the program");
+			this.updateBatteryBySensing();
+			consumptionInTime.put(ev.eventTime(), this.battery.getBatteryTotalConsumption());
+//			logger.info("MOVING AT TIME: " + MainEventManager.clock() +" Update the program");
 		}
 			break;
 		}
@@ -178,13 +182,20 @@ public abstract class IoTDevice extends SimEntity implements CartesianPoint {
 	}
 	
 	private void sensing(SimEvent ev) {
+		if (ev == null) {
+			this.updateBatteryBySensing();
+			consumptionInTime.put(MainEventManager.clock(), this.battery.getBatteryTotalConsumption());
+			return;
+		}
 		OsmoticAppDescription app = (OsmoticAppDescription) ev.getData();
-
 		// if the battery is drained,
 		this.updateBatteryBySensing();
-		consumptionInTime.put(ev.eventTime(), this.getBattery().getCurrentCapacity());
 		boolean died = this.updateBatteryByTransmission();
+
 		app.setIoTBatteryConsumption(this.battery.getBatteryTotalConsumption());
+		if (getName().equals("0")) {
+			System.out.println(ev.eventTime()+" from App "+app.getAppID()+" consumption: "+this.battery.getBatteryTotalConsumption());
+		}
 		if (died) {
 			app.setIoTDeviceDied(true);
 			LogUtil.info(this.getClass().getSimpleName() + " running time is " + MainEventManager.clock());
@@ -251,11 +262,11 @@ public abstract class IoTDevice extends SimEntity implements CartesianPoint {
 	}
 	
 	public void removeFlow(SimEvent ev) {
-		
 		Flow flow  = (Flow) ev.getData();
 		this.flowList.remove(flow);
-		
-		updateBandwidth();	
+		updateBandwidth();
+		this.updateBatteryBySensing();
+		consumptionInTime.put(ev.eventTime(), this.battery.getBatteryTotalConsumption());
 	}
 	
 	private void updateBandwidth(){			

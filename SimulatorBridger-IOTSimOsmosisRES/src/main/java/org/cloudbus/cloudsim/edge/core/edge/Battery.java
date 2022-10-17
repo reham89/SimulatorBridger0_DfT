@@ -108,10 +108,13 @@ public class Battery {
 		this.currentCapacity = currentCapacity;
 	}
 	public void setCurrentCapacity(double currentCapacity) {
-		if (currentCapacity > this.currentCapacity) {
-			System.err.println("ERROR");
-		}
+//		if (currentCapacity > this.currentCapacity) {
+//			System.err.println("ERROR");
+//		}
 		this.currentCapacity = currentCapacity;
+	}
+	public void decrementCapacity(double delta) {
+		this.currentCapacity -= delta;
 	}
 
 	public void chargeBattery(double energyTransfer, double current){

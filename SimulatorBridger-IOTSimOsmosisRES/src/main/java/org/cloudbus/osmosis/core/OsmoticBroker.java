@@ -64,7 +64,7 @@ public class OsmoticBroker extends DatacenterBroker {
 	public CentralAgent osmoticCentralAgent;
 	private AtomicInteger flowId;
 	private IoTEntityGenerator ioTEntityGenerator;
-	private double deltaVehUpdate;
+	private static double deltaVehUpdate;
 
 	public OsmoticBroker(String name,
 						 AtomicInteger edgeLetId,
@@ -93,7 +93,7 @@ public class OsmoticBroker extends DatacenterBroker {
 					ioTEntityGenerator.collectionOfWakeUpTimes()) {
 				double time = forcedWakeUpTime - chron;
 				if (time > 0.0) {
-					schedule(OsmoticBroker.brokerID, time, MAPE_WAKEUP_FOR_COMMUNICATION, null);
+					schedule(OsmoticBroker.brokerID, chron, MAPE_WAKEUP_FOR_COMMUNICATION, null);
 				}
 			}
 			isWakeupStartSet = true;
@@ -113,8 +113,6 @@ public class OsmoticBroker extends DatacenterBroker {
 
 		//Execute MAPE loop at time interval
 		ab.executeMAPE(chron);
-
-
 
 		switch (ev.getTag()) {
 			case CloudSimTags.RESOURCE_CHARACTERISTICS_REQUEST:
@@ -507,7 +505,7 @@ public class OsmoticBroker extends DatacenterBroker {
 		this.deltaVehUpdate = deltaVehUpdate;
 	}
 
-	public double getDeltaVehUpdate() {
+	public static double getDeltaVehUpdate() {
 		return deltaVehUpdate;
 	}
 }

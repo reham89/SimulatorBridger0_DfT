@@ -31,7 +31,7 @@ public class CarSensor extends IoTDevice {
 	}
 	@Override
 	public boolean updateBatteryBySensing() {
-		battery.setCurrentCapacity(battery.getCurrentCapacity() - battery.getBatterySensingRate());
+		battery.decrementCapacity(battery.getBatterySensingRate());
 		if(battery.getCurrentCapacity()<0)
 			return  true;
 		return false;
@@ -39,7 +39,7 @@ public class CarSensor extends IoTDevice {
 
 	@Override
 	public boolean updateBatteryByTransmission() {
-		battery.setCurrentCapacity(battery.getCurrentCapacity() - battery.getBatterySendingRate());
+		battery.decrementCapacity(battery.getBatterySendingRate());
 		if(battery.getCurrentCapacity()<0)
 			return  true;
 		return false;

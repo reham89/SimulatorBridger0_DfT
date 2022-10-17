@@ -31,6 +31,9 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
+import static org.cloudbus.cloudsim.core.CloudSimTags.MAPE_WAKEUP_FOR_COMMUNICATION;
+import static org.cloudbus.osmosis.core.OsmoticTags.MOVING;
+
 public class DeviceAgentAbstractScanner extends DeviceAgent {
     private static SquaredCartesianDistanceFunction f;
     AtomicInteger ai;
@@ -52,7 +55,7 @@ public class DeviceAgentAbstractScanner extends DeviceAgent {
         // Monitoring the neighbouring nodes
         var iot = getIoTDevice();
         // Returning if the agent, at this current time, is not scheduled for transmission
-        if (!iot.transmit) return;
+//        if (!iot.transmit) return;
 
         ls = AgentBroker
                 .getInstance()
@@ -87,6 +90,7 @@ public class DeviceAgentAbstractScanner extends DeviceAgent {
 
             // Starting communicating only if there is a nearest candidate
             if (nearest.isPresent()) {
+                getIoTDevice().transmit = true;
                 var message = nearest.get();
                 double StartDataGenerationTime = MainEventManager.clock();
                 int appID = MainEventManager.getNewAppId();
@@ -105,6 +109,9 @@ public class DeviceAgentAbstractScanner extends DeviceAgent {
                 int iotDeviceID = getIoTDevice().getId();
                 app.setIoTDeviceId(iotDeviceID);
                 getIoTDevice().schedule(OsmoticBroker.brokerID, 0.0, OsmoticTags.GENERATE_OSMESIS_WITH_RESOLUTION, app);
+            } else {
+                getIoTDevice().schedule(getIoTDevice().getId(), MainEventManager.clock(), MOVING, null);
+                getIoTDevice().schedule(OsmoticBroker.brokerID, MainEventManager.clock()+OsmoticBroker.getDeltaVehUpdate(), MAPE_WAKEUP_FOR_COMMUNICATION, null);
             }
         }
 
