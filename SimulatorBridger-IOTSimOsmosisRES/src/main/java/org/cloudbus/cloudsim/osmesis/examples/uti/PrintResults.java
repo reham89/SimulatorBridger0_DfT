@@ -287,44 +287,6 @@ public class PrintResults {
 		public String path_src, path_dst;
 	}
 
-	public static List<String> sortLinks(List<Link> ls) {
-		HashMap<String, Integer> ingoingCount = new HashMap<>();
-		HashMap<String, Integer> outgoingCount = new HashMap<>();
-		HashMultimap<String, String> m = HashMultimap.create();
-		Set<String> set = new HashSet<>();
-		for (var edge : ls) {
-			if (edge == null) continue;
-			m.put(edge.src().getName(), edge.dst().getName());
-			set.add(edge.src().getName());
-			set.add(edge.dst().getName());
-			ingoingCount.compute(edge.dst().getName(), (s, integer) -> integer == null ? 1 : integer+1);
-			outgoingCount.compute(edge.src().getName(), (s, integer) -> integer == null ? 1 : integer+1);
-		}
-		String src = null;
-		String dst = null;
-		for (var x : set) {
-			if (!ingoingCount.containsKey(x)) {
-				if (src != null)
-					throw new RuntimeException("Wrong assumption");
-				src = x;
-			}
-			if (!outgoingCount.containsKey(x)) {
-				if (dst != null)
-					throw new RuntimeException("Wrong assumption");
-				dst = x;
-			}
-		}
-		ingoingCount.clear();
-		outgoingCount.clear();
-		ArrayList<String> result = new ArrayList<>();
-//		while (!Objects.equals(src, dst)) {
-//			result.add(src);
-//			src = m.get(src);
-//		}
-//		result.add(src);
-		return result;
-	}
-
 	public void generateAppTag(WorkflowInfo workflowTag,
 							   List<PrintOsmosisAppFromTags> list,
 							   OsmoticBroker MELResolverToHostingHost,

@@ -90,7 +90,7 @@ public class VmSchedulerTimeSharedEnergy extends VmSchedulerTimeShared implement
 			logger.error("addUtilizationEntry : using mips is negative, No way!");
 		}
 		if(utilizationHistories == null)
-			utilizationHistories = new ArrayList<PowerUtilizationHistoryEntry>();
+			utilizationHistories = new ArrayList<>();
 		this.utilizationHistories.add(new PowerUtilizationHistoryEntry(time, usingMips));
 	}
 	
