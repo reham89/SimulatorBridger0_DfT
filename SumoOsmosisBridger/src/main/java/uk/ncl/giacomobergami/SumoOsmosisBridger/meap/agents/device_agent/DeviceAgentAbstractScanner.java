@@ -110,6 +110,7 @@ public class DeviceAgentAbstractScanner extends DeviceAgent {
                 app.setIoTDeviceId(iotDeviceID);
                 getIoTDevice().schedule(OsmoticBroker.brokerID, 0.0, OsmoticTags.GENERATE_OSMESIS_WITH_RESOLUTION, app);
             } else {
+                // The device is moving but not communicating
                 getIoTDevice().schedule(getIoTDevice().getId(), MainEventManager.clock(), MOVING, null);
                 getIoTDevice().schedule(OsmoticBroker.brokerID, MainEventManager.clock()+OsmoticBroker.getDeltaVehUpdate(), MAPE_WAKEUP_FOR_COMMUNICATION, null);
             }

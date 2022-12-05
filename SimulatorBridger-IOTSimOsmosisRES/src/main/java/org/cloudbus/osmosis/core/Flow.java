@@ -46,7 +46,8 @@ public class Flow {
 	private double finishTime = -1;		 
 	private String appNameSrc;   
 	private String appNameDest;		
-	private String flowType; 	
+	private String flowType;
+	private OsmoticAppDescription app;
 	private boolean isScheduled = false;	
 	private int osmesisAppId;
 	private int appPriority; 	
@@ -95,14 +96,15 @@ public class Flow {
 				int source,
 				int destination,
 				int flowId,
-				String flowType) {
+				String flowType, OsmoticAppDescription app) {
 		this.appNameSrc = vmNameSrc;
 		this.appNameDest = vmNameDest;
 		this.source = source;
 		this.destination = destination;
 		this.flowId = flowId;	
-		this.flowType = flowType;		
-	}	
+		this.flowType = flowType;
+		this.app = app;
+	}
 
 	public double getTransmissionTime() {
 		return transmissionTime;
@@ -380,8 +382,16 @@ public class Flow {
 		}
 		
 		this.flowBandwidth = smallestBw;
-	}	
-	
+	}
+
+	public OsmoticAppDescription getApp() {
+		return app;
+	}
+
+	public void setApp(OsmoticAppDescription app) {
+		this.app = app;
+	}
+
 	public double FinishingTime() {
 		double finishingTime = this.amountToBeProcessed/this.flowBandwidth;
 		return finishingTime;

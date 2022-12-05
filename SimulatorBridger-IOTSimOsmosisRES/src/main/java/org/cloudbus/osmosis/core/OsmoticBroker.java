@@ -289,14 +289,13 @@ public class OsmoticBroker extends DatacenterBroker {
 		int destId = this.getVmIdByName(app.getVmName()); // MEL or VM
 		int id = flowId.getAndIncrement();
 		int melDataceneter = this.getDatacenterIdByVmId(sourceId);		
-		Flow flow  = new Flow(app.getMELName(), app.getVmName(), sourceId , destId, id, null);									
+		Flow flow = new Flow(app.getMELName(), app.getVmName(), sourceId, destId, id, null, app);
 		flow.setAppName(app.getAppName());
 		flow.addPacketSize(app.getMELOutputSize());
 		flow.setSubmitTime(MainEventManager.clock());
 		flow.setOsmesisAppId(osmesisAppId);				
 		flow.setWorkflowTag(edgeLet.getWorkflowTag());
-		flow.getWorkflowTag().setEdgeToCloudFlow(flow);		
-//		LegacyTopologyBuilder.flowId++;
+		flow.getWorkflowTag().setEdgeToCloudFlow(flow);
 		sendNow(melDataceneter, OsmoticTags.BUILD_ROUTE, flow);
 	}	
 

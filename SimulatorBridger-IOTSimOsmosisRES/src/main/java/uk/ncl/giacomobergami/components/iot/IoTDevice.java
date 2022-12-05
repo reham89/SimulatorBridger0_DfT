@@ -12,7 +12,6 @@
 package uk.ncl.giacomobergami.components.iot;
 
 import org.cloudbus.agent.AgentBroker;
-import org.cloudbus.agent.DeviceAgent;
 import org.cloudbus.cloudsim.core.MainEventManager;
 import org.cloudbus.cloudsim.core.SimEntity;
 import org.cloudbus.cloudsim.core.SimEvent;
@@ -31,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiFunction;
 
 /**
  * 
@@ -54,11 +54,13 @@ public abstract class IoTDevice extends SimEntity implements CartesianPoint {
 	private double bw;
 	private double usedBw;
 	private final AtomicInteger flowId;
+	private long totalPacketsBeingSent = 0;
 	private TreeMap<Double, Double> consumptionInTime = new TreeMap<>();
+	private TreeMap<Double, Long> packetsSentInTime = new TreeMap<>();
 
-	public Map<Double, Double> getTrustworthyConsumption() {
-		return consumptionInTime;
-	}
+	public Map<Double, Double> getTrustworthyConsumption() { return consumptionInTime; }
+
+	public Map<Double, Long> computeTrustworthyCommunication() { return packetsSentInTime; }
 
 	@Override
 	public double getX() {
@@ -125,21 +127,18 @@ public abstract class IoTDevice extends SimEntity implements CartesianPoint {
 
 	@Override
 	public void processEvent(SimEvent ev) {
-		int tag = ev.getTag();
-		switch (tag) {
-		case OsmoticTags.SENSING:
-			this.sensing(ev);
-			break;
-			
-		case  OsmoticTags.updateIoTBW:
-			this.removeFlow(ev);
-			break;
+		switch (ev.getTag()) {
+			case OsmoticTags.SENSING:
+				this.sensing(ev);
+				break;
 
-		case OsmoticTags.MOVING: {
-			this.updateBatteryBySensing();
-			consumptionInTime.put(ev.eventTime(), this.battery.getBatteryTotalConsumption());
-//			logger.info("MOVING AT TIME: " + MainEventManager.clock() +" Update the program");
-		}
+			case  OsmoticTags.updateIoTBW:
+				this.removeFlow(ev);
+				break;
+
+			case OsmoticTags.MOVING: {
+				updateEnergyConsumptionInformation(ev);
+			}
 			break;
 		}
 	}
@@ -188,25 +187,6 @@ public abstract class IoTDevice extends SimEntity implements CartesianPoint {
 			return;
 		}
 		OsmoticAppDescription app = (OsmoticAppDescription) ev.getData();
-		// if the battery is drained,
-		this.updateBatteryBySensing();
-		boolean died = this.updateBatteryByTransmission();
-
-		app.setIoTBatteryConsumption(this.battery.getBatteryTotalConsumption());
-		if (getName().equals("0")) {
-			System.out.println(ev.eventTime()+" from App "+app.getAppID()+" consumption: "+this.battery.getBatteryTotalConsumption());
-		}
-		if (died) {
-			app.setIoTDeviceDied(true);
-			LogUtil.info(this.getClass().getSimpleName() + " running time is " + MainEventManager.clock());
-
-			this.setEnabled(false);
-			LogUtil.info(this.getClass().getSimpleName()+" " + this.getId() + "'s battery has been drained");
-			this.runningTime = MainEventManager.clock();
-			MainEventManager.cancelAll(getId(), MainEventManager.SIM_ANY);
-			return;
-		}
-
 		Flow flow = this.createFlow(app);
 		
 		WorkflowInfo workflowTag = new WorkflowInfo();
@@ -221,6 +201,17 @@ public abstract class IoTDevice extends SimEntity implements CartesianPoint {
 		OsmoticBroker.workflowTag.add(workflowTag);
 		flow.addPacketSize(app.getIoTDeviceOutputSize());			
 		updateBandwidth();
+
+		if (updateEnergyConsumptionInformation(ev)) {
+			app.setIoTDeviceDied(true);
+			LogUtil.info(this.getClass().getSimpleName() + " running time is " + MainEventManager.clock());
+
+			this.setEnabled(false);
+			LogUtil.info(this.getClass().getSimpleName()+" " + this.getId() + "'s battery has been drained");
+			this.runningTime = MainEventManager.clock();
+			MainEventManager.cancelAll(getId(), MainEventManager.SIM_ANY);
+			return;
+		}
 
 		//Adaptive Osmosis Flow Routing
 		String finalMEL = routingTable.getRule(flow.getAppNameDest());
@@ -237,7 +228,7 @@ public abstract class IoTDevice extends SimEntity implements CartesianPoint {
 		int datacenterId = -1;
 		datacenterId = app.getEdgeDcId();					
 		int id = flowId.getAndIncrement() ;
-		Flow flow  = new Flow(this.getName(),app.getMELName(), this.getId(), melId, id, null);
+		Flow flow  = new Flow(this.getName(), app.getMELName(), this.getId(), melId, id, null, app);
 		flow.setOsmesisAppId(app.getAppID());
 		flow.setAppName(app.getAppName());		
 		flow.addPacketSize(app.getIoTDeviceOutputSize());
@@ -245,7 +236,6 @@ public abstract class IoTDevice extends SimEntity implements CartesianPoint {
 		flow.setDatacenterId(datacenterId);
 		flow.setOsmesisEdgeletSize(app.getOsmesisEdgeletSize());
 		flowList.add(flow);
-		
 		return flow;
 	}
 	
@@ -265,10 +255,39 @@ public abstract class IoTDevice extends SimEntity implements CartesianPoint {
 		Flow flow  = (Flow) ev.getData();
 		this.flowList.remove(flow);
 		updateBandwidth();
-		this.updateBatteryBySensing();
-		consumptionInTime.put(ev.eventTime(), this.battery.getBatteryTotalConsumption());
+		updateEnergyConsumptionInformation(ev);
 	}
-	
+
+	private boolean updateEnergyConsumptionInformation(SimEvent ev) {
+		boolean isDrained;
+		boolean isCommunicating;
+		if (this.flowList.isEmpty()) {
+			// If there is no flow, then the device is not communicating, and therefore the battery should be
+			// updated as only in sensing
+			isDrained = this.updateBatteryBySensing();
+			isCommunicating = false;
+		} else {
+			isDrained = this.updateBatteryBySensing() || this.updateBatteryByTransmission();
+			OsmoticAppDescription app =null;
+			if (ev != null) {
+				var obj = ev.getData();
+				if (obj instanceof OsmoticAppDescription) {
+					app = ((OsmoticAppDescription)obj);
+				} else if (obj instanceof Flow) {
+					app = ((Flow)obj).getApp();
+				}
+			}
+			if (app != null)
+				app.setIoTBatteryConsumption(this.battery.getBatteryTotalConsumption());
+			isCommunicating = true;
+		}
+		double time = ev == null ? MainEventManager.clock() : ev.eventTime();
+		consumptionInTime.put(time, this.battery.getBatteryTotalConsumption());
+		if (isCommunicating && (!isDrained)) totalPacketsBeingSent+=1;
+		packetsSentInTime.put(time, totalPacketsBeingSent);
+		return isDrained;
+	}
+
 	private void updateBandwidth(){			
 		this.usedBw = this.getBw() / this.flowList.size(); // the updated bw 		
 		for(Flow getFlow : this.flowList){

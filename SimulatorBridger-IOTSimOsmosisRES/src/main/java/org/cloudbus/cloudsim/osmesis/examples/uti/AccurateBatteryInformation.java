@@ -4,17 +4,20 @@ public class AccurateBatteryInformation {
     public String IoTDeviceName;
     public double time;
     public double consumption;
+    public double noPackets;
 
     public AccurateBatteryInformation() {
         IoTDeviceName = "";
         time = 0.0;
         consumption = 0.0;
+        noPackets = 0.0;
     }
 
-    public AccurateBatteryInformation(String ioTDeviceName, double time, double consume) {
+    public AccurateBatteryInformation(String ioTDeviceName, double time, double consume, long communicate) {
         IoTDeviceName = ioTDeviceName;
         this.time = time;
         this.consumption = consume;
+        this.noPackets = communicate;
     }
 
     public String getIoTDeviceName() {
@@ -39,5 +42,13 @@ public class AccurateBatteryInformation {
 
     public void setConsumption(double consumption) {
         this.consumption = consumption;
+    }
+
+    public double getNoPackets() {
+        return noPackets;
+    }
+
+    public void setNoPackets(double noPackets) {
+        this.noPackets = noPackets;
     }
 }

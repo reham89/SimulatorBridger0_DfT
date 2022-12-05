@@ -114,6 +114,8 @@ public class SDWANController extends SDNController {
 			}
 				 												
 			List<NetworkNIC> endToEndRoute = sdnRoutingPolicy.getRoute(flow.getOrigin(), flow.getDestination());
+			if (endToEndRoute == null)
+				System.err.println("UNEXPECTED!");
 			flow.setNodeOnRouteList(endToEndRoute);
 			
 			List<Link> links = sdnRoutingPolicy.getLinks(flow.getOrigin(), flow.getDestination());

@@ -99,8 +99,10 @@ public class PrintResults {
 	public void collectTrustworthyBatteryData(Map<String, IoTDevice> devices) {
 		battInfo = new ArrayList<>();
 		for (var nameToIoT : devices.entrySet()) {
-			for (var entry : nameToIoT.getValue().getTrustworthyConsumption().entrySet()) {
-				battInfo.add(new AccurateBatteryInformation(nameToIoT.getKey(), entry.getKey(), entry.getValue()));
+			var actualDevice = nameToIoT.getValue();
+			var deviceMemory = actualDevice.computeTrustworthyCommunication();
+			for (var entry : actualDevice.getTrustworthyConsumption().entrySet()) {
+				battInfo.add(new AccurateBatteryInformation(nameToIoT.getKey(), entry.getKey(), entry.getValue(), deviceMemory.get(entry.getKey())));
 			}
 		}
 	}
