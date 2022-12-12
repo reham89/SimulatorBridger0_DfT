@@ -199,11 +199,13 @@ public class OsmoticBroker extends DatacenterBroker {
 		var actualIoT = iotDeviceNameToObject.get(IoTDevice);
 		int mel_id = -1;
 
+		flow.setActualEdgeDevice(melName);
 		if (melRouting.test(melName)){
 			// Using a policy for determining the next MEL
 			String melInstanceName = melRouting.apply(actualIoT, melName, this);
 			if (melInstanceName == null) return; // Ignoring the communication if no alternative is given
 			flow.setAppNameDest(melInstanceName);
+
 			mel_id = getVmIdByName(melInstanceName); //name of VM
 			//dynamic mapping to datacenter
 			int edgeDatacenterId = this.getDatacenterIdByVmId(mel_id);

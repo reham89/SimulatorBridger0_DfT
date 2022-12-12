@@ -44,7 +44,10 @@ public class Flow {
 	private double submitTime = 0;
 	private double startTime = -1;
 	private double finishTime = -1;		 
-	private String appNameSrc;   
+	private String appNameSrc;
+
+	private String actualEdgeDevice;
+
 	private String appNameDest;		
 	private String flowType;
 	private OsmoticAppDescription app;
@@ -104,6 +107,15 @@ public class Flow {
 		this.flowId = flowId;	
 		this.flowType = flowType;
 		this.app = app;
+		this.actualEdgeDevice = "N/A";
+	}
+
+	public String getActualEdgeDevice() {
+		return actualEdgeDevice;
+	}
+
+	public void setActualEdgeDevice(String actualEdgeDevice) {
+		this.actualEdgeDevice = actualEdgeDevice;
 	}
 
 	public double getTransmissionTime() {
