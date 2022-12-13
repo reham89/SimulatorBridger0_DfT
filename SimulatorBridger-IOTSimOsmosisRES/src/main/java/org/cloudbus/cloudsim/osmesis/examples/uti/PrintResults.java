@@ -285,6 +285,8 @@ public class PrintResults {
 		public double CloudLetProccessingTimeByVM;
 		public double TransactionTotalTime;
 		public String path_src, path_dst;
+		public double MelStartTransmissionTime;
+		public double MelEndTransmissionTime;
 	}
 
 	public void generateAppTag(WorkflowInfo workflowTag,
@@ -327,7 +329,9 @@ public class PrintResults {
 			var dstHost = MELResolverToHostingHost.resolveHostFromMELId(workflowTag.getEdgeToCloudFlow().getAppNameDest());
 			fromTag.path_dst = "Host#"+dstHost.getId()+"@"+workflowTag.getDestinationDCName();
 			fromTag.DataSizeMELToVM_Mb = workflowTag.getEdgeToCloudFlow().getSize();
+			fromTag.MelStartTransmissionTime =  workflowTag.getEdgeToCloudFlow().getStartTime();
 			fromTag.TransmissionTimeMELToVM = workflowTag.getEdgeToCloudFlow().getTransmissionTime();
+			fromTag.MelEndTransmissionTime = fromTag.TransmissionTimeMELToVM + fromTag.MelStartTransmissionTime;
 			fromTag.CloudLetMISize = workflowTag.getCloudLet().getCloudletLength();
 			fromTag.CloudLetProccessingTimeByVM = workflowTag.getCloudLet().getActualCPUTime();
 			fromTag.TransactionTotalTime =  workflowTag.getIotDeviceFlow().getTransmissionTime() + workflowTag.getEdgeLet().getActualCPUTime()
