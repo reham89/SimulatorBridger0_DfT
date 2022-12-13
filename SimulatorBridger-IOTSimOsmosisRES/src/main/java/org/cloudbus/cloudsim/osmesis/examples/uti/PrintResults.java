@@ -14,14 +14,11 @@ package org.cloudbus.cloudsim.osmesis.examples.uti;
 
 import java.io.File;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import com.google.common.collect.HashMultimap;
 import org.cloudbus.cloudsim.Host;
 import org.cloudbus.cloudsim.edge.core.edge.EdgeDevice;
-import org.cloudbus.cloudsim.sdn.Link;
 import org.cloudbus.cloudsim.sdn.SDNHost;
 import org.cloudbus.cloudsim.sdn.Switch;
 import org.cloudbus.cloudsim.sdn.power.PowerUtilizationHistoryEntry;
@@ -101,8 +98,13 @@ public class PrintResults {
 		for (var nameToIoT : devices.entrySet()) {
 			var actualDevice = nameToIoT.getValue();
 			var deviceMemory = actualDevice.computeTrustworthyCommunication();
+			var flowInfo = actualDevice.getActionToFlowId();
 			for (var entry : actualDevice.getTrustworthyConsumption().entrySet()) {
-				battInfo.add(new AccurateBatteryInformation(nameToIoT.getKey(), entry.getKey(), entry.getValue(), deviceMemory.get(entry.getKey())));
+				battInfo.add(new AccurateBatteryInformation(nameToIoT.getKey(),
+						entry.getKey(),
+						entry.getValue(),
+						deviceMemory.get(entry.getKey()),
+						flowInfo.get(entry.getKey())));
 			}
 		}
 	}
@@ -287,6 +289,8 @@ public class PrintResults {
 		public String path_src, path_dst;
 		public double MelStartTransmissionTime;
 		public double MelEndTransmissionTime;
+		public int flowMELCloudAppId;
+		public int flowIoTMelAppId;
 	}
 
 	public void generateAppTag(WorkflowInfo workflowTag,
@@ -318,7 +322,7 @@ public class PrintResults {
 			if (!(srcHost instanceof EdgeDevice))
 				throw new RuntimeException("ERROR: wrong assumption");
 			fromTag.path_src = ((EdgeDevice)srcHost).getDeviceName();
-		countingMapPerSimTime.get(fromTag.StartTime).put(fromTag.path_src, fromTag.IoTDeviceName);
+			countingMapPerSimTime.get(fromTag.StartTime).put(fromTag.path_src, fromTag.IoTDeviceName);
 			fromTag.DataSizeIoTDeviceToMEL_Mb = workflowTag.getIotDeviceFlow().getSize();
 			fromTag.TransmissionTimeIoTDeviceToMEL = workflowTag.getIotDeviceFlow().getTransmissionTime();
 			fromTag.EdgeLetMISize = workflowTag.getEdgeLet().getCloudletLength();
@@ -329,6 +333,8 @@ public class PrintResults {
 			var dstHost = MELResolverToHostingHost.resolveHostFromMELId(workflowTag.getEdgeToCloudFlow().getAppNameDest());
 			fromTag.path_dst = "Host#"+dstHost.getId()+"@"+workflowTag.getDestinationDCName();
 			fromTag.DataSizeMELToVM_Mb = workflowTag.getEdgeToCloudFlow().getSize();
+			fromTag.flowMELCloudAppId = workflowTag.getEdgeToCloudFlow().getApp().getAppID();
+			fromTag.flowIoTMelAppId = workflowTag.getIotDeviceFlow().getApp().getAppID();
 			fromTag.MelStartTransmissionTime =  workflowTag.getEdgeToCloudFlow().getStartTime();
 			fromTag.TransmissionTimeMELToVM = workflowTag.getEdgeToCloudFlow().getTransmissionTime();
 			fromTag.MelEndTransmissionTime = fromTag.TransmissionTimeMELToVM + fromTag.MelStartTransmissionTime;

@@ -1,6 +1,7 @@
 package org.cloudbus.cloudsim.osmesis.examples.uti;
 
 public class AccurateBatteryInformation {
+    private int flowId;
     public String IoTDeviceName;
     public double time;
     public double consumption;
@@ -13,11 +14,16 @@ public class AccurateBatteryInformation {
         noPackets = 0.0;
     }
 
-    public AccurateBatteryInformation(String ioTDeviceName, double time, double consume, long communicate) {
+    public AccurateBatteryInformation(String ioTDeviceName, double time, double consume, long communicate, int flowId) {
         IoTDeviceName = ioTDeviceName;
         this.time = time;
         this.consumption = consume;
         this.noPackets = communicate;
+        this.flowId = flowId;
+    }
+
+    public int getFlowId() {
+        return flowId;
     }
 
     public String getIoTDeviceName() {

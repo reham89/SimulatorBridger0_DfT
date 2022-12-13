@@ -57,10 +57,15 @@ public abstract class IoTDevice extends SimEntity implements CartesianPoint {
 	private long totalPacketsBeingSent = 0;
 	private TreeMap<Double, Double> consumptionInTime = new TreeMap<>();
 	private TreeMap<Double, Long> packetsSentInTime = new TreeMap<>();
+	private TreeMap<Double, Integer> actionToFlowId = new TreeMap<>();
 
 	public Map<Double, Double> getTrustworthyConsumption() { return consumptionInTime; }
 
 	public Map<Double, Long> computeTrustworthyCommunication() { return packetsSentInTime; }
+
+	public TreeMap<Double, Integer> getActionToFlowId() {
+		return actionToFlowId;
+	}
 
 	@Override
 	public double getX() {
@@ -261,6 +266,7 @@ public abstract class IoTDevice extends SimEntity implements CartesianPoint {
 	private boolean updateEnergyConsumptionInformation(SimEvent ev) {
 		boolean isDrained;
 		boolean isCommunicating;
+		int appId = -1;
 		if (this.flowList.isEmpty()) {
 			// If there is no flow, then the device is not communicating, and therefore the battery should be
 			// updated as only in sensing
@@ -273,8 +279,10 @@ public abstract class IoTDevice extends SimEntity implements CartesianPoint {
 				var obj = ev.getData();
 				if (obj instanceof OsmoticAppDescription) {
 					app = ((OsmoticAppDescription)obj);
+					appId = app.getAppID();
 				} else if (obj instanceof Flow) {
 					app = ((Flow)obj).getApp();
+					appId = app.getAppID();
 				}
 			}
 			if (app != null)
@@ -285,6 +293,7 @@ public abstract class IoTDevice extends SimEntity implements CartesianPoint {
 		consumptionInTime.put(time, this.battery.getBatteryTotalConsumption());
 		if (isCommunicating && (!isDrained)) totalPacketsBeingSent+=1;
 		packetsSentInTime.put(time, totalPacketsBeingSent);
+		actionToFlowId.put(time, appId);
 		return isDrained;
 	}
 
