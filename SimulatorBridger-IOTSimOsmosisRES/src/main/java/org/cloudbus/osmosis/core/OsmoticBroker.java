@@ -93,7 +93,7 @@ public class OsmoticBroker extends DatacenterBroker {
 					ioTEntityGenerator.collectionOfWakeUpTimes()) {
 				double time = forcedWakeUpTime - chron;
 				if (time > 0.0) {
-					schedule(OsmoticBroker.brokerID, chron, MAPE_WAKEUP_FOR_COMMUNICATION, null);
+					schedule(OsmoticBroker.brokerID, time, MAPE_WAKEUP_FOR_COMMUNICATION, null);
 				}
 			}
 			isWakeupStartSet = true;
