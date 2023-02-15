@@ -25,10 +25,7 @@ import org.cloudbus.osmosis.core.*;
 import uk.ncl.giacomobergami.components.iot_protocol.IoTProtocolGeneratorFactory;
 import uk.ncl.giacomobergami.utils.gir.CartesianPoint;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
 
@@ -58,6 +55,7 @@ public abstract class IoTDevice extends SimEntity implements CartesianPoint {
 	private TreeMap<Double, Double> consumptionInTime = new TreeMap<>();
 	private TreeMap<Double, Long> packetsSentInTime = new TreeMap<>();
 	private TreeMap<Double, Integer> actionToFlowId = new TreeMap<>();
+	private HashMap<Integer, Double> flowIdCreationTime = new HashMap<>();
 
 	public Map<Double, Double> getTrustworthyConsumption() { return consumptionInTime; }
 
@@ -142,7 +140,7 @@ public abstract class IoTDevice extends SimEntity implements CartesianPoint {
 				break;
 
 			case OsmoticTags.MOVING: {
-				updateEnergyConsumptionInformation(ev);
+				updateEnergyConsumptionInformation(ev, -1);
 			}
 			break;
 		}
@@ -207,7 +205,7 @@ public abstract class IoTDevice extends SimEntity implements CartesianPoint {
 		flow.addPacketSize(app.getIoTDeviceOutputSize());			
 		updateBandwidth();
 
-		if (updateEnergyConsumptionInformation(ev)) {
+		if (updateEnergyConsumptionInformation(ev, flow.getFlowId())) {
 			app.setIoTDeviceDied(true);
 			LogUtil.info(this.getClass().getSimpleName() + " running time is " + MainEventManager.clock());
 
@@ -225,7 +223,6 @@ public abstract class IoTDevice extends SimEntity implements CartesianPoint {
 		//MEL ID Resolution in Osmotic Broker
 		sendNow(OsmoticBroker.brokerID, OsmoticTags.ROUTING_MEL_ID_RESOLUTION, flow); //necessary for osmotic flow routing - concept similar to ARP protocol
 	}
-
 
 	private Flow createFlow(OsmoticAppDescription app) {
 		//melID will be set in the osmosis broker in the MEL_ID_RESOLUTION process.
@@ -259,21 +256,41 @@ public abstract class IoTDevice extends SimEntity implements CartesianPoint {
 	public void removeFlow(SimEvent ev) {
 		Flow flow  = (Flow) ev.getData();
 		this.flowList.remove(flow);
+		flowIdCreationTime.remove(flow.getFlowId());
 		updateBandwidth();
-		updateEnergyConsumptionInformation(ev);
+		updateEnergyConsumptionInformation(ev, -1);
 	}
 
-	private boolean updateEnergyConsumptionInformation(SimEvent ev) {
+	private boolean updateEnergyConsumptionInformation(SimEvent ev, int flowId) {
 		boolean isDrained;
 		boolean isCommunicating;
 		int appId = -1;
+		boolean doIncrementPacketSent = flowId != -1;
+		int increment = 1;
 		if (this.flowList.isEmpty()) {
 			// If there is no flow, then the device is not communicating, and therefore the battery should be
 			// updated as only in sensing
 			isDrained = this.updateBatteryBySensing();
 			isCommunicating = false;
 		} else {
-			isDrained = this.updateBatteryBySensing() || this.updateBatteryByTransmission();
+			if (doIncrementPacketSent) {
+				flowIdCreationTime.put(flowId, MainEventManager.clock());
+			} else {
+				increment = 0;
+				for (var flow : this.flowList)
+					if (flowIdCreationTime.get(flow.getFlowId()) > OsmoticBroker.deltaVehUpdate) {
+						increment++;
+						flowIdCreationTime.put(flow.getFlowId(), MainEventManager.clock());
+					}
+				doIncrementPacketSent = increment > 0;
+			}
+			isDrained = this.updateBatteryBySensing();
+			if (!isDrained) {
+				if (doIncrementPacketSent) {
+					for (int i = 0; i<increment; i++)
+						isDrained |= this.updateBatteryByTransmission();
+				}
+			}
 			OsmoticAppDescription app =null;
 			if (ev != null) {
 				var obj = ev.getData();
@@ -291,7 +308,7 @@ public abstract class IoTDevice extends SimEntity implements CartesianPoint {
 		}
 		double time = ev == null ? MainEventManager.clock() : ev.eventTime();
 		consumptionInTime.put(time, this.battery.getBatteryTotalConsumption());
-		if (isCommunicating && (!isDrained)) totalPacketsBeingSent+=1;
+		if (doIncrementPacketSent && isCommunicating && (!isDrained)) totalPacketsBeingSent+=increment;
 		packetsSentInTime.put(time, totalPacketsBeingSent);
 		actionToFlowId.put(time, appId);
 		return isDrained;

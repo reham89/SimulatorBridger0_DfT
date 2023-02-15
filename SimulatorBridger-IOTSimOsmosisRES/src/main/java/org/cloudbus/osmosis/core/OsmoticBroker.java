@@ -64,7 +64,7 @@ public class OsmoticBroker extends DatacenterBroker {
 	public CentralAgent osmoticCentralAgent;
 	private AtomicInteger flowId;
 	private IoTEntityGenerator ioTEntityGenerator;
-	private static double deltaVehUpdate;
+	public static double deltaVehUpdate;
 
 	public OsmoticBroker(String name,
 						 AtomicInteger edgeLetId,

@@ -38,6 +38,8 @@ import org.cloudbus.cloudsim.core.predicates.PredicateNone;
  * @since CloudSim Toolkit 1.0
  */
 public class MainEventManager {
+
+	public static double simulation_granularity = 0.0;
 	private static AtomicInteger incrAppId = new AtomicInteger(1);
 
 	public static Logger logger = LogManager.getRootLogger();
