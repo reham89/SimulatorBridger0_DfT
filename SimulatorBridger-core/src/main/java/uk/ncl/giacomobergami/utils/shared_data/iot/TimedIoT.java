@@ -18,11 +18,11 @@ public class TimedIoT implements TimedObject<TimedIoT> {
     public String lane;
     public double slope;
     public double simtime;
-
+    public int numberOfVeh;
     public TimedIoT() {
     }
 
-    public TimedIoT(String id, double x, double y, double angle, String type, double speed, double pos, String lane, double slope, double simtime) {
+    public TimedIoT(String id, double x, double y, double angle, String type, double speed, double pos, String lane, double slope, double simtime, numberOfVeh;) {
         this.id = id;
         this.x = x;
         this.y = y;
@@ -33,6 +33,7 @@ public class TimedIoT implements TimedObject<TimedIoT> {
         this.lane = lane;
         this.slope = slope;
         this.simtime = simtime;
+        this.numberOfVeh = numberOfVeh;
     }
 
     @Override
@@ -42,7 +43,7 @@ public class TimedIoT implements TimedObject<TimedIoT> {
 
     @Override
     public TimedIoT copy() {
-        return new TimedIoT(id, x, y, angle, type, speed, pos, lane, slope, simtime);
+        return new TimedIoT(id, x, y, angle, type, speed, pos, lane, slope, simtime, numberOfVeh);
     }
 
     public void setSimtime(double simtime) {
@@ -124,6 +125,15 @@ public class TimedIoT implements TimedObject<TimedIoT> {
         this.slope = slope;
     }
 
+     public int getnumberOfVeh() { 
+         return numberOfVeh; 
+     }
+
+    public void setnumberOfVeh(int numberOfVeh) {
+        this.numberOfVeh = numberOfVeh;
+    }
+    
+    // add numberOfVeh here?
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -134,6 +144,6 @@ public class TimedIoT implements TimedObject<TimedIoT> {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, x, y, angle, type, speed, pos, lane, slope);
+        return Objects.hash(id, x, y, angle, type, speed, pos, lane, slope, numberOfVeh);
     }
 }
