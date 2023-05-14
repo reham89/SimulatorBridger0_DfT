@@ -16,7 +16,8 @@ import java.util.Objects;
         "y",
         "simtime",
         "communication_radius",
-        "max_vehicle_communication"
+        "max_vehicle_communication" ,
+        "RegionName", "LocalAuthorityName", "RoadName", "StartJunctionRoadName", "EndJunctionRoadName", "X", "Y"
 })
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class TimedEdge implements TimedObject<TimedEdge> {
