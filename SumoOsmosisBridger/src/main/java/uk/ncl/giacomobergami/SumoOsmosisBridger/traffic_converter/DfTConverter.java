@@ -51,8 +51,6 @@ public class DfTConverter extends TrafficConverter {
     String row;
     List<String> rows = new ArrayList<>();
     List<Double> temporalOrdering; // the time in CSV file is in integer format
-    HashSet<TimedEdge> roadSideUnits;
-    roadSideUnits = new HashSet<>();
 
     public DfTConverter(TrafficConfiguration conf, String csvFilePath) {
         super(conf);
