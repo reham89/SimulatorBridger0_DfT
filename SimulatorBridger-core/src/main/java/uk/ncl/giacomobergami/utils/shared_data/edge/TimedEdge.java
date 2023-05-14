@@ -39,6 +39,27 @@ public class TimedEdge implements TimedObject<TimedEdge> {
     @JsonProperty("max_vehicle_communication")
     public double max_vehicle_communication;
 
+    @JsonProperty("RegionName")
+    public String regionName;
+    
+    @JsonProperty("LocalAuthorityName")
+    public String localAuthorityName;
+    
+    @JsonProperty("RoadName")
+    public String roadName;
+  
+    @JsonProperty("StartJunctionRoadName")
+    public String startJunctionRoadName;
+    
+    @JsonProperty("EndJunctionRoadName")
+    public String endJunctionRoadName;
+    
+    @JsonProperty("X")
+    public double X;
+    
+    @JsonProperty("Y")
+    public double Y;
+
     @JsonIgnore
     public EdgeProgram program_rsu;
 
@@ -55,13 +76,20 @@ public class TimedEdge implements TimedObject<TimedEdge> {
     }
 
     public TimedEdge(String id, double x, double y, double communication_radius,
-                     double max_vehicle_communication, double simtime) {
+                     double max_vehicle_communication, double simtime, String regionName, String localAuthorityName, String roadName, String startJunctionRoadName, String endJunctionRoadName, Double X, Double Y) {
         this.id = id;
         this.x = x;
         this.y = y;
         this.communication_radius = communication_radius;
         this.max_vehicle_communication = max_vehicle_communication;
         this.simtime = simtime;
+         this.regionName = regionName ;
+        this.localAuthorityName = localAuthorityName;
+        this.roadName = roadName ;
+        this.startJunctionRoadName = startJunctionRoadName;
+        this.endJunctionRoadName = endJunctionRoadName;
+        this.X = X;
+        this.Y = Y;
     }
 
     public void setId(String id) {
@@ -84,7 +112,7 @@ public class TimedEdge implements TimedObject<TimedEdge> {
 
     @Override
     public TimedEdge copy() {
-        return new TimedEdge(id, x, y, communication_radius, max_vehicle_communication, simtime);
+        return new TimedEdge(id, x, y, communication_radius, max_vehicle_communication, simtime, regionName, localAuthorityName, roadName, startJunctionRoadName, endJunctionRoadName, X, Y);
     }
 
     public void setTl_id(String tl_id) {
@@ -113,6 +141,62 @@ public class TimedEdge implements TimedObject<TimedEdge> {
     public void setMax_vehicle_communication(double max_vehicle_communication) {
         this.max_vehicle_communication = max_vehicle_communication;
     }
+        public String getRegionName() {
+        return regionName;
+    }
+
+    public void setRegionName(String regionName) {
+        this.regionName = regionName;
+    }
+
+    public String getLocalAuthorityName() {
+        return localAuthorityName;
+    }
+
+    public void setLocalAuthorityName(String localAuthorityName) {
+        this.localAuthorityName = localAuthorityName;
+    }
+
+    public String getRoadName() {
+        return roadName;
+    }
+
+    public void setRoadName(String roadName) {
+        this.roadName = roadName;
+    }
+
+    public String getStartJunctionRoadName() {
+        return startJunctionRoadName;
+    }
+
+    public void setStartJunctionRoadName(String startJunctionRoadName) {
+        this.startJunctionRoadName = startJunctionRoadName;
+    }
+
+    public String getEndJunctionRoadName() {
+        return endJunctionRoadName;
+    }
+
+    public void setEndJunctionRoadName(String endJunctionRoadName) {
+        this.endJunctionRoadName = endJunctionRoadName;
+    }
+
+    public double get_X() {
+        return X;
+    }
+
+    public void set_X(double X) {
+        this.X = X;
+    }
+
+    public double get_Y() {
+        return Y;
+    }
+
+    public void set_Y(double Y) {
+        this.Y = Y;
+    }
+
 
     @Override
     public String toString() {
@@ -122,6 +206,13 @@ public class TimedEdge implements TimedObject<TimedEdge> {
                 ", y=" + y +
                 ", communication_radius=" + communication_radius +
                 ", max_vehicle_communication=" + max_vehicle_communication +
+                 ", regionName=" + regionName +
+                ", localAuthorityName=" + localAuthorityName +
+                ", roadName=" + roadName +
+                ", startJunctionRoadName=" + startJunctionRoadName +
+                ", endJunctionRoadName=" + endJunctionRoadName +
+                ", X=" + X +
+                ", Y=" + Y +
                 '}';
     }
 
