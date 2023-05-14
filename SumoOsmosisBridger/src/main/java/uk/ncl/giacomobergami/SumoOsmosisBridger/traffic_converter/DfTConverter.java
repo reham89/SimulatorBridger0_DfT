@@ -6,6 +6,10 @@ import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 import uk.ncl.giacomobergami.traffic_converter.abstracted.TrafficConverter;
+import uk.ncl.giacomobergami.traffic_orchestrator.rsu_network.netgen.NetworkGenerator;
+import uk.ncl.giacomobergami.traffic_orchestrator.rsu_network.netgen.NetworkGeneratorFactory;
+import uk.ncl.giacomobergami.traffic_orchestrator.rsu_network.rsu.RSUUpdater;
+import uk.ncl.giacomobergami.traffic_orchestrator.rsu_network.rsu.RSUUpdaterFactory;
 import uk.ncl.giacomobergami.utils.data.XPathUtil;
 import uk.ncl.giacomobergami.utils.data.YAML;
 import uk.ncl.giacomobergami.utils.pipeline_confs.TrafficConfiguration;
@@ -33,6 +37,8 @@ public class DfTConverter extends TrafficConverter {
 
     private SUMOConfiguration concreteConf;
     private final DocumentBuilderFactory dbf;
+    private final NetworkGenerator netGen;
+    private final RSUUpdater rsuUpdater;
     private DocumentBuilder db;
     Document networkFile;
     StraightforwardAdjacencyList<String> connectionPath;
@@ -67,6 +73,10 @@ public class DfTConverter extends TrafficConverter {
         networkFile = null;
         timedIoTDevices = new HashMap<>();
         roadSideUnits = new HashSet<>();
+        netGen = NetworkGeneratorFactory.generateFacade(concreteConf.generateRSUAdjacencyList);
+        rsuUpdater = RSUUpdaterFactory.generateFacade(concreteConf.updateRSUFields,
+                concreteConf.default_rsu_communication_radius,
+                concreteConf.default_max_vehicle_communication);
         connectionPath = new StraightforwardAdjacencyList<>();
     }
 
