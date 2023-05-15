@@ -239,12 +239,16 @@ public class TimedEdge implements TimedObject<TimedEdge> {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         TimedEdge timedEdge = (TimedEdge) o;
-        return Double.compare(timedEdge.x, x) == 0 && Double.compare(timedEdge.y, y) == 0 && Double.compare(timedEdge.communication_radius, communication_radius) == 0 && Double.compare(timedEdge.max_vehicle_communication, max_vehicle_communication) == 0 && Objects.equals(id, timedEdge.id);
+        return Double.compare(timedEdge.x, x) == 0 && Double.compare(timedEdge.y, y) == 0 && Double.compare(timedEdge.communication_radius, communication_radius) 
+                == 0 && Double.compare(timedEdge.max_vehicle_communication, max_vehicle_communication) == 0 && Objects.equals(id, timedEdge.id) && Objects.equals(regionName, timedEdge.regionName)
+                && Objects.equals(localAuthorityName, timedEdge.localAuthorityName) && Objects.equals(roadName, timedEdge.roadName) && Objects.equals(startJunctionRoadName, timedEdge.startJunctionRoadName)
+                && Objects.equals(endJunctionRoadName, timedEdge.endJunctionRoadName) && Objects.equals(X, timedEdge.X) && Objects.equals(Y, timedEdge.Y);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, x, y, communication_radius, max_vehicle_communication);
+        return Objects.hash(id, x, y, communication_radius, max_vehicle_communication, regionName, localAuthorityName, roadName, startJunctionRoadName, endJunctionRoadName, X, Y);
+  
     }
 
     @Override
