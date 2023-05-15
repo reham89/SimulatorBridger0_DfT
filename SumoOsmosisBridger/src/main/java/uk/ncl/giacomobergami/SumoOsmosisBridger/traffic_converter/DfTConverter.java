@@ -101,6 +101,7 @@ public class DfTConverter extends TrafficConverter {
         // String[] header = reader.readNext();  // Skip the header row
             int timeColumnIndex = Arrays.asList(rows.get(0)).indexOf("hour"); //retrieves the index of the column with the header "hour" by getting the first row in the CSV file, converting it to a list using Arrays.asList()
             int VehColumnIndex = Arrays.asList(rows.get(0)).indexOf("All_motor_vehicles");
+            //  we put both IoT and Edge in 1 loop?
             for (int i = 1; i < rows.size(); i++) { // assuming that the first row contains the column headers
                 String[] row = rows.get(i); // gets the current row
                 String timeValue = row[timeColumnIndex]; //  retrieves the value in the "hour" column for the current row
@@ -112,7 +113,15 @@ public class DfTConverter extends TrafficConverter {
                 int numberOfVeh = Integer.parseInt(row[VehColumnIndex]);
                 rec.numberOfVeh = numberOfVeh;
                 ls.add(rec);
-
+            }
+        NodeList traffic_lights = null;
+        try {
+            traffic_lights = XPathUtil.evaluateNodeList(networkFile, "/net/junction[@type='traffic_light']");
+        } catch (XPathExpressionException e) {
+            e.printStackTrace();
+            return false;
+        }
+        for (int i = 1; i < rows.size(); i++) {
                 String regionName = row[headers.indexOf("RegionName")];
                 String localAuthorityName = row[headers.indexOf("LocalAuthorityName")];
                 String roadName = row[headers.indexOf("RoadName")];
@@ -136,16 +145,16 @@ public class DfTConverter extends TrafficConverter {
                 rsu.X = X;
                 rsu.Y = Y;
                 roadSideUnits.add(rsu);
-  }
-       connectionPath.clear();
-
-       /* var tmp = netGen.apply(roadSideUnits);
+        }
+        connectionPath.clear();
+        var tmp = netGen.apply(roadSideUnits);
         tmp.forEach((k, v) -> {
             connectionPath.put(k.id, v.id);
-        }); */
-            return true;
+        });
+        return true;
         }
 
+    /*
     private List<String[]> readCSV(File file) {
             List<String[]> records = new ArrayList<>();
             try (Scanner scanner = new Scanner(file);) {
@@ -159,7 +168,7 @@ public class DfTConverter extends TrafficConverter {
             }
             return records;
         }
-
+*/
     @Override
     protected List<Double> getSimulationTimeUnits() {
         return temporalOrdering;
