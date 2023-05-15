@@ -8,7 +8,7 @@ import uk.ncl.giacomobergami.utils.shared_data.abstracted.TimedObject;
 
 import java.util.Objects;
 
-// how to combined SUMO edge and DFT edge in one class
+
 // To be renamed as "EdgeDevice"
 
 @JsonPropertyOrder({
