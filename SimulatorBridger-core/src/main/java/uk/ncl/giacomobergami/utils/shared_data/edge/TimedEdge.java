@@ -8,6 +8,7 @@ import uk.ncl.giacomobergami.utils.shared_data.abstracted.TimedObject;
 
 import java.util.Objects;
 
+// how to combined SUMO edge and DFT edge in one class
 // To be renamed as "EdgeDevice"
 
 @JsonPropertyOrder({
@@ -16,7 +17,7 @@ import java.util.Objects;
         "y",
         "simtime",
         "communication_radius",
-        "max_vehicle_communication" ,
+        "max_vehicle_communication",
         "RegionName", "LocalAuthorityName", "RoadName", "StartJunctionRoadName", "EndJunctionRoadName", "X", "Y"
 })
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -41,22 +42,16 @@ public class TimedEdge implements TimedObject<TimedEdge> {
 
     @JsonProperty("RegionName")
     public String regionName;
-    
     @JsonProperty("LocalAuthorityName")
     public String localAuthorityName;
-    
     @JsonProperty("RoadName")
     public String roadName;
-  
     @JsonProperty("StartJunctionRoadName")
     public String startJunctionRoadName;
-    
     @JsonProperty("EndJunctionRoadName")
     public String endJunctionRoadName;
-    
     @JsonProperty("X")
     public double X;
-    
     @JsonProperty("Y")
     public double Y;
 
@@ -83,7 +78,7 @@ public class TimedEdge implements TimedObject<TimedEdge> {
         this.communication_radius = communication_radius;
         this.max_vehicle_communication = max_vehicle_communication;
         this.simtime = simtime;
-         this.regionName = regionName ;
+        this.regionName = regionName ;
         this.localAuthorityName = localAuthorityName;
         this.roadName = roadName ;
         this.startJunctionRoadName = startJunctionRoadName;
@@ -141,7 +136,8 @@ public class TimedEdge implements TimedObject<TimedEdge> {
     public void setMax_vehicle_communication(double max_vehicle_communication) {
         this.max_vehicle_communication = max_vehicle_communication;
     }
-        public String getRegionName() {
+
+    public String getRegionName() {
         return regionName;
     }
 
@@ -197,7 +193,6 @@ public class TimedEdge implements TimedObject<TimedEdge> {
         this.Y = Y;
     }
 
-
     @Override
     public String toString() {
         return "RSU{" +
@@ -206,7 +201,7 @@ public class TimedEdge implements TimedObject<TimedEdge> {
                 ", y=" + y +
                 ", communication_radius=" + communication_radius +
                 ", max_vehicle_communication=" + max_vehicle_communication +
-                 ", regionName=" + regionName +
+                ", regionName=" + regionName +
                 ", localAuthorityName=" + localAuthorityName +
                 ", roadName=" + roadName +
                 ", startJunctionRoadName=" + startJunctionRoadName +
@@ -234,12 +229,13 @@ public class TimedEdge implements TimedObject<TimedEdge> {
 //    }
 
 
+    // Do we need to add them here? How we can merge them SUMO has attributes and DFT has column and rows.
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         TimedEdge timedEdge = (TimedEdge) o;
-        return Double.compare(timedEdge.x, x) == 0 && Double.compare(timedEdge.y, y) == 0 && Double.compare(timedEdge.communication_radius, communication_radius) 
+        return Double.compare(timedEdge.x, x) == 0 && Double.compare(timedEdge.y, y) == 0 && Double.compare(timedEdge.communication_radius, communication_radius)
                 == 0 && Double.compare(timedEdge.max_vehicle_communication, max_vehicle_communication) == 0 && Objects.equals(id, timedEdge.id) && Objects.equals(regionName, timedEdge.regionName)
                 && Objects.equals(localAuthorityName, timedEdge.localAuthorityName) && Objects.equals(roadName, timedEdge.roadName) && Objects.equals(startJunctionRoadName, timedEdge.startJunctionRoadName)
                 && Objects.equals(endJunctionRoadName, timedEdge.endJunctionRoadName) && Objects.equals(X, timedEdge.X) && Objects.equals(Y, timedEdge.Y);
@@ -248,7 +244,6 @@ public class TimedEdge implements TimedObject<TimedEdge> {
     @Override
     public int hashCode() {
         return Objects.hash(id, x, y, communication_radius, max_vehicle_communication, regionName, localAuthorityName, roadName, startJunctionRoadName, endJunctionRoadName, X, Y);
-  
     }
 
     @Override
