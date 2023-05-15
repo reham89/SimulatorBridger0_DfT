@@ -19,10 +19,11 @@ public class TimedIoT implements TimedObject<TimedIoT> {
     public double slope;
     public double simtime;
     public int numberOfVeh;
+
     public TimedIoT() {
     }
 
-    public TimedIoT(String id, double x, double y, double angle, String type, double speed, double pos, String lane, double slope, double simtime, numberOfVeh;) {
+    public TimedIoT(String id, double x, double y, double angle, String type, double speed, double pos, String lane, double slope, double simtime, int numberOfVeh) {
         this.id = id;
         this.x = x;
         this.y = y;
@@ -124,22 +125,17 @@ public class TimedIoT implements TimedObject<TimedIoT> {
     public void setSlope(double slope) {
         this.slope = slope;
     }
-
-     public int getnumberOfVeh() { 
-         return numberOfVeh; 
-     }
+    public int getnumberOfVeh() { return numberOfVeh; }
 
     public void setnumberOfVeh(int numberOfVeh) {
         this.numberOfVeh = numberOfVeh;
     }
-    
-    // add numberOfVeh here?
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         TimedIoT vehicle = (TimedIoT) o;
-        return Double.compare(vehicle.x, x) == 0 && Double.compare(vehicle.y, y) == 0 && Double.compare(vehicle.angle, angle) == 0 && Double.compare(vehicle.speed, speed) == 0 && Double.compare(vehicle.pos, pos) == 0 && Double.compare(vehicle.slope, slope) == 0 && Objects.equals(id, vehicle.id) && Objects.equals(type, vehicle.type) && Objects.equals(lane, vehicle.lane);
+        return Double.compare(vehicle.x, x) == 0 && Double.compare(vehicle.y, y) == 0 && Double.compare(vehicle.angle, angle) == 0 && Double.compare(vehicle.speed, speed) == 0 && Double.compare(vehicle.pos, pos) == 0 && Double.compare(vehicle.slope, slope) == 0 && Objects.equals(id, vehicle.id) && Objects.equals(type, vehicle.type) && Objects.equals(lane, vehicle.lane) && Objects.equals(numberOfVeh, vehicle.numberOfVeh);
     }
 
     @Override
