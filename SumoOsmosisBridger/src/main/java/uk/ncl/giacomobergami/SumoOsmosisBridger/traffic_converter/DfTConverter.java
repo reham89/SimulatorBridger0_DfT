@@ -24,12 +24,12 @@ import javax.xml.xpath.XPathExpressionException;
 import java.io.*;
 import java.util.*;
 import com.opencsv.*;
-import org.ejml.simple.SimpleMatrix;
 import java.io.FileReader;
 import java.io.IOException;
-import uk.me.jstott.jcoord.OSRef;
-import uk.me.jstott.jcoord.LatLng;
-import org.apache.commons.csv.*;
+import java.util.stream.Collectors;
+//import uk.me.jstott.jcoord.OSRef;
+//import uk.me.jstott.jcoord.LatLng;
+//import org.apache.commons.csv.*;
 
 
 
@@ -48,11 +48,11 @@ public class DfTConverter extends TrafficConverter {
     List<String[]> data = new ArrayList<>();
     List<TimedIoT> timedIoTs = new ArrayList<>();
     List<TimedEdge> timedEdges = new ArrayList<>();
-    Projection utmProjection = ProjectionFactory.fromPROJ4Specification(ProjectionConstants.UTM_ZONE_30_PROJ4_SPEC);
-    CoordinateReferenceSystem utmCRS = new CRSFactory().createFromName("EPSG:32630");
-    CoordinateReferenceSystem latLonCRS = new CRSFactory().createFromName("EPSG:4326");
-    LatLng latLng = new LatLng(Double.parseDouble(latitude), Double.parseDouble(longitude));
-    UTMRef utmRef = latLng.toUTMRef();
+    // Projection utmProjection = ProjectionFactory.fromPROJ4Specification(ProjectionConstants.UTM_ZONE_30_PROJ4_SPEC);
+    // CoordinateReferenceSystem utmCRS = new CRSFactory().createFromName("EPSG:32630");
+    // CoordinateReferenceSystem latLonCRS = new CRSFactory().createFromName("EPSG:4326");
+    // LatLng latLng = new LatLng(Double.parseDouble(latitude), Double.parseDouble(longitude));
+    // UTMRef utmRef = latLng.toUTMRef();
     String csvFilePath;
     String row;
     List<String> rows = new ArrayList<>();
