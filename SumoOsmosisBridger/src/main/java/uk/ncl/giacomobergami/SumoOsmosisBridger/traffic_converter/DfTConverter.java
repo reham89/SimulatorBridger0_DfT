@@ -207,8 +207,31 @@ public class DfTConverter extends TrafficConverter {
     }
 
     @Override
-    public boolean runSimulator(long begin, long end, long step) {
-        return false;
+     public boolean runSimulator(long begin, long end, long step) {
+       /* String csvFilePath = concreteConf.getDfT_file();
+        CSVParser parser = new CSVParser(new FileReader(csvFilePath), CSVFormat.DEFAULT.withHeader()); */
+        int timeColumnIndex = Arrays.asList(rows.get(0)).indexOf("hour");
+        List<String[]> rows = reader.readAll();
+
+        // Variables for storing the filtered events
+        List<String[]> filteredRows = new ArrayList<>();
+
+        for (int i = 1; i < rows.size(); i++) {
+            String[] row = rows.get(i);
+            long timeValue = Long.parseLong(row[timeColumnIndex]);
+
+            // Convert hourValue to (hours:minutes:seconds) format
+             begin = Long.parseLong(String.format("%02d:00:00", timeValue));
+             step = 1;
+             end = Long.parseLong(String.format("%02d:59:59", timeValue));
+
+            // filter the events within the begin and end
+            if (timeValue >= begin && timeValue <= end) {
+                filteredRows.add(row);
+            }
+
+        }
+        return true;
     }
 
 }
