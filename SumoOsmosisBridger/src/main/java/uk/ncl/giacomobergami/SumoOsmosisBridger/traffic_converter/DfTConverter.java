@@ -208,8 +208,7 @@ public class DfTConverter extends TrafficConverter {
 
     @Override
      public boolean runSimulator(long begin, long end, long step) {
-       /* String csvFilePath = concreteConf.getDfT_file();
-        CSVParser parser = new CSVParser(new FileReader(csvFilePath), CSVFormat.DEFAULT.withHeader()); */
+       // can't filter events within begin and end timestamp, because "hour" column is not ordered or distinct (some values are repeated)
         int timeColumnIndex = Arrays.asList(rows.get(0)).indexOf("hour");
         List<String[]> rows = reader.readAll();
 
