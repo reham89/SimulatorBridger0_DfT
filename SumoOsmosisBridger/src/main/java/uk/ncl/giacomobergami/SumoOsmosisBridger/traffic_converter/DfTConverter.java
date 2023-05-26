@@ -1,7 +1,6 @@
 package uk.ncl.giacomobergami.SumoOsmosisBridger.traffic_converter;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import com.opencsv.exceptions.CsvException;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
@@ -23,14 +22,10 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathExpressionException;
 import java.io.*;
 import java.util.*;
-import com.opencsv.*;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.stream.Collectors;
-//import uk.me.jstott.jcoord.OSRef;
-//import uk.me.jstott.jcoord.LatLng;
-//import org.apache.commons.csv.*;
-
+import com.opencsv.*;
 
 
 public class DfTConverter extends TrafficConverter {
@@ -44,23 +39,15 @@ public class DfTConverter extends TrafficConverter {
     StraightforwardAdjacencyList<String> connectionPath;
     HashMap<Double, List<TimedIoT>> timedIoTDevices;
     HashSet<TimedEdge> roadSideUnits;
-    private static Logger logger = LogManager.getRootLogger();
+    // private static Logger logger = LogManager.getRootLogger();
     List<String[]> data = new ArrayList<>();
     List<TimedIoT> timedIoTs = new ArrayList<>();
     List<TimedEdge> timedEdges = new ArrayList<>();
-    // Projection utmProjection = ProjectionFactory.fromPROJ4Specification(ProjectionConstants.UTM_ZONE_30_PROJ4_SPEC);
-    // CoordinateReferenceSystem utmCRS = new CRSFactory().createFromName("EPSG:32630");
-    // CoordinateReferenceSystem latLonCRS = new CRSFactory().createFromName("EPSG:4326");
-    // LatLng latLng = new LatLng(Double.parseDouble(latitude), Double.parseDouble(longitude));
-    // UTMRef utmRef = latLng.toUTMRef();
-    String csvFilePath;
-    String row;
     List<String> rows = new ArrayList<>();
     List<Double> temporalOrdering; // the time in CSV file is in integer format
 
-    public DfTConverter(TrafficConfiguration conf, String csvFilePath) {
+    public DfTConverter(TrafficConfiguration conf) {
         super(conf);
-        this.csvFilePath = csvFilePath;
         dbf = DocumentBuilderFactory.newInstance();
         try {
             db = dbf.newDocumentBuilder();
@@ -82,7 +69,6 @@ public class DfTConverter extends TrafficConverter {
 
     @Override
     protected boolean initReadSimulatorOutput() {
-        List<Double> temporalOrdering = new ArrayList<>();
         connectionPath.clear();
         temporalOrdering.clear();
         timedIoTDevices.clear();
@@ -90,29 +76,44 @@ public class DfTConverter extends TrafficConverter {
         File file = new File(concreteConf.DfT_file_path);
         Document DfTFile = null;
         try {
-            DfTFile = db.parse(csvFilePath);
+            DfTFile = db.parse(file);
         } catch (SAXException | IOException e) {
             e.printStackTrace();
             return false;
         }
-        String csvFilePath = concreteConf.getDfT_file();
-        CSVParser parser = new CSVParser(new FileReader(csvFilePath), CSVFormat.DEFAULT.withHeader());
-         List<String[]> rows = reader.readAll();  //reads all the rows of the CSV file and stores them in a list called rows.
-        // String[] header = reader.readNext();  // Skip the header row
-            int timeColumnIndex = Arrays.asList(rows.get(0)).indexOf("hour"); //retrieves the index of the column with the header "hour" by getting the first row in the CSV file, converting it to a list using Arrays.asList()
+
+        try {
+            CSVReader reader = new CSVReader(new FileReader(file));
+            List<String[]> rows = reader.readAll();
+            int timeColumnIndex = Arrays.asList(rows.get(0)).indexOf("hour");
             int VehColumnIndex = Arrays.asList(rows.get(0)).indexOf("All_motor_vehicles");
-            //  we put both IoT and Edge in 1 loop?
-            for (int i = 1; i < rows.size(); i++) { // assuming that the first row contains the column headers
-                String[] row = rows.get(i); // gets the current row
-                String timeValue = row[timeColumnIndex]; //  retrieves the value in the "hour" column for the current row
-                double currTime = Double.parseDouble(timeValue); // convert it to double
+            int eastColumnIndex = Arrays.asList(rows.get(0)).indexOf("Easting");
+            int northColumnIndex = Arrays.asList(rows.get(0)).indexOf("Northing");
+
+                int counter = 0;
+            for (int i = 1; i < rows.size(); i++) {
+                String[] row = rows.get(i);
+               // double timeValue = Double.parseDouble(row[timeColumnIndex]);
+                double timeValue = 3600;
+                int N = Integer.parseInt(row[VehColumnIndex]);
+                double x = Double.parseDouble(row[eastColumnIndex]);
+                double y = Double.parseDouble(row[northColumnIndex]);
+                // need to check how to calculate currTime and timeValue
+                double currTime = Double.parseDouble(String.valueOf(timeValue));
                 temporalOrdering.add(currTime);
+
                 var ls = new ArrayList<TimedIoT>();
                 timedIoTDevices.put(currTime, ls);
-                TimedIoT rec = new TimedIoT();
-                int numberOfVeh = Integer.parseInt(row[VehColumnIndex]);
-                rec.numberOfVeh = numberOfVeh;
-                ls.add(rec);
+
+                for (int j = 0; j < N; j++) {
+                    TimedIoT rec = new TimedIoT();
+                    rec.id = "id_" + counter;
+                    counter++;
+                    rec.numberOfVeh = N;
+                    rec.x = x;
+                    rec.y = y;
+                    ls.add(rec);
+                }
             }
         NodeList traffic_lights = null;
         try {
@@ -121,20 +122,16 @@ public class DfTConverter extends TrafficConverter {
             e.printStackTrace();
             return false;
         }
-        for (int i = 1; i < rows.size(); i++) {
-                String regionName = row[headers.indexOf("RegionName")];
-                String localAuthorityName = row[headers.indexOf("LocalAuthorityName")];
-                String roadName = row[headers.indexOf("RoadName")];
-                String startJunctionRoadName = row[headers.indexOf("StartJunctionRoadName")];
-                String endJunctionRoadName = row[headers.indexOf("EndJunctionRoadName")];
-                double latitude = row[headers.indexOf("Latitude")];
-                double longitude = row[headers.indexOf("Longitude")];
-                // convert latitude & longitude to UTM:
-                LatLng latLng = new LatLng(latitude, longitude);
-                OSRef osRef = latLng.toOSRef();
-                UTMRef utm = latLng.toUTMRef();
-                double X = utm.getEasting();
-                double Y = utm.getNorthing();
+            String[] headers = rows.get(0); // This assumes the first row contains headers
+            for (int i = 1; i < rows.size(); i++) {
+            String[] row = rows.get(i);
+                String regionName = row[Arrays.asList(headers).indexOf("RegionName")];
+                String localAuthorityName = row[Arrays.asList(headers).indexOf("LocalAuthorityName")];
+                String roadName = row[Arrays.asList(headers).indexOf("RoadName")];
+                String startJunctionRoadName = row[Arrays.asList(headers).indexOf("StartJunctionRoadName")];
+                String endJunctionRoadName = row[Arrays.asList(headers).indexOf("EndJunctionRoadName")];
+                double x = Double.parseDouble(row[Arrays.asList(headers).indexOf("Easting")]);
+                double y = Double.parseDouble(row[Arrays.asList(headers).indexOf("Northing")]);
 
                 var rsu = new TimedEdge();
                 rsu.regionName = regionName;
@@ -142,8 +139,9 @@ public class DfTConverter extends TrafficConverter {
                 rsu.roadName = roadName;
                 rsu.startJunctionRoadName = startJunctionRoadName;
                 rsu.endJunctionRoadName = endJunctionRoadName;
-                rsu.X = X;
-                rsu.Y = Y;
+                // the position of the edge device is similar to position of IoT device ?
+                rsu.x = x;
+                rsu.y = y;
                 roadSideUnits.add(rsu);
         }
         connectionPath.clear();
@@ -151,24 +149,19 @@ public class DfTConverter extends TrafficConverter {
         tmp.forEach((k, v) -> {
             connectionPath.put(k.id, v.id);
         });
+        } catch (FileNotFoundException e) {
+            System.out.println("File not found: " + file);
+            e.printStackTrace();
+        } catch (IOException e) {
+            System.out.println("Error reading file: " + file);
+            e.printStackTrace();
+        } catch (CsvException e) {
+            System.out.println("Error parsing CSV file: " + file);
+            e.printStackTrace();
+        }
         return true;
         }
 
-    /*
-    private List<String[]> readCSV(File file) {
-            List<String[]> records = new ArrayList<>();
-            try (Scanner scanner = new Scanner(file);) {
-                while (scanner.hasNextLine()) {
-                    String line = scanner.nextLine();
-                    String[] values = line.split(",");
-                    records.add(values);
-                }
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            }
-            return records;
-        }
-*/
     @Override
     protected List<Double> getSimulationTimeUnits() {
         return temporalOrdering;
@@ -195,9 +188,7 @@ public class DfTConverter extends TrafficConverter {
 
     @Override
     protected void endReadSimulatorOutput() {
-        // Clear the input data list
         data.clear();
-        // Clear the TimedIoT and TimedEdge lists
         timedIoTs.clear();
         timedEdges.clear();
         temporalOrdering.clear();
@@ -208,15 +199,35 @@ public class DfTConverter extends TrafficConverter {
 
     @Override
      public boolean runSimulator(long begin, long end, long step) {
-       // can't filter events within begin and end timestamp, because "hour" column is not ordered or distinct (some values are repeated)
-        int timeColumnIndex = Arrays.asList(rows.get(0)).indexOf("hour");
-        List<String[]> rows = reader.readAll();
+        // no need to filter! already filtered by rows? timevalue=3600, how to set the end?
+        File file = new File(concreteConf.DfT_file_path);
+        Document DfTFile = null;
+        try {
+            DfTFile = db.parse(file);
+        } catch (SAXException | IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+        try {
+            CSVReader reader = new CSVReader(new FileReader(file));
+            List<String[]> rows = reader.readAll();
+            List<String[]> filteredRows = new ArrayList<>();
+            for (int i = 1; i < rows.size(); i++) {
+                String[] row = rows.get(i);
+                begin = 0;
+                end = 3600;
+                step = 1;
+                long timeValue = 3600;
+                // filter the events within the timestamp range of one hour (3600 seconds)
+                if (timeValue >= begin && timeValue < end) {
+                    filteredRows.add(row);
+                }
+            }
+            // Replace the original rows with the filtered rows
+            rows = (List<String[]>) filteredRows;
 
-        // Variables for storing the filtered events
-        List<String[]> filteredRows = new ArrayList<>();
-
-        for (int i = 1; i < rows.size(); i++) {
-            String[] row = rows.get(i);
+    /*    for (int i = 1; i < rows.size(); i++) {
+            String[] row = new String[]{rows.get(i)};
             long timeValue = Long.parseLong(row[timeColumnIndex]);
 
             // Convert hourValue to (hours:minutes:seconds) format
@@ -229,6 +240,17 @@ public class DfTConverter extends TrafficConverter {
                 filteredRows.add(row);
             }
 
+        } */
+
+        } catch (FileNotFoundException e) {
+            System.out.println("File not found: " + file);
+            e.printStackTrace();
+        } catch (IOException e) {
+            System.out.println("Error reading file: " + file);
+            e.printStackTrace();
+        } catch (CsvException e) {
+            System.out.println("Error parsing CSV file: " + file);
+            e.printStackTrace();
         }
         return true;
     }
