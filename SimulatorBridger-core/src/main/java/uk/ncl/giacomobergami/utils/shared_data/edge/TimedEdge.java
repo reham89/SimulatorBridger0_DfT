@@ -18,7 +18,7 @@ import java.util.Objects;
         "simtime",
         "communication_radius",
         "max_vehicle_communication",
-        "RegionName", "LocalAuthorityName", "RoadName", "StartJunctionRoadName", "EndJunctionRoadName", "X", "Y"
+        "RegionName", "LocalAuthorityName", "RoadName", "StartJunctionRoadName", "EndJunctionRoadName"
 })
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class TimedEdge implements TimedObject<TimedEdge> {
@@ -50,10 +50,6 @@ public class TimedEdge implements TimedObject<TimedEdge> {
     public String startJunctionRoadName;
     @JsonProperty("EndJunctionRoadName")
     public String endJunctionRoadName;
-    @JsonProperty("X")
-    public double X;
-    @JsonProperty("Y")
-    public double Y;
 
     @JsonIgnore
     public EdgeProgram program_rsu;
@@ -71,7 +67,7 @@ public class TimedEdge implements TimedObject<TimedEdge> {
     }
 
     public TimedEdge(String id, double x, double y, double communication_radius,
-                     double max_vehicle_communication, double simtime, String regionName, String localAuthorityName, String roadName, String startJunctionRoadName, String endJunctionRoadName, Double X, Double Y) {
+                     double max_vehicle_communication, double simtime, String regionName, String localAuthorityName, String roadName, String startJunctionRoadName, String endJunctionRoadName) {
         this.id = id;
         this.x = x;
         this.y = y;
@@ -83,8 +79,6 @@ public class TimedEdge implements TimedObject<TimedEdge> {
         this.roadName = roadName ;
         this.startJunctionRoadName = startJunctionRoadName;
         this.endJunctionRoadName = endJunctionRoadName;
-        this.X = X;
-        this.Y = Y;
     }
 
     public void setId(String id) {
@@ -177,22 +171,6 @@ public class TimedEdge implements TimedObject<TimedEdge> {
         this.endJunctionRoadName = endJunctionRoadName;
     }
 
-    public double get_X() {
-        return X;
-    }
-
-    public void set_X(double X) {
-        this.X = X;
-    }
-
-    public double get_Y() {
-        return Y;
-    }
-
-    public void set_Y(double Y) {
-        this.Y = Y;
-    }
-
     @Override
     public String toString() {
         return "RSU{" +
@@ -206,8 +184,6 @@ public class TimedEdge implements TimedObject<TimedEdge> {
                 ", roadName=" + roadName +
                 ", startJunctionRoadName=" + startJunctionRoadName +
                 ", endJunctionRoadName=" + endJunctionRoadName +
-                ", X=" + X +
-                ", Y=" + Y +
                 '}';
     }
 
@@ -238,12 +214,12 @@ public class TimedEdge implements TimedObject<TimedEdge> {
         return Double.compare(timedEdge.x, x) == 0 && Double.compare(timedEdge.y, y) == 0 && Double.compare(timedEdge.communication_radius, communication_radius)
                 == 0 && Double.compare(timedEdge.max_vehicle_communication, max_vehicle_communication) == 0 && Objects.equals(id, timedEdge.id) && Objects.equals(regionName, timedEdge.regionName)
                 && Objects.equals(localAuthorityName, timedEdge.localAuthorityName) && Objects.equals(roadName, timedEdge.roadName) && Objects.equals(startJunctionRoadName, timedEdge.startJunctionRoadName)
-                && Objects.equals(endJunctionRoadName, timedEdge.endJunctionRoadName) && Objects.equals(X, timedEdge.X) && Objects.equals(Y, timedEdge.Y);
+                && Objects.equals(endJunctionRoadName, timedEdge.endJunctionRoadName);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, x, y, communication_radius, max_vehicle_communication, regionName, localAuthorityName, roadName, startJunctionRoadName, endJunctionRoadName, X, Y);
+        return Objects.hash(id, x, y, communication_radius, max_vehicle_communication, regionName, localAuthorityName, roadName, startJunctionRoadName, endJunctionRoadName);
     }
 
     @Override
