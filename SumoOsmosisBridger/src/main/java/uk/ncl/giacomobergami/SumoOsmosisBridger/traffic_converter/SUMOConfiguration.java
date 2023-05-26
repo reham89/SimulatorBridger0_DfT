@@ -5,6 +5,7 @@ public class SUMOConfiguration {
     public String logger_file;
     public String sumo_program;
     public String sumo_configuration_file_path;
+    public String DfT_file_path;
     public String generateRSUAdjacencyList;
     public String updateRSUFields;
     public double default_rsu_communication_radius;
@@ -58,5 +59,12 @@ public class SUMOConfiguration {
     }
     public void setSumo_configuration_file_path(String sumo_configuration_file_path) {
         this.sumo_configuration_file_path = sumo_configuration_file_path;
+    }
+     public String getDfT_file_path() {
+        return DfT_file_path;
+
+    }
+    public void setDfT_file_path(String DfT_file_path) {
+        this.DfT_file_path = DfT_file_path;
     }
 }
