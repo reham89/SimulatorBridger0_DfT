@@ -101,7 +101,7 @@ public class TimedEdge implements TimedObject<TimedEdge> {
 
     @Override
     public TimedEdge copy() {
-        return new TimedEdge(id, x, y, communication_radius, max_vehicle_communication, simtime, regionName, localAuthorityName, roadName, startJunctionRoadName, endJunctionRoadName, X, Y);
+        return new TimedEdge(id, x, y, communication_radius, max_vehicle_communication, simtime, regionName, localAuthorityName, roadName, startJunctionRoadName, endJunctionRoadName);
     }
 
     public void setTl_id(String tl_id) {
