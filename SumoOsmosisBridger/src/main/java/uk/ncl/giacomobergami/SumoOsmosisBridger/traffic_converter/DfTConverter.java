@@ -199,9 +199,8 @@ public class DfTConverter extends TrafficConverter {
 
     @Override
      public boolean runSimulator(long begin, long end, long step) {
-        // no need to filter! already filtered by rows? timevalue=3600, how to set the end?
         File file = new File(concreteConf.DfT_file_path);
-        Document DfTFile = null;
+         Document DfTFile = null;
         try {
             DfTFile = db.parse(file);
         } catch (SAXException | IOException e) {
@@ -211,37 +210,50 @@ public class DfTConverter extends TrafficConverter {
         try {
             CSVReader reader = new CSVReader(new FileReader(file));
             List<String[]> rows = reader.readAll();
+            String[] headers = rows.get(0);
+            int dateColumnIndex = Arrays.asList(headers).indexOf("Count_date");
+            int hourColumnIndex = Arrays.asList(headers).indexOf("hour");
+
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy  HH:mm");
+            LocalDateTime earliestDateTime = LocalDateTime.MAX;
+            LocalDateTime latestDateTime = LocalDateTime.MIN;
+
+            // Find the earliest and latest date
+            for (String[] row : rows) {
+                LocalDateTime dateTime = LocalDateTime.parse(row[dateColumnIndex], formatter);
+                int hour = Integer.parseInt(row[hourColumnIndex]);
+                dateTime = dateTime.plusHours(hour); // add the time in "hour" to the date
+
+                if (dateTime.isBefore(earliestDateTime)) {
+                    earliestDateTime = dateTime;
+                }
+                if (dateTime.isAfter(latestDateTime)) {
+                    latestDateTime = dateTime;
+                }
+            }
+
+            // Convert the earliest and latest date to seconds
+            long earliestTime = earliestDateTime.toEpochSecond(ZoneOffset.UTC);
+            long latestTime = latestDateTime.toEpochSecond(ZoneOffset.UTC);
+
+            begin = 0;
+            end = latestTime - earliestTime;
+
+            // Now filter and adjust the CSV data based on these times
             List<String[]> filteredRows = new ArrayList<>();
-            for (int i = 1; i < rows.size(); i++) {
-                String[] row = rows.get(i);
-                begin = 0;
-                end = 3600;
-                step = 1;
-                long timeValue = 3600;
-                // filter the events within the timestamp range of one hour (3600 seconds)
-                if (timeValue >= begin && timeValue < end) {
+            for (String[] row : rows) {
+                LocalDateTime dateTime = LocalDateTime.parse(row[dateColumnIndex], formatter);
+                int hour = Integer.parseInt(row[hourColumnIndex]);
+                dateTime = dateTime.plusHours(hour);
+                long timeInSeconds = dateTime.toEpochSecond(ZoneOffset.UTC) - earliestTime;
+
+                if (timeInSeconds >= begin && timeInSeconds <= end) {
+                    // calculate the event's new timestamp (the start time for the current row)
+                    row[dateColumnIndex] = String.valueOf(timeInSeconds);
                     filteredRows.add(row);
                 }
             }
-            // Replace the original rows with the filtered rows
-            rows = (List<String[]>) filteredRows;
-
-    /*    for (int i = 1; i < rows.size(); i++) {
-            String[] row = new String[]{rows.get(i)};
-            long timeValue = Long.parseLong(row[timeColumnIndex]);
-
-            // Convert hourValue to (hours:minutes:seconds) format
-             begin = Long.parseLong(String.format("%02d:00:00", timeValue));
-             step = 1;
-             end = Long.parseLong(String.format("%02d:59:59", timeValue));
-
-            // filter the events within the begin and end
-            if (timeValue >= begin && timeValue <= end) {
-                filteredRows.add(row);
-            }
-
-        } */
-
+            rows = filteredRows;
         } catch (FileNotFoundException e) {
             System.out.println("File not found: " + file);
             e.printStackTrace();
@@ -254,5 +266,4 @@ public class DfTConverter extends TrafficConverter {
         }
         return true;
     }
-
 }
