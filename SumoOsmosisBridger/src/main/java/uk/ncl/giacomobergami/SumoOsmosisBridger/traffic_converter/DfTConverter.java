@@ -21,9 +21,6 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathExpressionException;
 import java.io.*;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.io.FileReader;
 import java.io.IOException;
@@ -33,7 +30,8 @@ import com.opencsv.*;
 
 public class DfTConverter extends TrafficConverter {
 
-    private final SUMOConfiguration concreteConf;
+    private SUMOConfiguration concreteConf;
+    private final DocumentBuilderFactory dbf;
     private final NetworkGenerator netGen;
     private final RSUUpdater rsuUpdater;
     private DocumentBuilder db;
@@ -46,11 +44,11 @@ public class DfTConverter extends TrafficConverter {
     List<TimedIoT> timedIoTs = new ArrayList<>();
     List<TimedEdge> timedEdges = new ArrayList<>();
     List<String> rows = new ArrayList<>();
-    List<Double> temporalOrdering;
+    List<Double> temporalOrdering; // the time in CSV file is in integer format
 
     public DfTConverter(TrafficConfiguration conf) {
         super(conf);
-        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+        dbf = DocumentBuilderFactory.newInstance();
         try {
             db = dbf.newDocumentBuilder();
         } catch (ParserConfigurationException e) {
@@ -92,49 +90,65 @@ public class DfTConverter extends TrafficConverter {
             int eastColumnIndex = Arrays.asList(rows.get(0)).indexOf("Easting");
             int northColumnIndex = Arrays.asList(rows.get(0)).indexOf("Northing");
 
-            int counter = 0;
+                int counter = 0;
             for (int i = 1; i < rows.size(); i++) {
                 String[] row = rows.get(i);
-                // double timeValue = Double.parseDouble(row[timeColumnIndex]);
+               // double timeValue = Double.parseDouble(row[timeColumnIndex]);
                 double timeValue = 3600;
                 int N = Integer.parseInt(row[VehColumnIndex]);
                 double x = Double.parseDouble(row[eastColumnIndex]);
                 double y = Double.parseDouble(row[northColumnIndex]);
-                double currTime = Double.parseDouble(String.valueOf(timeValue)); //currTime is 3600 or "hour" value?
+                // need to check how to calculate currTime and timeValue
+                double currTime = Double.parseDouble(String.valueOf(timeValue));
                 temporalOrdering.add(currTime);
+
                 var ls = new ArrayList<TimedIoT>();
                 timedIoTDevices.put(currTime, ls);
-                // generate ID for vehicles
-                TimedIoT rec = new TimedIoT();
+
                 for (int j = 0; j < N; j++) {
+                    TimedIoT rec = new TimedIoT();
                     rec.id = "id_" + counter;
-                    counter++; // need to close the loop here?
-                    rec.numberOfVeh = N; // need to check
+                    counter++;
+                    rec.numberOfVeh = N;
                     rec.x = x;
                     rec.y = y;
                     ls.add(rec);
                 }
             }
-
-            List<String> traffic_lights = new ArrayList<>();
-            int idColumnIndex = Arrays.asList(rows.get(0)).indexOf("Count_point_id");
-            traffic_lights = new ArrayList<>();
-            // String[] headers = rows.get(0); // This assumes the first row contains headers int eastColumnIndex = Arrays.asList(rows.get(0)).indexOf("Easting");
+        NodeList traffic_lights = null;
+        try {
+            traffic_lights = XPathUtil.evaluateNodeList(networkFile, "/net/junction[@type='traffic_light']");
+        } catch (XPathExpressionException e) {
+            e.printStackTrace();
+            return false;
+        }
+            String[] headers = rows.get(0); // This assumes the first row contains headers
             for (int i = 1; i < rows.size(); i++) {
-                String[] curr = rows.get(i);
-                var rsu = new TimedEdge(curr[idColumnIndex],
-                        Double.parseDouble(curr[eastColumnIndex]),
-                        Double.parseDouble(curr[northColumnIndex]),
-                        concreteConf.default_rsu_communication_radius,
-                        concreteConf.default_max_vehicle_communication, 0);
-                rsuUpdater.accept(rsu);
+            String[] row = rows.get(i);
+                String regionName = row[Arrays.asList(headers).indexOf("RegionName")];
+                String localAuthorityName = row[Arrays.asList(headers).indexOf("LocalAuthorityName")];
+                String roadName = row[Arrays.asList(headers).indexOf("RoadName")];
+                String startJunctionRoadName = row[Arrays.asList(headers).indexOf("StartJunctionRoadName")];
+                String endJunctionRoadName = row[Arrays.asList(headers).indexOf("EndJunctionRoadName")];
+                double x = Double.parseDouble(row[Arrays.asList(headers).indexOf("Easting")]);
+                double y = Double.parseDouble(row[Arrays.asList(headers).indexOf("Northing")]);
+
+                var rsu = new TimedEdge();
+                rsu.regionName = regionName;
+                rsu.localAuthorityName = localAuthorityName;
+                rsu.roadName = roadName;
+                rsu.startJunctionRoadName = startJunctionRoadName;
+                rsu.endJunctionRoadName = endJunctionRoadName;
+                // the position of the edge device is similar to position of IoT device ?
+                rsu.x = x;
+                rsu.y = y;
                 roadSideUnits.add(rsu);
-            }
-            connectionPath.clear();
-            var tmp = netGen.apply(roadSideUnits);
-            tmp.forEach((k, v) -> {
-                connectionPath.put(k.id, v.id);
-            });
+        }
+        connectionPath.clear();
+        var tmp = netGen.apply(roadSideUnits);
+        tmp.forEach((k, v) -> {
+            connectionPath.put(k.id, v.id);
+        });
         } catch (FileNotFoundException e) {
             System.out.println("File not found: " + file);
             e.printStackTrace();
@@ -146,7 +160,7 @@ public class DfTConverter extends TrafficConverter {
             e.printStackTrace();
         }
         return true;
-    }
+        }
 
     @Override
     protected List<Double> getSimulationTimeUnits() {
@@ -184,9 +198,10 @@ public class DfTConverter extends TrafficConverter {
     }
 
     @Override
-    public boolean runSimulator(TrafficConfiguration conf) {
+     public boolean runSimulator(long begin, long end, long step) {
+        // no need to filter! already filtered by rows? timevalue=3600, how to set the end?
         File file = new File(concreteConf.DfT_file_path);
-         Document DfTFile = null;
+        Document DfTFile = null;
         try {
             DfTFile = db.parse(file);
         } catch (SAXException | IOException e) {
@@ -196,48 +211,37 @@ public class DfTConverter extends TrafficConverter {
         try {
             CSVReader reader = new CSVReader(new FileReader(file));
             List<String[]> rows = reader.readAll();
-            String[] headers = rows.get(0);
-            int dateColumnIndex = Arrays.asList(headers).indexOf("Count_date");
-            int hourColumnIndex = Arrays.asList(headers).indexOf("hour");
-            // convert the string to date and time
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy  HH:mm");
-            LocalDateTime earliestDateTime = LocalDateTime.MAX;
-            LocalDateTime latestDateTime = LocalDateTime.MIN;
-
-            // find the earliest and latest date
-            for (String[] row : rows) {
-                LocalDateTime dateTime = LocalDateTime.parse(row[dateColumnIndex], formatter);
-                int hour = Integer.parseInt(row[hourColumnIndex]);
-                dateTime = dateTime.withHour(hour); // add the time in "hour" to the date
-                if (dateTime.isBefore(earliestDateTime)) {
-                    earliestDateTime = dateTime;
-                }
-                if (dateTime.isAfter(latestDateTime)) {
-                    latestDateTime = dateTime;
-                }
-            }
-
-            // Convert the earliest and latest date to seconds
-            long earliestTime = earliestDateTime.toEpochSecond(ZoneOffset.UTC);
-            long latestTime = latestDateTime.toEpochSecond(ZoneOffset.UTC);
-
-            conf.begin = 0;
-            conf.end = latestTime - earliestTime;
-            conf.step = 3600;
-
-            // calculate the event's new timestamp (the start time for the current row)
             List<String[]> filteredRows = new ArrayList<>();
-            for (String[] row : rows) {
-                LocalDateTime dateTime = LocalDateTime.parse(row[dateColumnIndex], formatter);
-                int hour = Integer.parseInt(row[hourColumnIndex]);
-                dateTime = dateTime.withHour(hour);
-                long timeInSeconds = dateTime.toEpochSecond(ZoneOffset.UTC) - earliestTime;
-                if (timeInSeconds >= conf.begin && timeInSeconds <= conf.end) {
-                    row[dateColumnIndex] = String.valueOf(timeInSeconds);
+            for (int i = 1; i < rows.size(); i++) {
+                String[] row = rows.get(i);
+                begin = 0;
+                end = 3600;
+                step = 1;
+                long timeValue = 3600;
+                // filter the events within the timestamp range of one hour (3600 seconds)
+                if (timeValue >= begin && timeValue < end) {
                     filteredRows.add(row);
                 }
             }
-            rows = filteredRows;
+            // Replace the original rows with the filtered rows
+            rows = (List<String[]>) filteredRows;
+
+    /*    for (int i = 1; i < rows.size(); i++) {
+            String[] row = new String[]{rows.get(i)};
+            long timeValue = Long.parseLong(row[timeColumnIndex]);
+
+            // Convert hourValue to (hours:minutes:seconds) format
+             begin = Long.parseLong(String.format("%02d:00:00", timeValue));
+             step = 1;
+             end = Long.parseLong(String.format("%02d:59:59", timeValue));
+
+            // filter the events within the begin and end
+            if (timeValue >= begin && timeValue <= end) {
+                filteredRows.add(row);
+            }
+
+        } */
+
         } catch (FileNotFoundException e) {
             System.out.println("File not found: " + file);
             e.printStackTrace();
@@ -250,4 +254,5 @@ public class DfTConverter extends TrafficConverter {
         }
         return true;
     }
+
 }
