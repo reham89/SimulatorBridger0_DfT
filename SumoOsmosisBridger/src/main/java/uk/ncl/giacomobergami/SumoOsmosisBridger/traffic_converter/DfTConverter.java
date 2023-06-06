@@ -244,7 +244,7 @@ public class DfTConverter extends TrafficConverter {
             for (String[] row : rows) {
                 LocalDateTime dateTime = LocalDateTime.parse(row[dateColumnIndex], formatter);
                 int hour = Integer.parseInt(row[hourColumnIndex]);
-                dateTime = dateTime.plusHours(hour);
+                dateTime = dateTime.withHour(hour);
                 long timeInSeconds = dateTime.toEpochSecond(ZoneOffset.UTC) - earliestTime;
 
                 if (timeInSeconds >= begin && timeInSeconds <= end) {
