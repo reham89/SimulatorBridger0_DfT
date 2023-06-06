@@ -18,7 +18,6 @@ import java.util.Objects;
         "simtime",
         "communication_radius",
         "max_vehicle_communication",
-        "RegionName", "LocalAuthorityName", "RoadName", "StartJunctionRoadName", "EndJunctionRoadName"
 })
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class TimedEdge implements TimedObject<TimedEdge> {
@@ -40,17 +39,6 @@ public class TimedEdge implements TimedObject<TimedEdge> {
     @JsonProperty("max_vehicle_communication")
     public double max_vehicle_communication;
 
-    @JsonProperty("RegionName")
-    public String regionName;
-    @JsonProperty("LocalAuthorityName")
-    public String localAuthorityName;
-    @JsonProperty("RoadName")
-    public String roadName;
-    @JsonProperty("StartJunctionRoadName")
-    public String startJunctionRoadName;
-    @JsonProperty("EndJunctionRoadName")
-    public String endJunctionRoadName;
-
     @JsonIgnore
     public EdgeProgram program_rsu;
 
@@ -67,18 +55,13 @@ public class TimedEdge implements TimedObject<TimedEdge> {
     }
 
     public TimedEdge(String id, double x, double y, double communication_radius,
-                     double max_vehicle_communication, double simtime, String regionName, String localAuthorityName, String roadName, String startJunctionRoadName, String endJunctionRoadName) {
+                     double max_vehicle_communication, double simtime) {
         this.id = id;
         this.x = x;
         this.y = y;
         this.communication_radius = communication_radius;
         this.max_vehicle_communication = max_vehicle_communication;
         this.simtime = simtime;
-        this.regionName = regionName ;
-        this.localAuthorityName = localAuthorityName;
-        this.roadName = roadName ;
-        this.startJunctionRoadName = startJunctionRoadName;
-        this.endJunctionRoadName = endJunctionRoadName;
     }
 
     public void setId(String id) {
@@ -101,7 +84,7 @@ public class TimedEdge implements TimedObject<TimedEdge> {
 
     @Override
     public TimedEdge copy() {
-        return new TimedEdge(id, x, y, communication_radius, max_vehicle_communication, simtime, regionName, localAuthorityName, roadName, startJunctionRoadName, endJunctionRoadName);
+        return new TimedEdge(id, x, y, communication_radius, max_vehicle_communication, simtime);
     }
 
     public void setTl_id(String tl_id) {
@@ -131,46 +114,6 @@ public class TimedEdge implements TimedObject<TimedEdge> {
         this.max_vehicle_communication = max_vehicle_communication;
     }
 
-    public String getRegionName() {
-        return regionName;
-    }
-
-    public void setRegionName(String regionName) {
-        this.regionName = regionName;
-    }
-
-    public String getLocalAuthorityName() {
-        return localAuthorityName;
-    }
-
-    public void setLocalAuthorityName(String localAuthorityName) {
-        this.localAuthorityName = localAuthorityName;
-    }
-
-    public String getRoadName() {
-        return roadName;
-    }
-
-    public void setRoadName(String roadName) {
-        this.roadName = roadName;
-    }
-
-    public String getStartJunctionRoadName() {
-        return startJunctionRoadName;
-    }
-
-    public void setStartJunctionRoadName(String startJunctionRoadName) {
-        this.startJunctionRoadName = startJunctionRoadName;
-    }
-
-    public String getEndJunctionRoadName() {
-        return endJunctionRoadName;
-    }
-
-    public void setEndJunctionRoadName(String endJunctionRoadName) {
-        this.endJunctionRoadName = endJunctionRoadName;
-    }
-
     @Override
     public String toString() {
         return "RSU{" +
@@ -179,11 +122,6 @@ public class TimedEdge implements TimedObject<TimedEdge> {
                 ", y=" + y +
                 ", communication_radius=" + communication_radius +
                 ", max_vehicle_communication=" + max_vehicle_communication +
-                ", regionName=" + regionName +
-                ", localAuthorityName=" + localAuthorityName +
-                ", roadName=" + roadName +
-                ", startJunctionRoadName=" + startJunctionRoadName +
-                ", endJunctionRoadName=" + endJunctionRoadName +
                 '}';
     }
 
@@ -204,22 +142,18 @@ public class TimedEdge implements TimedObject<TimedEdge> {
 //        return result;
 //    }
 
-
-    // Do we need to add them here? How we can merge them SUMO has attributes and DFT has column and rows.
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         TimedEdge timedEdge = (TimedEdge) o;
         return Double.compare(timedEdge.x, x) == 0 && Double.compare(timedEdge.y, y) == 0 && Double.compare(timedEdge.communication_radius, communication_radius)
-                == 0 && Double.compare(timedEdge.max_vehicle_communication, max_vehicle_communication) == 0 && Objects.equals(id, timedEdge.id) && Objects.equals(regionName, timedEdge.regionName)
-                && Objects.equals(localAuthorityName, timedEdge.localAuthorityName) && Objects.equals(roadName, timedEdge.roadName) && Objects.equals(startJunctionRoadName, timedEdge.startJunctionRoadName)
-                && Objects.equals(endJunctionRoadName, timedEdge.endJunctionRoadName);
+                == 0 && Double.compare(timedEdge.max_vehicle_communication, max_vehicle_communication) == 0 && Objects.equals(id, timedEdge.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, x, y, communication_radius, max_vehicle_communication, regionName, localAuthorityName, roadName, startJunctionRoadName, endJunctionRoadName);
+        return Objects.hash(id, x, y, communication_radius, max_vehicle_communication);
     }
 
     @Override

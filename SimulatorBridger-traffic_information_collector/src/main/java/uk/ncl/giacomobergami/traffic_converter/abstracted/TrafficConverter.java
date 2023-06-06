@@ -56,7 +56,7 @@ public abstract class TrafficConverter {
 
     public boolean run() {
         logger.trace("TRAFFIC CONVERTER: running the simulator as per configuration: " +conf.YAMLConverterConfiguration);
-        runSimulator(conf.begin, conf.end, conf.step);
+        runSimulator(conf);
         if (!initReadSimulatorOutput()) {
             logger.info("Not generating the already-provided results");
             return false;
@@ -151,6 +151,6 @@ public abstract class TrafficConverter {
         return true;
     }
 
-    public abstract boolean runSimulator(long begin, long end, long step);
+    public abstract boolean runSimulator(TrafficConfiguration conf);
 
 }

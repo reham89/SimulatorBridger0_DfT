@@ -214,9 +214,7 @@ public class SUMOConverter extends TrafficConverter {
     }
 
     @Override
-    public boolean runSimulator(long begin,
-                             long end,
-                             long step) {
+    public boolean runSimulator(TrafficConfiguration conf) {
         if (new File(concreteConf.trace_file).exists()) {
             logger.info("Skipping the sumo running: the trace_file already exists");
             return true;
@@ -231,7 +229,7 @@ public class SUMOConverter extends TrafficConverter {
         }
         BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
         ProcessBuilder processBuilder = new ProcessBuilder();
-        processBuilder.command(concreteConf.sumo_program, "-c", concreteConf.sumo_configuration_file_path, "--begin", Long.toString(begin), "--end", Long.toString(end), "--step-length", Long.toString(step), "--fcd-output", concreteConf.trace_file);
+        processBuilder.command(concreteConf.sumo_program, "-c", concreteConf.sumo_configuration_file_path, "--begin", Long.toString(conf.begin), "--end", Long.toString(conf.end), "--step-length", Long.toString(conf.step), "--fcd-output", concreteConf.trace_file);
         try {
             Process process = processBuilder.start();
             BufferedReader reader =
