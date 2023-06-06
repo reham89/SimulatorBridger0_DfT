@@ -222,7 +222,7 @@ public class DfTConverter extends TrafficConverter {
             for (String[] row : rows) {
                 LocalDateTime dateTime = LocalDateTime.parse(row[dateColumnIndex], formatter);
                 int hour = Integer.parseInt(row[hourColumnIndex]);
-                dateTime = dateTime.plusHours(hour); // add the time in "hour" to the date
+                dateTime = dateTime.withHour(hour); // add the time in "hour" to the date
 
                 if (dateTime.isBefore(earliestDateTime)) {
                     earliestDateTime = dateTime;
