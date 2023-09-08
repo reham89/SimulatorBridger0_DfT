@@ -91,6 +91,9 @@ public class MainExample {
                 conf3.reset_rsu_communication_radius = x.reset_rsu_communication_radius;
                 conf3.reset_max_vehicle_communication = x.reset_max_vehicle_communication;
                 var output_folder_3 = new File(configuration_file.getParentFile(), final_out);
+
+                System.out.println("output_folder_3:" + output_folder_3);
+
                 if (!output_folder_3.exists()) {
                     output_folder_3.mkdirs();
                 }

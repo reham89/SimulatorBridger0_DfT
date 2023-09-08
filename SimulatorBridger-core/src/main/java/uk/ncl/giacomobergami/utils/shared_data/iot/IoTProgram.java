@@ -107,9 +107,10 @@ public class IoTProgram implements SimulationProgram {
 
 
     public void finaliseProgram() {
-        if (clusterConnection.getRight().isEmpty() != pathingAtEachSimulationTime.isEmpty())
-            throw new RuntimeException("ERROR");
-        else if (clusterConnection.getRight().size()+1 != pathingAtEachSimulationTime.size()) {
+//        if (clusterConnection.getRight().isEmpty() != pathingAtEachSimulationTime.isEmpty())
+//            throw new RuntimeException("ERROR");
+//        else
+            if (clusterConnection.getRight().size()+1 != pathingAtEachSimulationTime.size()) {
             throw new RuntimeException("ERROR");
         }
         var it = pathingAtEachSimulationTime.entrySet().iterator();

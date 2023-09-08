@@ -1,9 +1,9 @@
 
 trace_file: "clean_example/1_sumo_output/sumo_trace_TAVF.xml"
 logger_file: "clean_example/1_sumo_output/sumo_log.txt"
-sumo_program: "sumo"                                                                            # The path via which run the program, OS dependant!
-sumo_configuration_file_path: "/home/giacomo/Scrivania/Bologna/run_simulation.sumocfg"     # The path where the SUMO simulation is run.
-DfT_file_path: ""
+sumo_program: ""                                                                            # The path via which run the program, OS dependant!
+sumo_configuration_file_path: ""     # The path where the SUMO simulation is run.
+DfT_file_path: "C:\\Users\\c0023847\\OneDrive - Newcastle University\\Desktop\\PhD\\experiment\\datasets\\DFT dataset\\dft_traffic_counts_raw_count_halff.csv"
 default_rsu_communication_radius: 100.0
 default_max_vehicle_communication:  15
 generateRSUAdjacencyList: "uk.ncl.giacomobergami.SumoOsmosisBridger.traffic_orchestrator.TopKConnections"

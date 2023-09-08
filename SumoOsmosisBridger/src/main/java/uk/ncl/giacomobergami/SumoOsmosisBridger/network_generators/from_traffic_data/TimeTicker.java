@@ -74,6 +74,42 @@ public class TimeTicker {
     }
 
     public static List<MutablePair<Double, Double>> mergeIntervals(List<ImmutablePair<Double, Double>> ls) {
+        if (ls.isEmpty()) {
+            return new ArrayList<>();
+        } else if (ls.size() == 1) {
+            var result = new ArrayList<MutablePair<Double, Double>>();
+            var pair = ls.get(0);
+            if (pair != null) {
+                result.add(new MutablePair<>(pair.getLeft(), pair.getRight()));
+            }
+            return result;
+        } else {
+            List<MutablePair<Double, Double>> results = new ArrayList<>();
+            int i = 0;
+            while (i < ls.size()) {
+                var currentPair = ls.get(i);
+                if (currentPair != null) {
+                    var current = new MutablePair<>(currentPair.getLeft(), currentPair.getRight());
+                    i++;
+                    while ((i < ls.size()) && (ls.get(i) != null) && (ls.get(i).getLeft().equals(current.getRight()))) {
+                        current.setValue(ls.get(i).getRight());
+                        i++;
+                    }
+                    results.add(current);
+                } else {
+                    i++;
+                }
+            }
+            return results;
+        }
+    }
+
+
+
+    /*
+    * Commented out for testing
+    * Added same method above with modification and null handling
+    public static List<MutablePair<Double, Double>> mergeIntervals(List<ImmutablePair<Double, Double>> ls) {
         if (ls.size() <= 1) {
             var result = new ArrayList<MutablePair<Double, Double>>();
             result.add(new MutablePair<>(ls.get(0).getLeft(), ls.get(0).getRight()));
@@ -93,7 +129,7 @@ public class TimeTicker {
             return results;
         }
     }
-
+*/
     public double getBegin() {
         return begin;
     }
