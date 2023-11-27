@@ -34,13 +34,15 @@ public class TopKConnections implements NetworkGenerator {
             } else {
                 adj = tree.getNearestNeighbors(x, 4);
             }
-            if (adj != null) {
+            if ((adj != null) && (adj.isEmpty())) {
                 for (var next : adj) {
                     if (!Objects.equals(x, next)) {
                         result.put(x, next);
                         result.put(next, x);
                     }
                 }
+            } else {
+                result.put(x,x);
             }
         }
         return result;

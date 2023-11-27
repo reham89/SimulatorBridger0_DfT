@@ -34,6 +34,7 @@ import com.opencsv.*;
 public class DfTConverter extends TrafficConverter {
 
     private final SUMOConfiguration concreteConf;
+    private long earliestTime;
     private final NetworkGenerator netGen;
     private final RSUUpdater rsuUpdater;
     private DocumentBuilder db;
@@ -94,54 +95,44 @@ public class DfTConverter extends TrafficConverter {
             int laneColumnIndex = Arrays.asList(rows.get(0)).indexOf("Direction_of_travel");
             int dateColumnIndex = Arrays.asList(rows.get(0)).indexOf("Count_date");
             int idColumnIndex = Arrays.asList(rows.get(0)).indexOf("Count_point_id");
-            // Group rows by Count_date
-            Map<String, List<String[]>> groupedByDate = new HashMap<>();
+            // int count = 0;
             for (int i = 1; i < rows.size(); i++) {
                 String[] row = rows.get(i);
-                String date = row[dateColumnIndex];
-                groupedByDate
-                        .computeIfAbsent(date, k -> new ArrayList<>())
-                        .add(row);
-            }
-            // Iterate over each date
-            for (String date : groupedByDate.keySet()) {
-                List<String[]> dateRows = groupedByDate.get(date);
-                // Iterate from 1 to 24
-                for (double currTime = 1; currTime <= 24; currTime++) {
-                    boolean found = false;
-                    // Check if there's a row for currTime
-                    for (String[] row : dateRows) {
-                        int hour = Integer.parseInt(row[timeColumnIndex]);
-                        if (hour == currTime) {
-                            // Create TimedIoT and add to temporalOrdering
-                            int N = Integer.parseInt(row[VehColumnIndex]);
-                            double x = Double.parseDouble(row[eastColumnIndex]);
-                            double y = Double.parseDouble(row[northColumnIndex]);
-                            String lane = row[laneColumnIndex];
-                            temporalOrdering.add(currTime);
-                            var ls = new ArrayList<TimedIoT>();
-                            timedIoTDevices.put(currTime, ls);
-                            // generate ID for vehicles
-                            for (int counter = 1; counter <= N;) {
-                                TimedIoT rec = new TimedIoT();
-                                rec.id = "id_" + counter;
-                                //rec.numberOfVeh = N; // need to check
-                                rec.x = x;
-                                rec.y = y;
-                                rec.lane = lane;
-                                rec.simtime = currTime;
-                                ls.add(rec);
-                                counter++;
-                            }
-                            found = true;
-                            break;
-                        }
-                    }
+                //   String curr = String.valueOf(row[dateColumnIndex]);
+                //  double currTime = Double.parseDouble(row[timeColumnIndex]); //
+                //double currTime = 1; // bec each row has 1 hour which is 3600 sec
+                int N = 4;
+                //Integer.parseInt(row[VehColumnIndex]);
+                double x = Double.parseDouble(row[eastColumnIndex]);
+                double y = Double.parseDouble(row[northColumnIndex]);
+                int hourColumnIndex = Arrays.asList(rows.get(0)).indexOf("hour");
+                String lane = row[laneColumnIndex];
 
-                    if (!found) {
-                        // If currTime doesn't match any row, continue to the next currTime
-                        continue;
-                    }
+                String dateString = row[dateColumnIndex];
+                String hourString = row[hourColumnIndex];
+                //  String dateTimeString = dateString + "  " + hourString;
+                //  System.out.println("dateString" + dateString);
+                DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+                LocalDateTime dateTime = LocalDateTime.parse(dateString, dateFormatter);
+                // dateTime = LocalDate.parse(dateString, dateFormatter).atStartOfDay();
+                int hour = Integer.parseInt(hourString);
+                dateTime = dateTime.withHour(hour); // add the time in "hour" to the date
+                double currTime =(dateTime.toEpochSecond(ZoneOffset.UTC) -earliestTime);
+
+                temporalOrdering.add(currTime);
+                var ls = new ArrayList<TimedIoT>();
+                timedIoTDevices.put(currTime, ls);
+                // generate ID for vehicles
+                for (int counter = 0; counter <= N;) {
+                    TimedIoT rec = new TimedIoT();
+                    rec.id = "id_" + counter;
+                    //rec.numberOfVeh = N; // need to check
+                    rec.x = x;
+                    rec.y = y;
+                    rec.lane = lane;
+                    rec.simtime = currTime; //need to solve it!! let it i?
+                    ls.add(rec);
+                    counter++;
                 }
             }
 
@@ -169,8 +160,10 @@ public class DfTConverter extends TrafficConverter {
                     }
                 }
             }
-                    connectionPath.clear();
                 var tmp = netGen.apply(roadSideUnits);
+            tmp.forEach((k, v) -> {
+                connectionPath.put(k.id, v.id);
+            });
             }
         catch (FileNotFoundException e) {
             System.out.println("File not found: " + file);
@@ -187,7 +180,7 @@ public class DfTConverter extends TrafficConverter {
 
     @Override
     protected List<Double> getSimulationTimeUnits() {
-        return temporalOrdering;
+        return new ArrayList<>(new TreeSet<>(temporalOrdering));
     }
 
     @Override
@@ -254,7 +247,7 @@ public class DfTConverter extends TrafficConverter {
             }
 
             // Convert the earliest and latest date to seconds
-            long earliestTime = earliestDateTime.toEpochSecond(ZoneOffset.UTC);
+            earliestTime = earliestDateTime.toEpochSecond(ZoneOffset.UTC);
             long latestTime = latestDateTime.toEpochSecond(ZoneOffset.UTC);
 
             conf.begin = 0;

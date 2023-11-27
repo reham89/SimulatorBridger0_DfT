@@ -125,12 +125,13 @@ public class EdgeInfrastructureGenerator {
         for (int i = 0; i<hosts.size(); i++) {
             hosts.get(i).name = conf.stringToInteger.get(i);
             var el = f.apply(hosts.get(i).name);
-            var dst = hosts.get(i);
-            dst.x = el.x;
-            dst.y = el.y;
-            dst.signalRange = el.communication_radius;
+            if (el != null) {
+                var dst = hosts.get(i);
+                dst.x = el.x;
+                dst.y = el.y;
+                dst.signalRange = el.communication_radius;
+            }
         }
-
         if (conf.n_edges_to_one_core<= 0)
             throw new RuntimeException("ERROR");
         conf.n_core = conf.n_edgeDevices_and_edges % conf.n_edges_to_one_core;

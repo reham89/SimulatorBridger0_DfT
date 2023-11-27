@@ -133,9 +133,11 @@ public class EnsembleConfigurations {
 
             for (var edge : sub_network) {
                 mapEdgeToClusterName.put(edge, local.edge_network_name);
-                var neigh = timedNetwork.get(edge);
-                if ((neigh != null) && (!neigh.isEmpty())) {
-                    local.edge_switch_network.putAll(edge, neigh);
+                if (timedNetwork != null) {
+                    var neigh = timedNetwork.get(edge);
+                    if ((neigh != null) && (!neigh.isEmpty())) {
+                        local.edge_switch_network.putAll(edge, neigh);
+                    }
                 }
             }
             resultCSS.add(local);

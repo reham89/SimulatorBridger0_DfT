@@ -1,15 +1,15 @@
 cloud_network_name:                     #Defined dynamically
 gateway_name:                           #Defined dynamically
 gateway_iops:                1000000000
-n_cores:                     -1         #Defined dynamically
+n_cores:                     3         #Defined dynamically
 cores_iops:                  1000000000
 gateway_to_core_bandwidth:   1000
-n_aggregates:                -1         #Defined dynamically
+n_aggregates:                1         #Defined dynamically
 aggregates_iops:             1000000000
 core_to_aggregate_bandwidth: 1000
-n_edges:                     -1         #Defined dynamically
+n_edges:                     1         #Defined dynamically
 edges_iops:                  1000000000
-n_edges_group_size:          5
+n_edges_group_size:          1
 aggregate_to_edge_bandwidth: 1000
 hosts_and_vms:
   n_hosts_per_edges:               1
