@@ -68,6 +68,7 @@ public class SUMOConverter extends TrafficConverter {
         temporalOrdering.clear();
         timedIoTDevices.clear();
         networkFile = null;
+
         File file = new File(concreteConf.sumo_configuration_file_path);
         Document configurationFile = null;
         try {
