@@ -148,6 +148,7 @@ public class DfTConverterBolog extends TrafficConverter {
                 double x = Double.parseDouble(row[eastColumnIndex]);
                 double y = Double.parseDouble(row[northColumnIndex]);
                 double currTime = Double.parseDouble(row[timeColumnIndex]);
+                String rsu = row[idColumnIndex];
                 String lane = row[laneColumnIndex];
                 temporalOrdering.add(currTime);
                 var ls = new ArrayList<TimedIoT>();
@@ -255,42 +256,42 @@ public class DfTConverterBolog extends TrafficConverter {
             //    if (dateTime.isAfter(latestDateTime)) {
             //            latestDateTime = dateTime;
             //  }
-        //}
+            //}
 
-        // Convert the earliest and latest date to seconds
-        //  earliestTime = earliestDateTime.toEpochSecond(ZoneOffset.UTC);
-        // long latestTime = latestDateTime.toEpochSecond(ZoneOffset.UTC);
+            // Convert the earliest and latest date to seconds
+            //  earliestTime = earliestDateTime.toEpochSecond(ZoneOffset.UTC);
+            // long latestTime = latestDateTime.toEpochSecond(ZoneOffset.UTC);
 
-        conf.begin = 0;
-        conf.end = 3600;
-        conf.step = 1;
+            conf.begin = 0;
+            conf.end = 3600;
+            conf.step = 1;
 
-        // calculate the event's new timestamp (the start time for the current row)
-        //   List<String[]> filteredRows = new ArrayList<>();
-        //   for (String[] row : rows) {
-        //      if(row[dateColumnIndex].equals("Count_date")) {
-        //        continue;
-        //  }
-        //    LocalDateTime dateTime = LocalDateTime.parse(row[dateColumnIndex], dateFormatter);
-        //  int hour = Integer.parseInt(row[hourColumnIndex]);
-        //dateTime = dateTime.withHour(hour);
-        //   long timeInSeconds = dateTime.toEpochSecond(ZoneOffset.UTC) - earliestTime;
-        // if (timeInSeconds >= conf.begin && timeInSeconds <= conf.end) {
-        //   row[dateColumnIndex] = String.valueOf(timeInSeconds);
-        //      filteredRows.add(row);
-        //    }
-        // }
-        //  rows = filteredRows;
-    } catch (FileNotFoundException e) {
-        System.out.println("File not found: " + file);
-        e.printStackTrace();
-    } catch (IOException e) {
-        System.out.println("Error reading file: " + file);
-        e.printStackTrace();
-    } catch (CsvException e) {
-        System.out.println("Error parsing CSV file: " + file);
-        e.printStackTrace();
-    }
+            // calculate the event's new timestamp (the start time for the current row)
+            //   List<String[]> filteredRows = new ArrayList<>();
+            //   for (String[] row : rows) {
+            //      if(row[dateColumnIndex].equals("Count_date")) {
+            //        continue;
+            //  }
+            //    LocalDateTime dateTime = LocalDateTime.parse(row[dateColumnIndex], dateFormatter);
+            //  int hour = Integer.parseInt(row[hourColumnIndex]);
+            //dateTime = dateTime.withHour(hour);
+            //   long timeInSeconds = dateTime.toEpochSecond(ZoneOffset.UTC) - earliestTime;
+            // if (timeInSeconds >= conf.begin && timeInSeconds <= conf.end) {
+            //   row[dateColumnIndex] = String.valueOf(timeInSeconds);
+            //      filteredRows.add(row);
+            //    }
+            // }
+            //  rows = filteredRows;
+        } catch (FileNotFoundException e) {
+            System.out.println("File not found: " + file);
+            e.printStackTrace();
+        } catch (IOException e) {
+            System.out.println("Error reading file: " + file);
+            e.printStackTrace();
+        } catch (CsvException e) {
+            System.out.println("Error parsing CSV file: " + file);
+            e.printStackTrace();
+        }
         return true;
-}
+    }
 }

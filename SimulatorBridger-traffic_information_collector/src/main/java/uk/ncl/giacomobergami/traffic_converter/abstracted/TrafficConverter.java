@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 public abstract class TrafficConverter {
 
     private final String RSUCsvFile;
-    private final String vehicleCSVFile;
+    public final String vehicleCSVFile;
     private final TrafficConfiguration conf;
     private final Gson gson;
     protected TimedEdgeMediator rsum;
